@@ -1,0 +1,18 @@
+<library path="src">
+  <class name="Visualizer" type="rqt_visualizer.visualizer.Visualizer" base_class_type="rqt_gui_py::Plugin">
+    <description>
+      A Python GUI plugin for displaying Roots AI information.
+    </description>
+    <qtgui>
+      <group>
+        <label>Visualization</label>
+        <icon type="theme">folder</icon>
+        <statustip>Plugins related to visualization.</statustip>
+      </group>
+
+      <label>Visualizer</label>
+      <icon type="theme">video-display</icon>
+      <statustip>A Python GUI for displaying Roots AI information.</statustip>
+    </qtgui>
+  </class>
+</library>

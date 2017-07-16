@@ -1,0 +1,19 @@
+<package>
+<name>pi_trees_lib</name>
+<version>0.1.1</version>
+<description>Python/ROS Library for Behavior Trees</description>
+<maintainer email="patrick@pirobot.org">Patrick Goebel</maintainer>
+<license>BSD</license>
+<url type="website">http://ros.org/wiki/pi_trees</url>
+<url type="bugtracker">https://github.com/pirobot/pi_trees/issues</url>
+<author email="patrick@pirobot.org">Patrick Goebel</author>
+
+<buildtool_depend>catkin</buildtool_depend>
+
+<run_depend>rospy</run_depend>
+
+<!-- Exclude for now -->
+<!-- exec_depend>python-pygraphviz</exec_depend -->
+<!-- exec_depend>python-pygraph</exec_depend -->>
+
+</package>

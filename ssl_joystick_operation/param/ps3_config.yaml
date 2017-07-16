@@ -1,0 +1,39 @@
+# PS3 Controller
+#
+#          Button / Axes
+# select    : 0   /
+# start     : 3   /
+# key_up    : 4   / 8
+# key_right : 5   / 9
+# key_down  : 6   / 10
+# key_left  : 7   / 11
+# Lstick_h  :     / 0
+# Lstick_v  :     / 1
+# Rstick_h  :     / 2
+# Rstick_v  :     / 3
+# L2        : 8   / 12
+# R2        : 9   / 13
+# L1        : 10  / 14
+# R1        : 11  / 15
+# sankaku   : 12  / 16
+# maru      : 13  / 17
+# batsu     : 14  / 18
+# shikaku   : 15  / 19
+
+surge_axis   : 1
+sway_axis    : 0
+
+turbo_button : 11
+turn_l_axis : 12
+turn_r_axis : 13
+
+kick_x_button   : 14
+kick_z_button   : 13
+dribble_button  : 10
+
+select_button : 0
+start_button  : 3
+
+halt_button  : 4
+stopgame_button : 5
+force_start_button : 6

@@ -1,0 +1,12 @@
+<launch>
+  <group ns="ssl_joy">
+    <node name="joy_node" pkg="joy" type="joy_node">
+      <param name="~dev" value="/dev/input/js0" />
+    </node>
+
+    <node name="ssl_joystick" pkg="ssl_joystick_operation" type="joystick_node.py" output="screen">
+      <rosparam file="$(find ssl_joystick_operation)/param/ps3_config.yaml" />
+    </node>
+  </group>
+
+</launch>

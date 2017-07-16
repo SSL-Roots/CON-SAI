@@ -1,0 +1,4 @@
+/friend_color : 'yellow' or 'blue'
+/team_side    : 'left' or 'right'
+~multicast_addr : Multicast address of vision system
+~multicast_port : Multicast port of vision system
