@@ -4,4 +4,3 @@
 [submodule "xdot"]
 	path = xdot
 	url = https://github.com/jbohren/xdot
-    ignore = dirty
