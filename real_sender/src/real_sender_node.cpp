@@ -5,7 +5,7 @@
 #include    <iostream>
 #include    <string>
 #include  <unistd.h>
-#include    <msgs/robot_commands.h>
+#include    <consai_msgs/robot_commands.h>
 
 class Sender
 {
@@ -19,7 +19,7 @@ public:
         mID_ = id;
         mSerial_ = new serial::Serial(mPort_,mBaudrate_,serial::Timeout::simpleTimeout(1000));
     }
-    void callback(const msgs::robot_commandsConstPtr& msg){
+    void callback(const consai_msgs::robot_commandsConstPtr& msg){
 
         RootsSerializer serializer;
 

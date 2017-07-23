@@ -4,14 +4,14 @@ import rospy
 import shlex
 import subprocess
 import  std_msgs.msg
-import msgs.msg
+from consai_msgs.msg import VisionObservations
 
 # Global Constant
 EXPIRATION_TIME_SEC = 1.0
 MAIN_CYCLE = 10
 
 # Global varianble
-last_observation = msgs.msg.VisionObservations()
+last_observation = VisionObservations()
 friend_processes = {}
 enemy_processes = {}
 
@@ -75,7 +75,7 @@ def publishExistingIds():
 if __name__ == '__main__':
     rospy.init_node("launch_manager")
 
-    sub = rospy.Subscriber('/vision_observations', msgs.msg.VisionObservations, callback)
+    sub = rospy.Subscriber('/vision_observations', VisionObservations, callback)
     pub_existing_friends_id  = rospy.Publisher('/existing_friends_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
     pub_existing_enemies_id  = rospy.Publisher('/existing_enemies_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
 

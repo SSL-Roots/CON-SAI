@@ -8,7 +8,7 @@ from std_msgs.msg import Time
 from std_msgs.msg import UInt8
 from std_msgs.msg import UInt32
 from sensor_msgs.msg import Joy
-import msgs.msg
+from msgs.msg import robot_commands
 import topic_tools.srv
 # import ssl_refbox.msg
 
@@ -72,7 +72,7 @@ class RobotCommand():
 
     def __init__(self):
         self.pub = rospy.Publisher(
-            '~robot_commands', msgs.msg.robot_commands, queue_size=10)
+            '~robot_commands', robot_commands, queue_size=10)
 
         self.surge_axis = rospy.get_param('~surge_axis')
         self.sway_axis = rospy.get_param('~sway_axis')
@@ -87,7 +87,7 @@ class RobotCommand():
         self.holonomic = True
 
     def publish(self, joy):
-        commands = msgs.msg.robot_commands()
+        commands = robot_commands()
 
         if buttons.isEdgeOn(self.select_button) == True:
             self.holonomic  = not self.holonomic

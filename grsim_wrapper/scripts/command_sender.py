@@ -8,7 +8,7 @@ import  time
 import math
 
 from    geometry_msgs.msg import Twist
-from    msgs.msg import robot_commands
+from    consai_msgs.msg import robot_commands
 
 
 class Sender:

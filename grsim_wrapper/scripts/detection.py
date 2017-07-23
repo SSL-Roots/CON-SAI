@@ -15,8 +15,7 @@ from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 from tf.transformations import euler_from_quaternion
-import msgs
-from msgs.msg import RobotPoses
+from consai_msgs.msg import RobotPoses, VisionObservations, VisionRobotPackets, VisionPacket
 
 
 def reversePoint(self):
@@ -180,7 +179,7 @@ class FormatConverter:
         self.table = []
 
     def tableToRosmsg(self):
-        rosmsg = msgs.msg.VisionObservations()
+        rosmsg = VisionObservations()
 
         rosmsg.header.stamp = rospy.Time.now()
 
@@ -199,7 +198,7 @@ class FormatConverter:
 
                 if id_index == None:
                     # this robot has not detected yet (in this observation)
-                    robot_packets    = msgs.msg.VisionRobotPackets()
+                    robot_packets    = VisionRobotPackets()
                     robot_packets.robot_id   = obs['robot_id']
                     rosmsg.friends.append(robot_packets)
                     id_index   = len(rosmsg.friends) - 1
@@ -217,7 +216,7 @@ class FormatConverter:
 
                 if id_index == None:
                     # this robot has not detected yet (in this observation)
-                    robot_packets    = msgs.msg.VisionRobotPackets()
+                    robot_packets    = VisionRobotPackets()
                     robot_packets.robot_id   = obs['robot_id']
                     rosmsg.enemies.append(robot_packets)
                     id_index   = len(rosmsg.enemies) - 1
@@ -228,7 +227,7 @@ class FormatConverter:
         return rosmsg
 
     def observationToVisionPacket(self, observation):
-        vision_packet   = msgs.msg.VisionPacket()
+        vision_packet   = VisionPacket()
 
         vision_packet.t_capture = observation['t_capture']
         vision_packet.t_sent    = observation['t_sent']
@@ -372,7 +371,7 @@ if __name__ == '__main__':
     friend_list_publisher = rospy.Publisher('friend_poses', RobotPoses, queue_size=10)
 
     pub_vision_observations = rospy.Publisher(
-        'vision_observations', msgs.msg.VisionObservations, queue_size=10)
+        'vision_observations', VisionObservations, queue_size=10)
 
     if our_side == 'LEFT':
         do_side_invert  = False

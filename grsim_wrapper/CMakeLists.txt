@@ -6,7 +6,7 @@ project(grsim_wrapper)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
-  msgs
+  consai_msgs
   roscpp
   rospy
   std_msgs

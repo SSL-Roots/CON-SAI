@@ -1,18 +1,20 @@
-#include  "ros/ros.h"
-#include  "std_msgs/String.h"
-#include  "geometry_msgs/PoseArray.h"
-#include    <geometry_msgs/Accel.h>
-#include "geometry_msgs/Pose.h"
-#include  "nav_msgs/Odometry.h"
-#include    <msgs/VisionObservations.h>
-#include  <tf/transform_datatypes.h>
-#include  <tf/transform_broadcaster.h>
-#include  <sensor_msgs/PointCloud.h>
-#include  <sstream>
+#include <ros/ros.h>
+#include <std_msgs/String.h>
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/Accel.h>
+#include <geometry_msgs/Pose.h>
+#include <nav_msgs/Odometry.h>
+#include <consai_msgs/VisionObservations.h>
+#include <consai_msgs/VisionRobotPackets.h>
+#include <consai_msgs/VisionPacket.h>
+#include <tf/transform_datatypes.h>
+#include <tf/transform_broadcaster.h>
+#include <sensor_msgs/PointCloud.h>
+#include <sstream>
 
-#include  <world_observer/estimator.hpp>
-#include  <world_observer/enemy_estimator.hpp>
-#include  <world_observer/ball_estimator.hpp>
+#include <world_observer/estimator.hpp>
+#include <world_observer/enemy_estimator.hpp>
+#include <world_observer/ball_estimator.hpp>
 
 
 
@@ -49,9 +51,9 @@ protected:
   bool  observation_refreshed;
 
   virtual void publish(nav_msgs::Odometry odom) = 0;
-  virtual void visionCallBackProcess(msgs::VisionObservations msg) = 0;
+  virtual void visionCallBackProcess(consai_msgs::VisionObservations msg) = 0;
 
-  void visionCallBack(const msgs::VisionObservations::ConstPtr& msg)
+  void visionCallBack(const consai_msgs::VisionObservations::ConstPtr& msg)
   {
     visionCallBackProcess(*msg);
 //    last_observation  = *msg;
@@ -121,18 +123,18 @@ protected:
     pub_odom.publish(odom);
   }
 
-  void  visionCallBackProcess(msgs::VisionObservations msg)
+  void  visionCallBackProcess(consai_msgs::VisionObservations msg)
   {
       geometry_msgs::PoseArray  pose_array;
 
-      vector<msgs::VisionRobotPackets>::iterator it;
+      vector<consai_msgs::VisionRobotPackets>::iterator it;
 
       it = msg.friends.begin();
 
       for (it = msg.friends.begin() ; it != msg.friends.end(); ++it) {
           // search desired robot id
           if (it->robot_id == _robot_id) {
-              for (vector<msgs::VisionPacket>::iterator it_pack = it->packets.begin(); it_pack != it->packets.end(); ++it_pack) {
+              for (vector<consai_msgs::VisionPacket>::iterator it_pack = it->packets.begin(); it_pack != it->packets.end(); ++it_pack) {
                   if (doSkip(it_pack->pose) ){
                       continue;
                   }
@@ -195,18 +197,18 @@ protected:
     pub_odom.publish(odom);
   }
 
-  void  visionCallBackProcess(msgs::VisionObservations msg)
+  void  visionCallBackProcess(consai_msgs::VisionObservations msg)
   {
       geometry_msgs::PoseArray  pose_array;
 
-      vector<msgs::VisionRobotPackets>::iterator it;
+      vector<consai_msgs::VisionRobotPackets>::iterator it;
 
       it = msg.enemies.begin();
 
       for (it = msg.enemies.begin() ; it != msg.enemies.end(); ++it) {
           // search desired robot id
           if (it->robot_id == _robot_id) {
-              for (vector<msgs::VisionPacket>::iterator it_pack = it->packets.begin(); it_pack != it->packets.end(); ++it_pack) {
+              for (vector<consai_msgs::VisionPacket>::iterator it_pack = it->packets.begin(); it_pack != it->packets.end(); ++it_pack) {
                   if (doSkip(it_pack->pose) ){
                       continue;
                   }
@@ -262,11 +264,11 @@ protected:
     pub_odom.publish(odom);
   }
 
-  void  visionCallBackProcess(msgs::VisionObservations msg)
+  void  visionCallBackProcess(consai_msgs::VisionObservations msg)
   {
       geometry_msgs::PoseArray  pose_array;
 
-      for (vector<msgs::VisionPacket>::iterator it_pack = msg.ball.begin(); it_pack != msg.ball.end(); ++it_pack) {
+      for (vector<consai_msgs::VisionPacket>::iterator it_pack = msg.ball.begin(); it_pack != msg.ball.end(); ++it_pack) {
           if (doSkip(it_pack->pose) ){
               continue;
           }

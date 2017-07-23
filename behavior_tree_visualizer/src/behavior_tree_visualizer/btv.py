@@ -8,8 +8,7 @@ from python_qt_binding.QtGui import QWidget
 from python_qt_binding.QtGui import QPalette
 from python_qt_binding.QtCore import Qt
 
-from msgs.msg import nodeData
-from msgs.msg import nodeDataArray
+from consai_msgs.msg import nodeData, nodeDataArray
 
 from xdot.xdot_qt import DotWidget
 import pygraphviz as pygr

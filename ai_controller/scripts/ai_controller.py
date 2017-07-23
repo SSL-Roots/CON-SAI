@@ -5,12 +5,12 @@ import math
 
 import  std_msgs.msg
 import  geometry_msgs.msg
-import  msgs.msg
+from consai_msgs.msg import AIStatus, robot_commands
 
 
 G_cmd_vel   = geometry_msgs.msg.Twist()
 G_kick_vel  = std_msgs.msg.Float32()
-G_AIStatus = msgs.msg.AIStatus()
+G_AIStatus = AIStatus()
 G_is_cmdvel_received   = False
 G_is_kickvel_received   = False
 G_is_AIStatus_received = False
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     # set publisher
     pub = rospy.Publisher(
-        'robot_commands', msgs.msg.robot_commands, queue_size=10)
+        'robot_commands', robot_commands, queue_size=10)
 
     # get parameters
     friend_color = rospy.get_param('/friend_color')
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # Define Subscriber
     rospy.Subscriber("cmd_vel", geometry_msgs.msg.Twist, recvCmdvel)
     rospy.Subscriber("kick_velocity", std_msgs.msg.Float32, recvKickVel)
-    rospy.Subscriber("ai_status", msgs.msg.AIStatus, recvAIStatus)
+    rospy.Subscriber("ai_status", AIStatus, recvAIStatus)
 
     r   = rospy.Rate(60)
 
@@ -60,7 +60,7 @@ if __name__ == '__main__':
         if G_is_cmdvel_received \
                 and G_is_kickvel_received \
                 and G_is_AIStatus_received:
-            commands = msgs.msg.robot_commands()
+            commands = robot_commands()
 
             commands.vel_surge  = G_cmd_vel.linear.x
             commands.vel_sway   = G_cmd_vel.linear.y

@@ -17,7 +17,7 @@
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/UInt16MultiArray.h>
-#include <msgs/AIStatus.h>
+#include <consai_msgs/AIStatus.h>
 
 #include "transformation.h"
 
@@ -38,7 +38,7 @@ class Controller{
         void callbackFriendPose(const ros::MessageEvent<nav_msgs::Odometry const>& event);
         void callbackEnemyIDs(const std_msgs::UInt16MultiArrayConstPtr& msg);
         void callbackFriendIDs(const std_msgs::UInt16MultiArrayConstPtr& msg);
-        void callbackAIStatus(const msgs::AIStatus& msg);
+        void callbackAIStatus(const consai_msgs::AIStatus& msg);
         void callbackBallPoint(const nav_msgs::OdometryConstPtr& msg);
 
     private:
@@ -53,7 +53,7 @@ class Controller{
         std::vector<int> mEnemyIDs;
         std::vector<int> mFriendIDs;
         geometry_msgs::Point mAvoidPoint;
-        msgs::AIStatus mAIStatus;
+        consai_msgs::AIStatus mAIStatus;
         geometry_msgs::Point mBallPoint;
 
         bool mIsVelocityControl;
@@ -228,7 +228,7 @@ void Controller::callbackFriendIDs(const std_msgs::UInt16MultiArrayConstPtr& msg
     std::copy(msg->data.begin(), msg->data.end(), std::back_inserter(mFriendIDs));
 }
 
-void Controller::callbackAIStatus(const msgs::AIStatus& msg){
+void Controller::callbackAIStatus(const consai_msgs::AIStatus& msg){
     mAIStatus = msg;
 }
 

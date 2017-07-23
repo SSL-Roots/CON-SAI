@@ -21,9 +21,7 @@ from    std_msgs.msg import Float32
 from    std_msgs.msg import String
 from    std_msgs.msg import UInt16MultiArray as UIntArray
 from    nav_msgs.msg import Odometry
-from    msgs.msg import nodeData
-from    msgs.msg import nodeDataArray
-from    msgs.msg import AIStatus
+from consai_msgs.msg import nodeData, nodeDataArray, AIStatus
 from geometry_msgs.msg import Point
 
 import IDLinker
