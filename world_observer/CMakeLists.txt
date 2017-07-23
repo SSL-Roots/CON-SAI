@@ -158,6 +158,7 @@ target_link_libraries(world_observer
  ${catkin_LIBRARIES}
  ${BFL_LIBRARIES}
 )
+add_dependencies(world_observer consai_msgs_generate_messages_cpp)
 
 #############
 ## Install ##

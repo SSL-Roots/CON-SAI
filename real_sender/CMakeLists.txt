@@ -138,10 +138,12 @@ src/real_sender_node.cpp)
 # add_dependencies(real_sender_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # Specify libraries to link a library or executable target against
- target_link_libraries(real_sender_node
-   real_sender
-   ${catkin_LIBRARIES}
- )
+target_link_libraries(real_sender_node
+    real_sender
+    ${catkin_LIBRARIES}
+)
+
+add_dependencies(real_sender_node consai_msgs_generate_messages_cpp)
 
 #############
 ## Install ##

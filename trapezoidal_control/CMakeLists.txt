@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   tf
+  consai_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -150,6 +151,7 @@ add_executable(${PROJECT_NAME}_node src/trapezoidal_control_node.cpp)
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
+add_dependencies(trapezoidal_control_node consai_msgs_generate_messages_cpp)
 
 #############
 ## Install ##
