@@ -51,7 +51,7 @@ $ source devel/setup.***sh
 ```
 
 
-### Google Protobufをダウンロード&インストール
+### Google Protobufをインストール
 
 [**ダウンロード protobuf-2.5.0.zip**](
 https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.zip
@@ -87,7 +87,7 @@ $ sudo apt-get install graphviz libgraphviz-dev pkg-config
 $ sudo pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 ```
 
-### CON-SAIをダウンロード&ビルド
+### CON-SAIをインストール
 ```
 # CON-SAIをクローン
 $ git clone https://github.com/SSL-Roots/CON-SAI ~/catkin_ws/src/CON-SAI
@@ -97,7 +97,7 @@ $ cd ~/catkin_ws/src/CON-SAI
 $ git submodule init
 $ git submodule update
 
-# ワークスペースに移動しCON-SAIをビルド
+# ワークスペースに移動しCON-SAIをコンパイル
 $ cd ~/catkin_ws
 $ catkin_make
 
@@ -106,9 +106,9 @@ $ catkin_make
 
 CON-SAIの使い方は[チュートリアル](Tutorial.md)に書いてます。
 
-チュートリアルを始める前に下記のgrSimとReferee Boxをダウンロード&ビルドしてください。
+チュートリアルを始める前に下記のgrSimとReferee Boxをインストールしてください。
 
-## RoboCup SSLのAI開発に必要なツールをダウンロード&ビルド
+## RoboCup SSLのAI開発に必要なツールをインストール
 
 RoboCup SSLのAI開発にはシミュレータ(grSim)と審判ソフト(Referee Box)があると便利です。
 
