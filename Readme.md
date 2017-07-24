@@ -116,7 +116,7 @@ RoboCup SSLのAI開発にはシミュレータ(grSim)と審判ソフト(Referee 
 
 [grSim](https://github.com/RoboCup-SSL/grSim)
 
-[Referee Box](https://github.com/RoboCup-SSL/ssl-refbox)
+[Referee Box](https://robocup-ssl.github.io/ssl-refbox/)
 
 ## Tutorial
 
