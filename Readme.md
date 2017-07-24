@@ -2,13 +2,18 @@
 CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 初めて参加する人でも開発できるサッカーAIです。
 
-**CON**tribution for **S**occer **AI**
+**CON**tribution to **S**occer **AI**
 
 ## Requirements
 このAIプログラムはUbuntu 14.04で作成・テストしてます。
 
 また、使用しているROS IndigoはUbuntu 14.04以下で動作するため、
 Ubuntu 14.04のインストールを推奨します。
+
+下記のPCスペックで問題なく動作します。
+* Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
+* 8 GB of RAM
+* 有線LANポート（試合会場では有線LANでロボット・ボール位置座標データを受信します)
 
 ## Installation
 
@@ -103,7 +108,7 @@ CON-SAIの使い方は[チュートリアル](Tutorial.md)に書いてます。
 
 チュートリアルを始める前に下記のgrSimとReferee Boxをダウンロード&ビルドしてください。
 
-### RoboCup SSLのAI開発に必要なツールをダウンロード&ビルド
+## RoboCup SSLのAI開発に必要なツールをダウンロード&ビルド
 
 RoboCup SSLのAI開発にはシミュレータ(grSim)と審判ソフト(Referee Box)があると便利です。
 
@@ -123,7 +128,7 @@ grSimを使ったシミュレータ上でのロボット操作方法、
 
 ## Author
 
-CON-SAIはRoboCup SSLに参加している日本人チーム***Roots***が作成しています。
+CON-SAIはRoboCup SSLに参加している日本人チーム**Roots**が作成しています。
 
 RoboCup SSLへの参加方法、ロボットに必要な機能、開発環境などは
 Rootsのホームページに記載してます。
