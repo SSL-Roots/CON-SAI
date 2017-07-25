@@ -8,7 +8,7 @@ from std_msgs.msg import Time
 from std_msgs.msg import UInt8
 from std_msgs.msg import UInt32
 from sensor_msgs.msg import Joy
-from msgs.msg import robot_commands
+from consai_msgs.msg import robot_commands
 import topic_tools.srv
 # import ssl_refbox.msg
 

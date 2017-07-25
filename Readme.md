@@ -43,6 +43,10 @@ $ catkin_make
 # ***shには使用しているshellを入力 (etc: bash, zsh)
 $ source devel/setup.***sh 
 
+# ROSのパッケージを追加するたびに入力する必要があるので
+# bashrcやzshrcなどに加えておくと楽です
+
+$ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 ```
 
 
