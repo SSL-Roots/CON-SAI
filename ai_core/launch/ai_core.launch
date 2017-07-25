@@ -29,7 +29,7 @@
   <!-- launch "launch manager" -->
   <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" />
 
-  <include file="$(find ssl_joystick_operation)/launch/ssl_joystick_operation.launch" />
+  <!-- <include file="$(find ssl_joystick_operation)/launch/ssl_joystick_operation.launch" /> -->
 
   <!-- Visualizer -->
   <!-- <node name="rviz" pkg="rviz" type="rviz" /> -->
