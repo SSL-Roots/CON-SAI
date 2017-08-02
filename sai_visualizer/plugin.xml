@@ -1,7 +1,7 @@
 <library path="src">
-  <class name="Visualizer" type="rqt_visualizer.visualizer.Visualizer" base_class_type="rqt_gui_py::Plugin">
+  <class name="Visualizer" type="sai_visualizer.visualizer.Visualizer" base_class_type="rqt_gui_py::Plugin">
     <description>
-      A Python GUI plugin for displaying Roots AI information.
+      A Python GUI plugin for displaying CON-SAI information.
     </description>
     <qtgui>
       <group>
@@ -10,9 +10,9 @@
         <statustip>Plugins related to visualization.</statustip>
       </group>
 
-      <label>Visualizer</label>
+      <label>SAI-Visualizer</label>
       <icon type="theme">video-display</icon>
-      <statustip>A Python GUI for displaying Roots AI information.</statustip>
+      <statustip>A Python GUI for displaying CON-SAI information.</statustip>
     </qtgui>
   </class>
 </library>

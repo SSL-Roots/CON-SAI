@@ -17,12 +17,12 @@ class Visualizer(Plugin):
 
         self._widget = QWidget()
 
-        ui_file = os.path.join(rospkg.RosPack().get_path("rqt_visualizer"), \
+        ui_file = os.path.join(rospkg.RosPack().get_path("sai_visualizer"), \
                 "resource", "visualizer_widget.ui")
         loadUi(ui_file, self._widget, {"PaintWidget": PaintWidget})
         self._widget.setObjectName("VisualizerUi")
 
-        self._widget.setWindowTitle("Roots Visualizer")
+        self._widget.setWindowTitle("SAI Visualizer")
 
         # Show _widget.windowTitle on left-top of each plugin (when 
         # it's set in _widget). This is useful when you open multiple 

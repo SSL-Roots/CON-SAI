@@ -2,9 +2,9 @@
 
 import sys
 
-from rqt_visualizer.visualizer import Visualizer
+from sai_visualizer.visualizer import Visualizer
 from rqt_gui.main import Main
 
-plugin = 'rqt_visualizer'
+plugin = 'sai_visualizer'
 main = Main(filename=plugin)
 sys.exit(main.main(standalone=plugin))

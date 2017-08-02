@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>rqt_visualizer</name>
+  <name>sai_visualizer</name>
   <version>0.0.0</version>
-  <description>rqt_visualizer provides a GUI plugin for displaying field objects and AI information.</description>
+  <description>sai_visualizer provides a GUI plugin for displaying field objects and AI information.</description>
 
   <maintainer email="macakasit@gmail.com">ShotaAk</maintainer>
 

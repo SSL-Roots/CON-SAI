@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Roots Visualizer</string>
+   <string>SAI Visualizer</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
@@ -23,7 +23,7 @@
   <customwidget>
    <class>PaintWidget</class>
    <extends>QWidget</extends>
-   <header>rqt_visualizer.visualizer</header>
+   <header>sai_visualizer.visualizer</header>
   </customwidget>
  </customwidgets>
  <resources/>
