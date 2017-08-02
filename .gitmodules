@@ -1,8 +1,0 @@
-[submodule "serial"]
-	path = serial
-	url = https://github.com/wjwwood/serial.git
-    ignore = dirty
-[submodule "xdot"]
-	path = xdot
-	url = https://github.com/jbohren/xdot
-    ignore = dirty
