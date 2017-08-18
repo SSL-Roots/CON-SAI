@@ -84,11 +84,27 @@ Referee BoxでStop Game -> Kick Off -> Normal Start -> Haltとボタンを押し
 3台のロボットが動き、1台のロボットがボールを蹴ったら成功です。
 
 
-
 ### チームカラー/サイドの切り替え
-執筆中
 
+下記ファイルのfriend_colorをyellowに、team_sideをrightにすることで、
+右守りのイエローチームとしてAIを動かせます
 
+**ai_core/param/our_team.yaml**
+```yaml
+friend_color : 'yellow'
+team_side    : 'right'
+robots_num   : 6
+```
+
+out_team.yamlを変更後、先ほどと同じようにロボットを動かしてみてください。
+
+見方サイドは右側になったにもかかわらず、
+SAI Visualizer上では黄色ロボットが左側に表示され、右側へボールを蹴ることが確認できます。
+
+これは、SSL-Visionから受信した座標をチームサイドに合わせて変換しているためです。
+
+見方サイドが常に左側(x軸座標でマイナス側)となるため、
+右側を攻める戦略プログラムを作成すればコートチェンジにも問題なく対応できます。
 
 
 
