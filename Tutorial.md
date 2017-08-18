@@ -2,6 +2,8 @@
 
 ## シミュレータ(grSim)のロボットを動かす
 
+![sai_visualizer](https://github.com/SSL-Roots/CON-SAI/blob/Images/Images/sai_visualizer.png "sai_visualizer")
+
 ### マルチキャストアドレス/ポート設定
 
 grSimを起動してCommunicationパラメータを確認します。
@@ -74,6 +76,8 @@ $ rqt --standalone sai_visualizer
 $ rqt
 
 ```
+
+![open sai_visualizer](https://github.com/SSL-Roots/CON-SAI/blob/Images/Images/rqt_open_sai.png "open SAI-Visualizer")
 
 CON-SAI起動後、grSimとReferee Boxを起動してください。
 
