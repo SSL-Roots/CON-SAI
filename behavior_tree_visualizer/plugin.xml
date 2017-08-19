@@ -1,12 +1,12 @@
 <library path="src">
     <class name="Behavior Tree Visualizer" type="behavior_tree_visualizer.btv.BTV" base_class_type="rqt_gui_py::Plugin">
         <description>
-            A Visualizer for the Behavior Tree in SSL_Roots_AI.
+            A Visualizer for the Behavior Tree in CON-SAI.
         </description>
         <qtgui>
             <label>Behavior Tree Visualizer</label>
             <icon type="theme">phone</icon>
-            <statustip>A Visualizer for the Behavior Tree in SSL_Roots_AI.</statustip>
+            <statustip>A Visualizer for the Behavior Tree in CON-SAI.</statustip>
         </qtgui>
     </class>
 </library>
