@@ -16,11 +16,18 @@ class Multicast():
         default_iface = "eth0"
         if default_iface in netifaces.interfaces():
             iface_data = netifaces.ifaddresses(default_iface)
-            addr = iface_data.get(netifaces.AF_INET)[0]["addr"]
+            iface_inet = iface_data.get(netifaces.AF_INET)
+            if iface_inet is None:
+                rospy.logerr("no ip address is assigned to %s"%(default_iface,))
+                return
+            addr = iface_inet[0]["addr"]
         else:
             for iface_name in netifaces.interfaces():
                 iface_data = netifaces.ifaddresses(iface_name)
-                addr = iface_data.get(netifaces.AF_INET)[0]["addr"]
+                iface_inet = iface_data.get(netifaces.AF_INET)
+                if iface_inet is None:
+                    continue
+                addr = iface_inet[0]["addr"]
 
                 #ローカルループバックアドレスを省く
                 if(addr != "127.0.0.1"):
