@@ -30,6 +30,8 @@ class ConstWorld():
         self.WALL_WIDTH = self.FIELD_WIDTH - 0.4 * 2.0
         self.PLAY_FIELD_HEIGHT = 6.0
         self.PLAY_FIELD_WIDTH = 9.0
+        self.GOAL_HEIGHT = 1.0
+        self.GOAL_WIDTH = 0.18
         self.BALL_RADIUS = 0.043
         self.ROBOT_RADIUS = 0.18 * 0.5
 
@@ -319,37 +321,59 @@ class PaintWidget(QWidget):
 
         rx = self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
         ry = self.CW.FIELD_STREACH * 0.5 + self.CW.FIELD_DEFENCE_RADIUS
-
+        ry *= -1.0
         rx *= self.scaleOnField
         ry *= self.scaleOnField
 
-        ry *= -1.0
         rect = QRectF(rx, ry, sizeX, sizeY)
-
         startAngle = 90 * 16
         spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle)
-
+        painter.drawArc(rect, startAngle, spanAngle) # top right
         
         ry = self.CW.FIELD_STREACH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
         ry *= self.scaleOnField
         rect = QRectF(rx, ry, sizeX, sizeY)
         startAngle = 180 * 16
         spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle)
+        painter.drawArc(rect, startAngle, spanAngle) # bottom right
 
-        rx = -self.CW.FIELD_WIDTH - self.CW.FIELD_DEFENCE_RADIUS
+
+        rx = -self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
         ry = self.CW.FIELD_STREACH * 0.5 + self.CW.FIELD_DEFENCE_RADIUS
-
+        ry *= -1.0
         rx *= self.scaleOnField
         ry *= self.scaleOnField
+
         rect = QRectF(rx, ry, sizeX, sizeY)
-        startAngle = 180 * 16
+        startAngle = 0 * 16
         spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle)
+        painter.drawArc(rect, startAngle, spanAngle) # top left
+
+        ry = self.CW.FIELD_STREACH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
+        ry *= self.scaleOnField
+
+        rect = QRectF(rx, ry, sizeX, sizeY)
+        startAngle = 270 * 16
+        spanAngle = 90 * 16
+        painter.drawArc(rect, startAngle, spanAngle) # bottom left
 
         
+        # draw goal rectangle
+        sizeX = self.CW.GOAL_WIDTH * self.scaleOnField
+        sizeY = self.CW.GOAL_HEIGHT * self.scaleOnField
 
+        rx = self.CW.PLAY_FIELD_WIDTH * 0.5
+        ry = -self.CW.GOAL_HEIGHT * 0.5
+        rx *= self.scaleOnField
+        ry *= self.scaleOnField
+
+        rect = QRectF(rx, ry, sizeX, sizeY)
+        painter.drawRect(rect)
+
+        rx = -self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.GOAL_WIDTH
+        rx *= self.scaleOnField
+        rect = QRectF(rx, ry, sizeX, sizeY)
+        painter.drawRect(rect)
 
 
     def drawBall(self, painter):
