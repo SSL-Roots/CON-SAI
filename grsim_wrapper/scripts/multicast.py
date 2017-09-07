@@ -10,38 +10,26 @@ import  std_msgs
 
 class Multicast():
     def __init__(self, group_addr, port):
-        my_addr='0.0.0.0'
-        if_addr="0.0.0.0"
+        bind_addr = '0.0.0.0'
 
-        default_iface = "eth0"
-        if default_iface in netifaces.interfaces():
-            iface_data = netifaces.ifaddresses(default_iface)
-            iface_inet = iface_data.get(netifaces.AF_INET)
-            if iface_inet is None:
-                rospy.logerr("no ip address is assigned to %s"%(default_iface,))
-                return
-            addr = iface_inet[0]["addr"]
-        else:
-            for iface_name in netifaces.interfaces():
-                iface_data = netifaces.ifaddresses(iface_name)
-                iface_inet = iface_data.get(netifaces.AF_INET)
-                if iface_inet is None:
-                    continue
-                addr = iface_inet[0]["addr"]
+        # Create a IPv4/UDP socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-                #ローカルループバックアドレスを省く
-                if(addr != "127.0.0.1"):
-                    if_addr = addr
+        # Avoid error 'Address already in use'.
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        server_address=(my_addr, port)
+        # Construct a membership_request
+        membership_request = socket.inet_aton(group_addr) + socket.inet_aton(bind_addr)
 
-        self.sock   = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        self.sock.bind(server_address)
+        # Send add membership request to socket
+        self.sock.setsockopt(socket.IPPROTO_IP, 
+                socket.IP_ADD_MEMBERSHIP, membership_request)
 
-        mreq=socket.inet_aton(group_addr)+socket.inet_aton(if_addr)
-        self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
+        # Bind the socket to an interfaces
+        self.sock.bind((bind_addr, port))
 
-        self.sock.setblocking(False)  # set receiving mode to non-blocking mode
+        # Set non-blocking receiving mode
+        self.sock.setblocking(False)
 
         self.publisher = rospy.Publisher('/raw_vision', std_msgs.msg.String, queue_size=10)
 
