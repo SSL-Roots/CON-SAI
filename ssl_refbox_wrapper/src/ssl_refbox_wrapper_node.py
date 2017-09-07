@@ -26,6 +26,9 @@ if  __name__ == '__main__':
     while not   rospy.is_shutdown():
         buf    = sock.recv(1024)
 
+        if buf == None:
+            continue
+
         protobuf.ParseFromString(buf)
 
         pub_stage.publish(Int8(protobuf.stage));
