@@ -5,32 +5,32 @@
 
 class BallEstimator : public Estimator
 {
-public:
-  //constructor
-  BallEstimator(double loop_time);
-  ~BallEstimator();
+    public:
+        //constructor
+        BallEstimator(double loop_time);
+        ~BallEstimator();
 
-protected:
-  double  dt;
+    protected:
+        double  dt;
 
-  LinearAnalyticConditionalGaussian* sys_pdf;
-  LinearAnalyticSystemModelGaussianUncertainty* sys_model;
-  LinearAnalyticConditionalGaussian* meas_pdf;
-  LinearAnalyticMeasurementModelGaussianUncertainty* meas_model;
-  KalmanFilter* filter;
-  Gaussian* prior;
+        LinearAnalyticConditionalGaussian* sys_pdf;
+        LinearAnalyticSystemModelGaussianUncertainty* sys_model;
+        LinearAnalyticConditionalGaussian* meas_pdf;
+        LinearAnalyticMeasurementModelGaussianUncertainty* meas_model;
+        KalmanFilter* filter;
+        Gaussian* prior;
 
-  void initSystemModel();
-  void initMeasurementModel();
+        void initSystemModel();
+        void initMeasurementModel();
 
-  void  predict(ColumnVector input);
-  void  update(ColumnVector measurement);
+        void  predict(ColumnVector input);
+        void  update(ColumnVector measurement);
 
-  ColumnVector  convertPoseMsgToMeasureVector(geometry_msgs::Pose pose);
-  ColumnVector  convertAccelMsgToInputVector(geometry_msgs::Accel acc);
-  nav_msgs::Odometry  convetEstimationToOdometry();
+        ColumnVector  convertPoseMsgToMeasureVector(geometry_msgs::Pose pose);
+        ColumnVector  convertAccelMsgToInputVector(geometry_msgs::Accel acc);
+        nav_msgs::Odometry  convetEstimationToOdometry();
 
-  Estimation getResult();
+        Estimation getResult();
 
 };
 

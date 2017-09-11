@@ -12,41 +12,41 @@ Estimator::Estimator()
 
 nav_msgs::Odometry  Estimator::estimate()
 {
-  std::vector<geometry_msgs::Pose> null_poses;
+    std::vector<geometry_msgs::Pose> null_poses;
 
-  return  this->estimate(null_poses);
+    return  this->estimate(null_poses);
 }
 
 
 nav_msgs::Odometry  Estimator::estimate(const std::vector<geometry_msgs::Pose>& poses)
 {
-  geometry_msgs::Accel  null_acc;
+    geometry_msgs::Accel  null_acc;
 
-  return  this->estimate(null_acc, poses);
+    return  this->estimate(null_acc, poses);
 }
 
 
 nav_msgs::Odometry  Estimator::estimate(geometry_msgs::Accel acc, const std::vector<geometry_msgs::Pose>& poses)
 {
-  // System update by only system model with input
-  predict(convertAccelMsgToInputVector(acc));
+    // System update by only system model with input
+    predict(convertAccelMsgToInputVector(acc));
 
-  for (size_t i = 0; i < poses.size(); i++) {
-    ColumnVector  measurement = convertPoseMsgToMeasureVector(poses.at(i));
+    for (size_t i = 0; i < poses.size(); i++) {
+        ColumnVector  measurement = convertPoseMsgToMeasureVector(poses.at(i));
 
-    // TODO:check outlier
-    // if (isOutLier()) {
-    if (1 == 0) {
-      continue;
+        // TODO:check outlier
+        // if (isOutLier()) {
+        if (1 == 0) {
+            continue;
+        }
+
+        update(measurement);
     }
 
-    update(measurement);
-  }
-
-  return  convetEstimationToOdometry();
-}
+    return  convetEstimationToOdometry();
+    }
 
 
-Estimator::~Estimator()
-{
-}
+    Estimator::~Estimator()
+    {
+    }

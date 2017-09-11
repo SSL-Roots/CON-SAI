@@ -19,29 +19,29 @@ using namespace std;
 
 class Estimator
 {
-public:
-  Estimator();
-  ~Estimator();
+    public:
+        Estimator();
+        ~Estimator();
 
-  nav_msgs::Odometry  estimate();
-  nav_msgs::Odometry  estimate(const std::vector<geometry_msgs::Pose>& poses);
-  nav_msgs::Odometry  estimate(geometry_msgs::Accel acc, const std::vector<geometry_msgs::Pose>& poses);
+        nav_msgs::Odometry  estimate();
+        nav_msgs::Odometry  estimate(const std::vector<geometry_msgs::Pose>& poses);
+        nav_msgs::Odometry  estimate(geometry_msgs::Accel acc, const std::vector<geometry_msgs::Pose>& poses);
 
-protected:
-  class Estimation {
-  public:
-    ColumnVector  val;
-    SymmetricMatrix cov;
-  };
+    protected:
+        class Estimation {
+            public:
+                ColumnVector  val;
+                SymmetricMatrix cov;
+        };
 
-  Estimation  last_estimation;
+        Estimation  last_estimation;
 
-  virtual void  predict(ColumnVector input) = 0;
-  virtual void  update(ColumnVector measurement) = 0;
+        virtual void  predict(ColumnVector input) = 0;
+        virtual void  update(ColumnVector measurement) = 0;
 
-  virtual ColumnVector  convertPoseMsgToMeasureVector(geometry_msgs::Pose pose) = 0;
-  virtual ColumnVector  convertAccelMsgToInputVector(geometry_msgs::Accel acc) = 0;
-  virtual nav_msgs::Odometry  convetEstimationToOdometry() = 0;
+        virtual ColumnVector  convertPoseMsgToMeasureVector(geometry_msgs::Pose pose) = 0;
+        virtual ColumnVector  convertAccelMsgToInputVector(geometry_msgs::Accel acc) = 0;
+        virtual nav_msgs::Odometry  convetEstimationToOdometry() = 0;
 };
 
 
