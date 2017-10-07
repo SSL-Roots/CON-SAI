@@ -5,9 +5,9 @@ from pi_trees_lib.task_setup import *
 
 from skills.turn_off import TurnOff
 
-class Stop(ParallelAll):
+class TacticHalt(ParallelAll):
     def __init__(self, name, my_role):
-        super(Stop, self).__init__(name)
+        super(TacticHalt, self).__init__(name)
 
         self.add_child(TurnOff('TurnOff', my_role))
 

@@ -13,7 +13,7 @@ class TurnOff(Task):
         self.my_role = my_role
 
     def run(self):
-        WorldModel.commands[self.my_role].set_target_velocity(0.01, 0.0, 0.0)
+        WorldModel.commands[self.my_role].set_target_velocity(0.0, 0.0, 0.0)
 
         return TaskStatus.RUNNING
 
