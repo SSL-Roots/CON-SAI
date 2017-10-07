@@ -55,14 +55,20 @@ class WorldModel(object):
     situations = {'HALT' : False, 'STOP' : False}
     recent_situations = {'BALL_MOVED' : False, 'OUR_ROBOT_CHANGED' : False}
     current_situation = False
-    assignments = {'Role_0' : None, 'Role_1' : None,
-                  'Role_2' : None, 'Role_3' : None,
-                  'Role_4' : None, 'Role_5' : None}
+
+    assignments = OrderedDict()
+    assignments['Role_0'] = None
+    assignments['Role_1'] = None
+    assignments['Role_2'] = None
+    assignments['Role_3'] = None
+    assignments['Role_4'] = None
+    assignments['Role_5'] = None
 
     commands = {'Role_0' : Command(), 'Role_1' : Command(),
                 'Role_2' : Command(), 'Role_3' : Command(),
                 'Role_4' : Command(), 'Role_5' : Command()}
 
+    goalie_id = 0
     refbox_command = 0
     friend_color = 'blue'
     ball_odom = Odometry()
@@ -86,12 +92,19 @@ class WorldModel(object):
     def update_assignments(cls):
         unassigned_roles, unassigned_IDs = WorldModel._check_unassignment()
 
+        # Goalie_IDはRole_0に固定する
+        if WorldModel.goalie_id in unassigned_IDs:
+            WorldModel.assignments['Role_0'] = WorldModel.goalie_id
+            unassigned_IDs.remove(WorldModel.goalie_id)
+            unassigned_roles.remove('Role_0')
+
         for role in unassigned_roles:
-            if unassigned_IDs:
+            if unassigned_IDs and role != 'Role_0':
                 WorldModel.assignments[role] = unassigned_IDs.pop()
             else:
                 WorldModel.assignments[role] = None
 
+        
 
     @classmethod
     def set_existing_friends_id(cls, data):
