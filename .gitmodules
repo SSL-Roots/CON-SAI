@@ -6,3 +6,7 @@
 	path = xdot
 	url = https://github.com/jbohren/xdot
     ignore = dirty
+[submodule "pi_trees"]
+	path = pi_trees
+	url = https://github.com/pirobot/pi_trees
+    ignore = dirty
