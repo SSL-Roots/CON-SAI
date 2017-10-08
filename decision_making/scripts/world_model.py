@@ -3,13 +3,14 @@
 
 import rospy
 import tf
-
 from collections import OrderedDict
 
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point
+
+import tool
 
 class Command(object):
     def __init__(self):
@@ -80,7 +81,8 @@ class WorldModel(object):
 
     @classmethod
     def update_world(cls):
-        WorldModel.situations['HALT'] = True
+        # WorldModel.situations['HALT'] = True
+        WorldModel.situations['STOP'] = True
 
 
     @classmethod
@@ -117,6 +119,22 @@ class WorldModel(object):
         
 
     @classmethod
+    def get_robot_pose(cls, role):
+        robot_id = WorldModel.assignments[role]
+
+        if robot_id is None:
+            return None
+
+        target = 'map'
+        base = tool.getFriendBase(robot_id)
+        WorldModel.tf_listener.waitForTransform(target, base, rospy.Time(0), rospy.Duration(3.0))
+        (point, orientation) = WorldModel.tf_listener.lookupTransform(target, base, rospy.Time(0))
+        yaw = tool.yawFromTfQuaternion(orientation)
+
+        return point[0], point[1], yaw
+        
+
+    @classmethod
     def _check_unassignment(cls):
         unassigned_roles = []
         unassigned_IDs = WorldModel.existing_friends_id
@@ -136,6 +154,4 @@ class WorldModel(object):
 
         return unassigned_roles, unassigned_IDs
         
-
-
 
