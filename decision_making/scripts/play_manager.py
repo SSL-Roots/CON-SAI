@@ -23,7 +23,6 @@ class PlayManager(object):
         self._select_play()
 
         WorldModel.update_assignments()
-        rospy.loginfo(WorldModel.assignments)
 
         self._execute_play()
 
@@ -69,7 +68,7 @@ class PlayManager(object):
                     self._play_termination = True
                     
         if self._play.timeout:
-            if rospy.get_time - self._play_past_time > self._play.timeout:
+            if rospy.get_time() - self._play_past_time > self._play.timeout:
                 self._play_termination = True
 
         # TODO(Asit) write recent_done termination 

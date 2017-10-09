@@ -10,6 +10,7 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Point
 
+from referee_pb2 import SSL_Referee
 import tool
 
 class Command(object):
@@ -53,9 +54,18 @@ class Command(object):
 
 
 class WorldModel(object):
-    situations = {'HALT' : False, 'STOP' : False}
+    situations = {'HALT' : False, 'STOP' : False, 'FORCE_START' : False,
+            'OUR_KICKOFF_PRE' : False, 'OUR_KICKOFF_START' : False,
+            'OUR_PENALTY_PRE' : False, 'OUR_PENALTY_START' : False,
+            'OUR_DIRECT' : False, 'OUR_INDIRECT' : False,
+            'OUR_TIMEOUT' : False,
+            'THEIR_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
+            'THEIR_PENALTY' : False, 'THEIR_PENALTY_START' : False,
+            'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
+            'THEIR_TIMEOUT' : False}
+
     recent_situations = {'BALL_MOVED' : False, 'OUR_ROBOT_CHANGED' : False}
-    current_situation = False
+    current_situation = 'HALT'
 
     assignments = OrderedDict()
     assignments['Role_0'] = None
@@ -70,7 +80,6 @@ class WorldModel(object):
                 'Role_4' : Command(), 'Role_5' : Command()}
 
     goalie_id = 0
-    refbox_command = 0
     friend_color = 'blue'
     ball_odom = Odometry()
     existing_friends_id = [None] * 6
@@ -78,11 +87,69 @@ class WorldModel(object):
 
     tf_listener = tf.TransformListener()
 
+    _refbox_command = None
+    _refbox_command_changed = False
+
+    _refbox_dict_blue = {SSL_Referee.HALT : 'HALT', SSL_Referee.STOP : 'STOP',
+            SSL_Referee.NORMAL_START : 'NORMAL_START', 
+            SSL_Referee.FORCE_START : 'FORCE_START',
+            SSL_Referee.PREPARE_KICKOFF_BLUE : 'OUR_KICKOFF_PRE',
+            SSL_Referee.PREPARE_PENALTY_BLUE : 'OUR_PENALTY_PRE',
+            SSL_Referee.DIRECT_FREE_BLUE : 'OUR_DIRECT',
+            SSL_Referee.INDIRECT_FREE_BLUE : 'OUR_INDIRECT',
+            SSL_Referee.TIMEOUT_BLUE : 'OUR_TIMEOUT',
+            SSL_Referee.PREPARE_KICKOFF_YELLOW : 'THEIR_KICKOFF_PRE',
+            SSL_Referee.PREPARE_PENALTY_YELLOW : 'THEIR_PENALTY_PRE',
+            SSL_Referee.DIRECT_FREE_YELLOW : 'THEIR_DIRECT',
+            SSL_Referee.INDIRECT_FREE_YELLOW : 'THEIR_INDIRECT',
+            SSL_Referee.TIMEOUT_YELLOW : 'THEIR_TIMEOUT'}
+
+    _refbox_dict_yellow = {SSL_Referee.HALT : 'HALT', SSL_Referee.STOP : 'STOP',
+            SSL_Referee.NORMAL_START : 'NORMAL_START', 
+            SSL_Referee.FORCE_START : 'FORCE_START',
+            SSL_Referee.PREPARE_KICKOFF_BLUE : 'THEIR_KICKOFF_PRE',
+            SSL_Referee.PREPARE_PENALTY_BLUE : 'THEIR_PENALTY_PRE',
+            SSL_Referee.DIRECT_FREE_BLUE : 'THEIR_DIRECT',
+            SSL_Referee.INDIRECT_FREE_BLUE : 'THEIR_INDIRECT',
+            SSL_Referee.TIMEOUT_BLUE : 'THEIR_TIMEOUT',
+            SSL_Referee.PREPARE_KICKOFF_YELLOW : 'OUR_KICKOFF_PRE',
+            SSL_Referee.PREPARE_PENALTY_YELLOW : 'OUR_PENALTY_PRE',
+            SSL_Referee.DIRECT_FREE_YELLOW : 'OUR_DIRECT',
+            SSL_Referee.INDIRECT_FREE_YELLOW : 'OUR_INDIRECT',
+            SSL_Referee.TIMEOUT_YELLOW : 'OUR_TIMEOUT'}
+    _refbox_dict = _refbox_dict_blue
+
 
     @classmethod
     def update_world(cls):
-        # WorldModel.situations['HALT'] = True
-        WorldModel.situations['STOP'] = True
+        # situation の更新
+        if WorldModel._refbox_command_changed:
+            WorldModel._refbox_command_changed = False
+            WorldModel.situations[WorldModel.current_situation] = False
+
+            refbox_command = WorldModel._refbox_dict[WorldModel._refbox_command]
+
+            # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
+            if refbox_command == 'NORMAL_START':
+                if WorldModel.current_situation == 'OUR_KICKOFF_PRE':
+                    WorldModel.current_situation = 'OUR_KICKOFF_START'
+
+                elif WorldModel.current_situation == 'OUR_PENALTY_PRE':
+                    WorldModel.current_situation = 'OUR_PENALTY_START'
+
+                elif WorldModel.current_situation == 'THEIR_KICKOFF_PRE':
+                    WorldModel.current_situation = 'THEIR_KICKOFF_START'
+
+                elif WorldModel.current_situation == 'THEIR_PENALTY_PRE':
+                    WorldModel.current_situation = 'THEIR_PENALTY_START'
+
+                else:
+                    WorldModel.current_situation = 'FORCE_START'
+            else:
+                WorldModel.current_situation = refbox_command
+
+            WorldModel.situations[refbox_command] = True
+
 
 
     @classmethod
@@ -106,6 +173,14 @@ class WorldModel(object):
             else:
                 WorldModel.assignments[role] = None
 
+    
+    @classmethod
+    def set_friend_color(cls, data):
+        WorldModel.friend_color = data
+        if data == 'blue':
+            WorldModel._refbox_dict = WorldModel._refbox_dict_blue
+        elif data == 'yellow':
+            WorldModel._refbox_dict = WorldModel._refbox_dict_yellow
         
 
     @classmethod
@@ -117,6 +192,12 @@ class WorldModel(object):
     def set_existing_enemies_id(cls, data):
         WorldModel.existing_enemies_id = list(data)
         
+
+    @classmethod
+    def set_refbox_command(cls, data):
+        if WorldModel._refbox_command != data:
+            WorldModel._refbox_command_changed = True
+            WorldModel._refbox_command = data
 
     @classmethod
     def get_robot_pose(cls, role):

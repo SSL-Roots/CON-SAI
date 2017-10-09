@@ -59,7 +59,7 @@ def enemyIDCallback(msg):
 
 
 def refboxCallback(msg):
-    WorldModel.refbox_command = msg.data
+    WorldModel.set_refbox_command(msg.data)
 
 
 def ballCallback(msg):
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     sub_id              = rospy.Subscriber("/existing_friends_id",UIntArray,friendIDCallback)
     sub_enemy_id        = rospy.Subscriber("/existing_enemies_id",UIntArray,enemyIDCallback)
 
-    WorldModel.friend_color = rospy.get_param("/friend_color")
+    WorldModel.set_friend_color(rospy.get_param('/friend_color'))
 
 
     main()
