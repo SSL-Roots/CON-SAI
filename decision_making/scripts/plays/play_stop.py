@@ -2,6 +2,7 @@
 from play_base import Play
 
 from tactics.tactic_position import TacticPosition
+from tactics.tactic_interpose import TacticInterpose
 
 class PlayStop(Play):
     def __init__(self):
@@ -15,6 +16,9 @@ class PlayStop(Play):
             y = 2.0 - 0.4 * i
             yaw = 0
 
+            to_dist = 0.4 + 0.4 * i
+
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
-                    TacticPosition('TacticPosition', self.roles[i].my_role, x, y, yaw))
+                    # TacticPosition('TacticPosition', self.roles[i].my_role, x, y, yaw))
+                    TacticInterpose('TacticInterpose', self.roles[i].my_role, to_dist=to_dist))
