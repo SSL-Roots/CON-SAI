@@ -16,9 +16,10 @@ class PlayStop(Play):
             y = 2.0 - 0.4 * i
             yaw = 0
 
-            to_dist = 0.4 + 0.4 * i
+            # to_dist = 0.4 + 0.4 * i
+            from_dist = 0.3 + 0.3 * i
 
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     # TacticPosition('TacticPosition', self.roles[i].my_role, x, y, yaw))
-                    TacticInterpose('TacticInterpose', self.roles[i].my_role, to_dist=to_dist))
+                    TacticInterpose('TacticInterpose', self.roles[i].my_role, from_dist=from_dist))

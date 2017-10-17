@@ -33,15 +33,23 @@ class Coordinate(object):
     
 
     def _update_interpose(self):
-        goal_pos = constants.GoalFriend
-        ball_pos = WorldModel.ball_odom.pose.pose.position
+        base_pos = constants.GoalFriend
+        target_pos = WorldModel.ball_odom.pose.pose.position
 
-        angle_to_ball = tool.getAngle(goal_pos, ball_pos)
-        trans = tool.Trans(goal_pos, angle_to_ball)
-        tr_interposed_pos = Point(self._to_dist, 0.0, 0)
-        interposed_pos = trans.invertedTransform(tr_interposed_pos)
+        angle_to_target = tool.getAngle(base_pos, target_pos)
+        
+        interposed_pos = Point(0, 0, 0)
+        if self._to_dist:
+            trans = tool.Trans(base_pos, angle_to_target)
+            tr_interposed_pos = Point(self._to_dist, 0.0, 0)
+            interposed_pos = trans.invertedTransform(tr_interposed_pos)
+        elif self._from_dist:
+            angle_to_base = tool.getAngle(target_pos, base_pos)
+            trans = tool.Trans(target_pos, angle_to_base)
+            tr_interposed_pos = Point(self._from_dist, 0.0, 0)
+            interposed_pos = trans.invertedTransform(tr_interposed_pos)
 
-        self.pose = interposed_pos.x, interposed_pos.y, angle_to_ball
+        self.pose = interposed_pos.x, interposed_pos.y, angle_to_target
 
         
         

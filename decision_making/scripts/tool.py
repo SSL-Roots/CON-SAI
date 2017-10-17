@@ -33,7 +33,7 @@ def normalize(angle):
 
     return angle
 
-def ivertAngle(angle):
+def invertAngle(angle):
     return normalize(angle + math.pi)
 
 def getAngle(fromPoint, toPoint):
