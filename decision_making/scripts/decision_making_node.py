@@ -66,6 +66,14 @@ def ballCallback(msg):
     WorldModel.ball_odom = msg
 
 
+def callback_friend_odom(msg, robot_id):
+    WorldModel.friend_odoms[robot_id] = msg
+
+
+def callback_enemy_odom(msg, robot_id):
+    WorldModel.enemy_odoms[robot_id] = msg
+
+
 def main():
     r   = rospy.Rate(10)
 
@@ -81,14 +89,24 @@ if __name__ == '__main__':
 
     play_manager = PlayManager()
 
+    # Publishers for the robots controll
     pubs_position = []
     pubs_velocity = []
     pubs_kick_velocity = []
     pubs_ai_status = []
 
-    # Publishers for the robots controll
+    # Subscribers
+    sub_refbox_command  = rospy.Subscriber("/refbox/command", Int8, refboxCallback)
+    sub_ball            = rospy.Subscriber("/ball_observer/estimation", Odometry, ballCallback)
+    sub_friend_id              = rospy.Subscriber("/existing_friends_id",UIntArray,friendIDCallback)
+    sub_enemy_id        = rospy.Subscriber("/existing_enemies_id",UIntArray,enemyIDCallback)
+    subs_friend_odom = []
+    subs_enemy_odom = []
+
     for robot_id in xrange(12):
         id_str = str(robot_id)
+        topic_friend_odom = "/robot_" + id_str + "/odom"
+        topic_enemy_odom = "/enemy_" + id_str + "/odom"
         topic_position = "/robot_"+id_str+"/move_base_simple/goal"
         topic_velocity = "/robot_"+id_str+"/move_base_simple/target_velocity"
         topic_kick_velocity = "/robot_"+id_str+"/kick_velocity"
@@ -115,11 +133,13 @@ if __name__ == '__main__':
                     AIStatus,
                     queue_size=10))
 
-    # Subscriber
-    sub_refbox_command  = rospy.Subscriber("/refbox/command", Int8, refboxCallback)
-    sub_ball            = rospy.Subscriber("/ball_observer/estimation", Odometry, ballCallback)
-    sub_id              = rospy.Subscriber("/existing_friends_id",UIntArray,friendIDCallback)
-    sub_enemy_id        = rospy.Subscriber("/existing_enemies_id",UIntArray,enemyIDCallback)
+        subs_friend_odom.append(
+                rospy.Subscriber(topic_friend_odom, Odometry,
+                    callback_friend_odom, callback_args=robot_id))
+
+        subs_enemy_odom.append(
+                rospy.Subscriber(topic_enemy_odom, Odometry,
+                    callback_enemy_odom, callback_args=robot_id))
 
     WorldModel.set_friend_color(rospy.get_param('/friend_color'))
 

@@ -79,11 +79,18 @@ class WorldModel(object):
                 'Role_2' : Command(), 'Role_3' : Command(),
                 'Role_4' : Command(), 'Role_5' : Command()}
 
-    goalie_id = 0
-    friend_color = 'blue'
     ball_odom = Odometry()
+
+    friend_goalie_id = 0
+    friend_color = 'blue'
+    friend_odoms = [Odometry()] * 12
     existing_friends_id = [None] * 6
+
+    enemy_goalie_id = 0
+    enemy_odoms = [Odometry()] * 12
     existing_enemies_id = [None] * 6
+    enemy_id_ascending_order = []
+
 
     tf_listener = tf.TransformListener()
 
@@ -122,34 +129,9 @@ class WorldModel(object):
 
     @classmethod
     def update_world(cls):
-        # situation の更新
-        if WorldModel._refbox_command_changed:
-            WorldModel._refbox_command_changed = False
-            WorldModel.situations[WorldModel.current_situation] = False
+        WorldModel._update_situation()
 
-            refbox_command = WorldModel._refbox_dict[WorldModel._refbox_command]
-
-            # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
-            if refbox_command == 'NORMAL_START':
-                if WorldModel.current_situation == 'OUR_KICKOFF_PRE':
-                    WorldModel.current_situation = 'OUR_KICKOFF_START'
-
-                elif WorldModel.current_situation == 'OUR_PENALTY_PRE':
-                    WorldModel.current_situation = 'OUR_PENALTY_START'
-
-                elif WorldModel.current_situation == 'THEIR_KICKOFF_PRE':
-                    WorldModel.current_situation = 'THEIR_KICKOFF_START'
-
-                elif WorldModel.current_situation == 'THEIR_PENALTY_PRE':
-                    WorldModel.current_situation = 'THEIR_PENALTY_START'
-
-                else:
-                    WorldModel.current_situation = 'FORCE_START'
-            else:
-                WorldModel.current_situation = refbox_command
-
-            WorldModel.situations[refbox_command] = True
-
+        WorldModel._update_enemy_id_orders()
 
 
     @classmethod
@@ -162,9 +144,9 @@ class WorldModel(object):
         unassigned_roles, unassigned_IDs = WorldModel._check_unassignment()
 
         # Goalie_IDはRole_0に固定する
-        if WorldModel.goalie_id in unassigned_IDs:
-            WorldModel.assignments['Role_0'] = WorldModel.goalie_id
-            unassigned_IDs.remove(WorldModel.goalie_id)
+        if WorldModel.friend_goalie_id in unassigned_IDs:
+            WorldModel.assignments['Role_0'] = WorldModel.friend_goalie_id
+            unassigned_IDs.remove(WorldModel.friend_goalie_id)
             unassigned_roles.remove('Role_0')
 
         for role in unassigned_roles:
@@ -200,20 +182,31 @@ class WorldModel(object):
             WorldModel._refbox_command = data
 
     @classmethod
-    def get_robot_pose(cls, role):
+    def get_role_pose(cls, role):
         robot_id = WorldModel.assignments[role]
 
         if robot_id is None:
-            return None
+            return 0,0,0
 
-        target = 'map'
-        base = tool.getFriendBase(robot_id)
-        WorldModel.tf_listener.waitForTransform(target, base, rospy.Time(0), rospy.Duration(3.0))
-        (point, orientation) = WorldModel.tf_listener.lookupTransform(target, base, rospy.Time(0))
-        yaw = tool.yawFromTfQuaternion(orientation)
+        position = WorldModel.friend_odoms[robot_id].pose.pose.position
+        orientation = WorldModel.friend_odoms[robot_id].pose.pose.orientation
+        yaw = tool.yawFromQuaternion(orientation)
 
-        return point[0], point[1], yaw
+        return position.x, position.y, yaw
         
+
+    @classmethod
+    def get_enemy_pose(cls, robot_id):
+        if not robot_id in WorldModel.existing_enemies_id or \
+                robot_id is None:
+            return 0,0,0
+
+        position = WorldModel.enemy_odoms[robot_id].pose.pose.position
+        orientation = WorldModel.enemy_odoms[robot_id].pose.pose.orientation
+        yaw = tool.yawFromQuaternion(orientation)
+
+        return position.x, position.y, yaw
+
 
     @classmethod
     def _check_unassignment(cls):
@@ -235,4 +228,46 @@ class WorldModel(object):
 
         return unassigned_roles, unassigned_IDs
         
+
+    @classmethod
+    def _update_situation(cls):
+        if WorldModel._refbox_command_changed:
+            WorldModel._refbox_command_changed = False
+            WorldModel.situations[WorldModel.current_situation] = False
+
+            refbox_command = WorldModel._refbox_dict[WorldModel._refbox_command]
+
+            # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
+            if refbox_command == 'NORMAL_START':
+                if WorldModel.current_situation == 'OUR_KICKOFF_PRE':
+                    WorldModel.current_situation = 'OUR_KICKOFF_START'
+
+                elif WorldModel.current_situation == 'OUR_PENALTY_PRE':
+                    WorldModel.current_situation = 'OUR_PENALTY_START'
+
+                elif WorldModel.current_situation == 'THEIR_KICKOFF_PRE':
+                    WorldModel.current_situation = 'THEIR_KICKOFF_START'
+
+                elif WorldModel.current_situation == 'THEIR_PENALTY_PRE':
+                    WorldModel.current_situation = 'THEIR_PENALTY_START'
+
+                else:
+                    WorldModel.current_situation = 'FORCE_START'
+            else:
+                WorldModel.current_situation = refbox_command
+
+            WorldModel.situations[refbox_command] = True
+
+
+
+    @classmethod
+    def _update_enemy_id_orders(cls):
+        raw_id_list = list(WorldModel.existing_enemies_id)
+        
+        # raw listからgoalieのIDを取り除く
+        if WorldModel.enemy_goalie_id in raw_id_list:
+            raw_id_list.remove(WorldModel.enemy_goalie_id)
+
+        WorldModel.enemy_id_ascending_order = sorted(raw_id_list)
+
 
