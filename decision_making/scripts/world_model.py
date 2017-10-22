@@ -186,26 +186,26 @@ class WorldModel(object):
         robot_id = WorldModel.assignments[role]
 
         if robot_id is None:
-            return 0,0,0
+            return Point(0,0,0)
 
         position = WorldModel.friend_odoms[robot_id].pose.pose.position
         orientation = WorldModel.friend_odoms[robot_id].pose.pose.orientation
         yaw = tool.yawFromQuaternion(orientation)
 
-        return position.x, position.y, yaw
+        return Point(position.x, position.y, yaw)
         
 
     @classmethod
     def get_enemy_pose(cls, robot_id):
         if not robot_id in WorldModel.existing_enemies_id or \
                 robot_id is None:
-            return 0,0,0
+            return Point(0,0,0)
 
         position = WorldModel.enemy_odoms[robot_id].pose.pose.position
         orientation = WorldModel.enemy_odoms[robot_id].pose.pose.orientation
         yaw = tool.yawFromQuaternion(orientation)
 
-        return position.x, position.y, yaw
+        return Point(position.x, position.y, yaw)
 
 
     @classmethod
