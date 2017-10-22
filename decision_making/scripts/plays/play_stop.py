@@ -3,6 +3,7 @@ from play_base import Play
 
 from tactics.tactic_position import TacticPosition
 from tactics.tactic_interpose import TacticInterpose
+from tactics.tactic_mark import TacticMark
 
 class PlayStop(Play):
     def __init__(self):
@@ -11,15 +12,14 @@ class PlayStop(Play):
         self.applicalbe = "STOP"
         self.done_aborted = "STOP"
 
-        for i in range(6):
-            x = -1.0
-            y = 2.0 - 0.4 * i
-            yaw = 0
+        self.roles[0].loop_enable = True
+        self.roles[0].behavior.add_child(
+                TacticMark('TacticMark', self.roles[0].my_role, target='Enemy_Goalie'))
 
-            # to_dist = 0.4 + 0.4 * i
-            from_dist = 0.3 + 0.3 * i
+        for i in range(1,6):
+            target_name = 'Enemy_' + str(i)
 
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
-                    # TacticPosition('TacticPosition', self.roles[i].my_role, x, y, yaw))
-                    TacticInterpose('TacticInterpose', self.roles[i].my_role, from_dist=from_dist))
+                    TacticMark('TacticMark', self.roles[i].my_role, target=target_name))
+

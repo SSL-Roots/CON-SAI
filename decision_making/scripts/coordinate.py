@@ -20,9 +20,11 @@ class Coordinate(object):
 
 
     def update(self):
+        result = False
         if self._update_func:
-            self._update_func()
+            result = self._update_func()
 
+        return result
 
     def set_interpose(self, base="CONST_OUR_GOAL", target="Ball", to_dist=None, from_dist=None):
 
@@ -38,6 +40,9 @@ class Coordinate(object):
         base_pos = WorldModel.get_pose(self._base)
         target_pos = WorldModel.get_pose(self._target)
 
+        if base_pos is None or target_pos is None:
+            return False
+
         angle_to_target = tool.getAngle(base_pos, target_pos)
         
         interposed_pos = Point(0, 0, 0)
@@ -52,4 +57,6 @@ class Coordinate(object):
             interposed_pos = trans.invertedTransform(tr_interposed_pos)
 
         self.pose = interposed_pos.x, interposed_pos.y, angle_to_target
+        
+        return True
 

@@ -212,7 +212,7 @@ class WorldModel(object):
         robot_id = WorldModel.assignments[role]
 
         if robot_id is None:
-            return Point(0,0,0)
+            return None
 
         position = WorldModel.friend_odoms[robot_id].pose.pose.position
         orientation = WorldModel.friend_odoms[robot_id].pose.pose.orientation
@@ -226,7 +226,7 @@ class WorldModel(object):
         robot_id = WorldModel.enemy_assignments[role]
 
         if robot_id is None:
-            return Point(0,0,0)
+            return None
 
         position = WorldModel.enemy_odoms[robot_id].pose.pose.position
         orientation = WorldModel.enemy_odoms[robot_id].pose.pose.orientation
