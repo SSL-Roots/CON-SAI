@@ -89,8 +89,14 @@ class WorldModel(object):
     enemy_goalie_id = 0
     enemy_odoms = [Odometry()] * 12
     existing_enemies_id = [None] * 6
-    enemy_id_ascending_order = []
 
+    enemy_assignments = OrderedDict()
+    enemy_assignments['Enemy_Goalie'] = None
+    enemy_assignments['Enemy_1'] = None
+    enemy_assignments['Enemy_2'] = None
+    enemy_assignments['Enemy_3'] = None
+    enemy_assignments['Enemy_4'] = None
+    enemy_assignments['Enemy_5'] = None
 
     tf_listener = tf.TransformListener()
 
@@ -131,7 +137,7 @@ class WorldModel(object):
     def update_world(cls):
         WorldModel._update_situation()
 
-        WorldModel._update_enemy_id_orders()
+        WorldModel._update_enemy_assignments()
 
 
     @classmethod
@@ -182,7 +188,7 @@ class WorldModel(object):
             WorldModel._refbox_command = data
 
     @classmethod
-    def get_role_pose(cls, role):
+    def get_friend_pose(cls, role):
         robot_id = WorldModel.assignments[role]
 
         if robot_id is None:
@@ -196,9 +202,10 @@ class WorldModel(object):
         
 
     @classmethod
-    def get_enemy_pose(cls, robot_id):
-        if not robot_id in WorldModel.existing_enemies_id or \
-                robot_id is None:
+    def get_enemy_pose(cls, role):
+        robot_id = WorldModel.enemy_assignments[role]
+
+        if robot_id is None:
             return Point(0,0,0)
 
         position = WorldModel.enemy_odoms[robot_id].pose.pose.position
@@ -261,13 +268,22 @@ class WorldModel(object):
 
 
     @classmethod
-    def _update_enemy_id_orders(cls):
+    def _update_enemy_assignments(cls):
         raw_id_list = list(WorldModel.existing_enemies_id)
+        
+        # enemy_assignmnetsを初期化
+        for key in WorldModel.enemy_assignments.keys():
+            WorldModel.enemy_assignments[key] = None
         
         # raw listからgoalieのIDを取り除く
         if WorldModel.enemy_goalie_id in raw_id_list:
             raw_id_list.remove(WorldModel.enemy_goalie_id)
+            WorldModel.enemy_assignments['Enemy_Goalie'] = WorldModel.enemy_goalie_id
 
-        WorldModel.enemy_id_ascending_order = sorted(raw_id_list)
+        key_i = 1
+        for enemy_id in raw_id_list:
+            key = 'Enemy_' + str(key_i)
+            WorldModel.enemy_assignments[key] = enemy_id
+            key_i += 1
 
 
