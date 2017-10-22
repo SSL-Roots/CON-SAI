@@ -188,6 +188,20 @@ class WorldModel(object):
             WorldModel._refbox_command = data
 
     @classmethod
+    def get_pose(cls, role):
+        point = Point(0,0,0)
+
+        if role == 'Ball':
+            ball_pose = WorldModel.ball_odom.pose.pose.position
+            point = Point(ball_pose.x, ball_pose.y, 0)
+        elif role[:4] == 'Role':
+            point = WorldModel.get_friend_pose(role)
+        elif role[:5] == 'Enemy':
+            point = WorldModel.get_enemy_pose(role)
+
+        return point
+
+    @classmethod
     def get_friend_pose(cls, role):
         robot_id = WorldModel.assignments[role]
 
@@ -237,6 +251,26 @@ class WorldModel(object):
         
 
     @classmethod
+    def _update_enemy_assignments(cls):
+        raw_id_list = list(WorldModel.existing_enemies_id)
+        
+        # enemy_assignmnetsを初期化
+        for key in WorldModel.enemy_assignments.keys():
+            WorldModel.enemy_assignments[key] = None
+        
+        # raw listからgoalieのIDを取り除く
+        if WorldModel.enemy_goalie_id in raw_id_list:
+            raw_id_list.remove(WorldModel.enemy_goalie_id)
+            WorldModel.enemy_assignments['Enemy_Goalie'] = WorldModel.enemy_goalie_id
+
+        key_i = 1
+        for enemy_id in raw_id_list:
+            key = 'Enemy_' + str(key_i)
+            WorldModel.enemy_assignments[key] = enemy_id
+            key_i += 1
+
+
+    @classmethod
     def _update_situation(cls):
         if WorldModel._refbox_command_changed:
             WorldModel._refbox_command_changed = False
@@ -265,25 +299,5 @@ class WorldModel(object):
 
             WorldModel.situations[refbox_command] = True
 
-
-
-    @classmethod
-    def _update_enemy_assignments(cls):
-        raw_id_list = list(WorldModel.existing_enemies_id)
-        
-        # enemy_assignmnetsを初期化
-        for key in WorldModel.enemy_assignments.keys():
-            WorldModel.enemy_assignments[key] = None
-        
-        # raw listからgoalieのIDを取り除く
-        if WorldModel.enemy_goalie_id in raw_id_list:
-            raw_id_list.remove(WorldModel.enemy_goalie_id)
-            WorldModel.enemy_assignments['Enemy_Goalie'] = WorldModel.enemy_goalie_id
-
-        key_i = 1
-        for enemy_id in raw_id_list:
-            key = 'Enemy_' + str(key_i)
-            WorldModel.enemy_assignments[key] = enemy_id
-            key_i += 1
 
 
