@@ -1,10 +1,9 @@
 from geometry_msgs.msg import Point
 
-GoalFriend = Point()
-GoalFriend.x, GoalFriend.y = -4.5, 0.0
-GoalEnemy = Point()
-GoalEnemy.x, GoalEnemy.y = 4.5, 0.0
-PenaltyEnemy = Point(3.5, 0.0, 0)
+poses = {
+        'CONST_OUR_GOAL' : Point(-4.5, 0.0, 0),
+        'CONST_THEIR_GOAL' : Point(4.5, 0.0, 0),
+        'CONST_PENALTY_ENEMY' : Point(3.5, 0.0, 0)}
 
 GoalSize = 1.0
 GoalHalfSize = GoalSize * 0.5

@@ -12,6 +12,7 @@ from geometry_msgs.msg import Point
 
 from referee_pb2 import SSL_Referee
 import tool
+import constants
 
 class Command(object):
     def __init__(self):
@@ -188,16 +189,21 @@ class WorldModel(object):
             WorldModel._refbox_command = data
 
     @classmethod
-    def get_pose(cls, role):
+    def get_pose(cls, name):
         point = Point(0,0,0)
 
-        if role == 'Ball':
+        if name == 'Ball':
             ball_pose = WorldModel.ball_odom.pose.pose.position
             point = Point(ball_pose.x, ball_pose.y, 0)
-        elif role[:4] == 'Role':
-            point = WorldModel.get_friend_pose(role)
-        elif role[:5] == 'Enemy':
-            point = WorldModel.get_enemy_pose(role)
+
+        elif name[:4] == 'Role':
+            point = WorldModel.get_friend_pose(name)
+
+        elif name[:5] == 'Enemy':
+            point = WorldModel.get_enemy_pose(name)
+
+        elif name[:5] == 'CONST':
+            point = constants.poses[name]
 
         return point
 
