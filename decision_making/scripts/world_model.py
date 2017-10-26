@@ -158,7 +158,7 @@ class WorldModel(object):
 
         for role in unassigned_roles:
             if unassigned_IDs and role != 'Role_0':
-                WorldModel.assignments[role] = unassigned_IDs.pop()
+                WorldModel.assignments[role] = unassigned_IDs.pop(0)
             else:
                 WorldModel.assignments[role] = None
 
