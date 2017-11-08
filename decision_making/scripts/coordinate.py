@@ -1,4 +1,7 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
+import math
 import tool
 import constants
 from world_model import WorldModel
@@ -13,6 +16,10 @@ class Coordinate(object):
         self._base = None
         self._target = None
         self._update_func = None
+
+        # arrival parameters
+        self._arrived_position_tolerance = 0.05 # unit:meter
+        self._arrived_angle_tolerance = 15.0 * math.pi / 180.0
 
         # interpose
         self._to_dist = None
@@ -35,6 +42,29 @@ class Coordinate(object):
 
         self._update_func = self._update_interpose
     
+
+    def is_arrived(self, role):
+        # robotが目標位置に到着したかを判断する
+        # 厳し目につける
+
+        role_pose = WorldModel.get_pose(role)
+
+        if role_pose is None:
+            return False
+
+        arrived = False
+
+        distance = tool.getSize(self.pose, role_pose)
+
+        # 目標位置との距離、目標角度との差がtolerance以下であれば到着判定
+        if distance < self._arrived_position_tolerance:
+            diff_angle = self.pose.theta - role_pose.theta
+            
+            if tool.normalize(diff_angle) < self._arrived_angle_tolerance:
+                arrived = True
+
+        return arrived
+
 
     def _update_interpose(self):
         base_pose = WorldModel.get_pose(self._base)
