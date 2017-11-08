@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
    VisionPacket.msg
    VisionRobotPackets.msg
    AIStatus.msg
+   Pose.msg
  )
 
  generate_messages(

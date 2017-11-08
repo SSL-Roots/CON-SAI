@@ -5,6 +5,7 @@ import tf
 import numpy
 
 from geometry_msgs.msg import Point
+from consai_msgs.msg import Pose
 from GlobalData import GlobalInfo
 
 def yawFromQuaternion(quaternion):
@@ -36,33 +37,33 @@ def normalize(angle):
 def invertAngle(angle):
     return normalize(angle + math.pi)
 
-def getAngle(fromPoint, toPoint):
-    diffPoint = Point()
+def getAngle(fromPose, toPose):
+    diffPose = Pose()
 
-    diffPoint.x = toPoint.x - fromPoint.x
-    diffPoint.y = toPoint.y - fromPoint.y
+    diffPose.x = toPose.x - fromPose.x
+    diffPose.y = toPose.y - fromPose.y
 
-    return math.atan2(diffPoint.y, diffPoint.x)
+    return math.atan2(diffPose.y, diffPose.x)
 
-def getSize(fromPoint, toPoint):
-    diffPoint = Point()
+def getSize(fromPose, toPose):
+    diffPose = Pose()
 
-    diffPoint.x = toPoint.x - fromPoint.x
-    diffPoint.y = toPoint.y - fromPoint.y
+    diffPose.x = toPose.x - fromPose.x
+    diffPose.y = toPose.y - fromPose.y
 
-    return math.hypot(diffPoint.x, diffPoint.y)
+    return math.hypot(diffPose.x, diffPose.y)
 
-def getSizeFromCenter(point):
-    return math.hypot(point.x, point.y)
+def getSizeFromCenter(pose):
+    return math.hypot(pose.x, pose.y)
 
-def getAngleFromCenter(point):
-    return math.atan2(point.y, point.x)
+def getAngleFromCenter(pose):
+    return math.atan2(pose.y, pose.x)
 
 
-def getConjugate(point):
-    output = Point()
-    output.x = point.x
-    output.y = -point.y
+def getConjugate(pose):
+    output = Pose()
+    output.x = pose.x
+    output.y = -pose.y
 
     return output
 
@@ -74,21 +75,21 @@ class Trans():
         self._c_rotate = cmath.rect(1.0,normalizedTheta) 
         self._c_angle = normalizedTheta
 
-    def transform(self, point):
-        c_point = point.x + point.y * 1.0j
+    def transform(self, pose):
+        c_point = pose.x + pose.y * 1.0j
         c_output = (c_point - self._c_center) * numpy.conj(self._c_rotate)
 
-        output = Point()
+        output = Pose()
         output.x = c_output.real
         output.y = c_output.imag
 
         return output
 
-    def invertedTransform(self, point):
-        c_point = point.x + point.y * 1.0j
+    def invertedTransform(self, pose):
+        c_point = pose.x + pose.y * 1.0j
         c_output = c_point * self._c_rotate + self._c_center
 
-        output = Point()
+        output = Pose()
         output.x = c_output.real
         output.y = c_output.imag
 
@@ -110,7 +111,7 @@ def getFriendBase(ID):
     return base
 
 
-def convertToReceivePos(point):
+def convertToReceivePos(pose):
     THRESH_BALL_MOVING = 1.0
     THRESH_RECEIVE_DIST = 1.0
 
@@ -124,28 +125,28 @@ def convertToReceivePos(point):
     if ballSpeed > THRESH_BALL_MOVING:
         angleOfSpeed = getAngleFromCenter(ballVel)
         trans = Trans(ballPos, angleOfSpeed)
-        trPoint = trans.transform(point)
+        trPose = trans.transform(pose)
 
-        if abs(trPoint.y) < THRESH_RECEIVE_DIST \
-                and trPoint.x > 0.0 :
-            trPoint.y = 0.0
-            point = trans.invertedTransform(trPoint)
+        if abs(trPose.y) < THRESH_RECEIVE_DIST \
+                and trPose.x > 0.0 :
+            trPose.y = 0.0
+            pose = trans.invertedTransform(trPose)
             canReceive = True
 
-    return point, canReceive
+    return pose, canReceive
 
 
-def convertToReceiveShootPose(point, targetPos):
+def convertToReceiveShootPose(pose, targetPos):
     THRESH_BALL_MOVING = 1.0
     THRESH_RECEIVE_DIST = 1.5
     DRIBLLER_DIST = 0.080
 
-    angleRobotToTarget = getAngle(point, targetPos)
+    angleRobotToTarget = getAngle(pose, targetPos)
 
     # convert robotPos to dribblerPos
-    dribblerPos = Point()
-    dribblerPos.x = point.x + DRIBLLER_DIST * math.cos(angleRobotToTarget)
-    dribblerPos.y = point.y + DRIBLLER_DIST * math.sin(angleRobotToTarget)
+    dribblerPos = Pose()
+    dribblerPos.x = pose.x + DRIBLLER_DIST * math.cos(angleRobotToTarget)
+    dribblerPos.y = pose.y + DRIBLLER_DIST * math.sin(angleRobotToTarget)
 
     ballPos = GlobalInfo.ball.pose.pose.position
     ballVel = GlobalInfo.ball.twist.twist.linear
@@ -156,17 +157,17 @@ def convertToReceiveShootPose(point, targetPos):
     if ballSpeed > THRESH_BALL_MOVING:
         angleOfSpeed = getAngleFromCenter(ballVel)
         trans = Trans(ballPos, angleOfSpeed)
-        trPoint = trans.transform(dribblerPos)
+        trPose = trans.transform(dribblerPos)
 
 
-        if abs(trPoint.y) < THRESH_RECEIVE_DIST \
-                and trPoint.x > 0.0 :
-            trPoint.y = 0.0
-            point = trans.invertedTransform(trPoint)
+        if abs(trPose.y) < THRESH_RECEIVE_DIST \
+                and trPose.x > 0.0 :
+            trPose.y = 0.0
+            pose = trans.invertedTransform(trPose)
             canShoot = True
 
             # invert dribblerPos to robotPos
-            point.x = point.x - DRIBLLER_DIST * math.cos(angleRobotToTarget)
-            point.y = point.y - DRIBLLER_DIST * math.sin(angleRobotToTarget)
+            pose.x = pose.x - DRIBLLER_DIST * math.cos(angleRobotToTarget)
+            pose.y = pose.y - DRIBLLER_DIST * math.sin(angleRobotToTarget)
 
-    return point, angleRobotToTarget, canShoot
+    return pose, angleRobotToTarget, canShoot

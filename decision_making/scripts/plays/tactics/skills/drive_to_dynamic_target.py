@@ -16,8 +16,8 @@ class DriveToDynamicTarget(Task):
     def run(self):
         self._coordinate.update()
 
-        x, y, theta = self._coordinate.pose
+        pose = self._coordinate.pose
 
-        WorldModel.commands[self._my_role].set_target_pose(x, y, theta, 'map')
+        WorldModel.commands[self._my_role].set_target_pose(pose.x, pose.y, pose.theta, 'map')
 
         return TaskStatus.RUNNING

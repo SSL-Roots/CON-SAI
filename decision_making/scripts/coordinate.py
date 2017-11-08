@@ -3,12 +3,12 @@ import tool
 import constants
 from world_model import WorldModel
 
-from geometry_msgs.msg import Point
+from consai_msgs.msg import Pose
 
 class Coordinate(object):
 
     def __init__(self):
-        self.pose = (0, 0, 0) # pos_x, pos_y, thta
+        self.pose = Pose() # pos_x, pos_y, thta
 
         self._base = None
         self._target = None
@@ -37,26 +37,28 @@ class Coordinate(object):
     
 
     def _update_interpose(self):
-        base_pos = WorldModel.get_pose(self._base)
-        target_pos = WorldModel.get_pose(self._target)
+        base_pose = WorldModel.get_pose(self._base)
+        target_pose = WorldModel.get_pose(self._target)
 
-        if base_pos is None or target_pos is None:
+        if base_pose is None or target_pose is None:
             return False
 
-        angle_to_target = tool.getAngle(base_pos, target_pos)
+        angle_to_target = tool.getAngle(base_pose, target_pose)
         
-        interposed_pos = Point(0, 0, 0)
+        interposed_pose = Pose(0, 0, 0)
         if self._to_dist:
-            trans = tool.Trans(base_pos, angle_to_target)
-            tr_interposed_pos = Point(self._to_dist, 0.0, 0)
-            interposed_pos = trans.invertedTransform(tr_interposed_pos)
+            trans = tool.Trans(base_pose, angle_to_target)
+            tr_interposed_pose = Pose(self._to_dist, 0.0, 0)
+            interposed_pose = trans.invertedTransform(tr_interposed_pose)
         elif self._from_dist:
-            angle_to_base = tool.getAngle(target_pos, base_pos)
-            trans = tool.Trans(target_pos, angle_to_base)
-            tr_interposed_pos = Point(self._from_dist, 0.0, 0)
-            interposed_pos = trans.invertedTransform(tr_interposed_pos)
+            angle_to_base = tool.getAngle(target_pose, base_pose)
+            trans = tool.Trans(target_pose, angle_to_base)
+            tr_interposed_pose = Pose(self._from_dist, 0.0, 0)
+            interposed_pose = trans.invertedTransform(tr_interposed_pose)
 
-        self.pose = interposed_pos.x, interposed_pos.y, angle_to_target
+        interposed_pose.theta = angle_to_target
+
+        self.pose = interposed_pose
         
         return True
 

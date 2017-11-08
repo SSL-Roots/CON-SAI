@@ -8,7 +8,7 @@ from collections import OrderedDict
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Point
+from consai_msgs.msg import Pose
 
 from referee_pb2 import SSL_Referee
 import tool
@@ -18,7 +18,7 @@ class Command(object):
     def __init__(self):
         self.target_pose = PoseStamped()
         self.target_velocity = Twist()
-        self.aim = Point()
+        self.aim = Pose()
         self.kick_power = 0.0
         self.dribble_power = 0.0
         self.velocity_control_enable = False
@@ -190,22 +190,22 @@ class WorldModel(object):
 
     @classmethod
     def get_pose(cls, name):
-        point = Point(0,0,0)
+        pose = Pose(0,0,0)
 
         if name == 'Ball':
             ball_pose = WorldModel.ball_odom.pose.pose.position
-            point = Point(ball_pose.x, ball_pose.y, 0)
+            pose = Pose(ball_pose.x, ball_pose.y, 0)
 
         elif name[:4] == 'Role':
-            point = WorldModel.get_friend_pose(name)
+            pose = WorldModel.get_friend_pose(name)
 
         elif name[:5] == 'Enemy':
-            point = WorldModel.get_enemy_pose(name)
+            pose = WorldModel.get_enemy_pose(name)
 
         elif name[:5] == 'CONST':
-            point = constants.poses[name]
+            pose = constants.poses[name]
 
-        return point
+        return pose
 
     @classmethod
     def get_friend_pose(cls, role):
@@ -218,7 +218,7 @@ class WorldModel(object):
         orientation = WorldModel.friend_odoms[robot_id].pose.pose.orientation
         yaw = tool.yawFromQuaternion(orientation)
 
-        return Point(position.x, position.y, yaw)
+        return Pose(position.x, position.y, yaw)
         
 
     @classmethod
@@ -232,7 +232,7 @@ class WorldModel(object):
         orientation = WorldModel.enemy_odoms[robot_id].pose.pose.orientation
         yaw = tool.yawFromQuaternion(orientation)
 
-        return Point(position.x, position.y, yaw)
+        return Pose(position.x, position.y, yaw)
 
 
     @classmethod
