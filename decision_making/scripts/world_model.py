@@ -9,6 +9,7 @@ from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import Pose
+from consai_msgs.msg import Pose as Velocity
 
 from referee_pb2 import SSL_Referee
 import tool
@@ -188,9 +189,10 @@ class WorldModel(object):
             WorldModel._refbox_command_changed = True
             WorldModel._refbox_command = data
 
+
     @classmethod
     def get_pose(cls, name):
-        pose = Pose(0,0,0)
+        pose = None
 
         if name == 'Ball':
             ball_pose = WorldModel.ball_odom.pose.pose.position
@@ -206,6 +208,24 @@ class WorldModel(object):
             pose = constants.poses[name]
 
         return pose
+
+
+    @classmethod
+    def get_velocity(cls, name):
+        velocity = None
+
+        if name == 'Ball':
+            linear = WorldModel.ball_odom.twist.twist.linear
+            velocity = Velocity(linear.x, linear.y, 0)
+
+        elif name[:4] == 'Role':
+            velocity = WorldModel.get_friend_velocity(name)
+
+        elif name[:5] == 'Enemy':
+            velocity = WorldModel.get_enemy_velocity(name)
+
+        return velocity
+
 
     @classmethod
     def get_friend_pose(cls, role):
@@ -233,6 +253,32 @@ class WorldModel(object):
         yaw = tool.yawFromQuaternion(orientation)
 
         return Pose(position.x, position.y, yaw)
+
+
+    @classmethod
+    def get_friend_velocity(cls, role):
+        robot_id = WorldModel.assignments[role]
+
+        if robot_id is None:
+            return None
+
+        linear = WorldModel.friend_odoms[robot_id].twist.twist.linear
+        angular = WorldModel.friend_odoms[robot_id].twist.twist.angular
+
+        return Velocity(linear.x, linear.y, angular.z)
+        
+
+    @classmethod
+    def get_enemy_velocity(cls, role):
+        robot_id = WorldModel.enemy_assignments[role]
+
+        if robot_id is None:
+            return None
+
+        linear = WorldModel.enemy_odoms[robot_id].twist.twist.linear
+        angular = WorldModel.enemy_odoms[robot_id].twist.twist.angular
+
+        return Velocity(linear.x, linear.y, angular.z)
 
 
     @classmethod
