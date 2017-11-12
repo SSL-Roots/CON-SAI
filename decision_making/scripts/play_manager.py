@@ -47,10 +47,13 @@ class PlayManager(object):
             self._play_past_time = rospy.get_time()
             self._play_termination = False
 
+            rospy.loginfo('play reset')
+
 
     def _execute_play(self):
         for role in self._play.roles:
-            role.behavior.run()
+            status = role.behavior.run()
+            role.behavior.set_status(status)
 
         text = "execute : " + self._play.name
         rospy.loginfo(text)
@@ -61,10 +64,10 @@ class PlayManager(object):
             status = role.behavior.get_status()
 
             if role.loop_enable:
-                if status != TaskStatus.RUNNING:
+                if status == TaskStatus.SUCCESS or status == TaskStatus.FAILURE:
                     role.behavior.reset()
             else:
-                if status != TaskStatus.RUNNING:
+                if status == TaskStatus.SUCCESS or status == TaskStatus.FAILURE:
                     self._play_termination = True
                     
         if self._play.timeout:
