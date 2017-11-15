@@ -76,11 +76,11 @@ class Coordinate(object):
         angle_to_target = tool.getAngle(base_pose, target_pose)
         
         interposed_pose = Pose(0, 0, 0)
-        if self._to_dist:
+        if not self._to_dist is None:
             trans = tool.Trans(base_pose, angle_to_target)
             tr_interposed_pose = Pose(self._to_dist, 0.0, 0)
             interposed_pose = trans.invertedTransform(tr_interposed_pose)
-        elif self._from_dist:
+        elif not self._from_dist is None:
             angle_to_base = tool.getAngle(target_pose, base_pose)
             trans = tool.Trans(target_pose, angle_to_base)
             tr_interposed_pose = Pose(self._from_dist, 0.0, 0)
