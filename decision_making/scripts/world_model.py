@@ -24,7 +24,7 @@ class Command(object):
         self.dribble_power = 0.0
         self.velocity_control_enable = False
         self.chip_enable = False
-        self.navigation_enable = False
+        self.navigation_enable = True
 
     
     def set_target_pose(self, x, y, yaw, frame_id):
@@ -53,6 +53,13 @@ class Command(object):
     def set_aim(self, x, y):
         self.aim.x = x
         self.aim.y = y
+
+
+    def reset_adjustments(self):
+        self.kick_power = 0
+        self.chip_enable = False
+        self.dribble_power = 0
+        self.navigation_enable = True
 
 
 class WorldModel(object):
@@ -134,6 +141,7 @@ class WorldModel(object):
             SSL_Referee.TIMEOUT_YELLOW : 'OUR_TIMEOUT'}
     _refbox_dict = _refbox_dict_blue
 
+    _ball_kicked_speed = 1.0
 
     @classmethod
     def update_world(cls):
@@ -225,6 +233,18 @@ class WorldModel(object):
             velocity = WorldModel.get_enemy_velocity(name)
 
         return velocity
+
+    
+    @classmethod
+    def ball_kicked(cls):
+        kicked = False
+
+        velocity = WorldModel.get_velocity('Ball')
+
+        if tool.getSizeFromCenter(velocity) > WorldModel._ball_kicked_speed:
+            kicked = True
+
+        return kicked
 
 
     @classmethod
