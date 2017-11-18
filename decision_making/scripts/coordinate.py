@@ -8,6 +8,7 @@ from world_model import WorldModel
 
 from consai_msgs.msg import Pose
 
+import rospy
 
 class Coordinate(object):
 
@@ -19,8 +20,8 @@ class Coordinate(object):
         self._update_func = None
 
         # arrival parameters
-        self._arrived_position_tolerance = 0.05 # unit:meter
-        self._arrived_angle_tolerance = 15.0 * math.pi / 180.0
+        self._arrived_position_tolerance = 0.1 # unit:meter
+        self._arrived_angle_tolerance = 3.0 * math.pi / 180.0
 
         # interpose
         self._to_dist = None
@@ -31,7 +32,7 @@ class Coordinate(object):
         self._my_role = None
         self._role_is_lower_side = False
         self._role_pose_hystersis = 0.1
-        self._tuning_param_x = 0.5
+        self._tuning_param_x = 0.3
         self._tuning_param_y = 0.3
         self._tuning_param_pivot_y = 0.3
         self._tuning_angle = 30.0 * math.pi / 180.0  # 0 ~ 90 degree, do not edit 'math.pi / 180.0'
@@ -80,7 +81,7 @@ class Coordinate(object):
 
         # 目標位置との距離、目標角度との差がtolerance以下であれば到着判定
         if distance < self._arrived_position_tolerance:
-            diff_angle = self.pose.theta - role_pose.theta
+            diff_angle = tool.normalize(self.pose.theta - role_pose.theta)
             
             if tool.normalize(diff_angle) < self._arrived_angle_tolerance:
                 arrived = True
@@ -165,7 +166,7 @@ class Coordinate(object):
                     angle_pivot_to_role < limit_angle:
                 # 2.ボール後ろへ回りこむ
             
-                diff_angle = limit_angle - angle_pivot_to_role
+                diff_angle = tool.normalize(limit_angle - angle_pivot_to_role)
                 decrease_coef = diff_angle / self._tuning_angle
             
                 tr_approach_pose = Pose(
@@ -175,6 +176,7 @@ class Coordinate(object):
             
             else:
                 # 3.ボールに向かう
+
                 diff_angle = tool.normalize(angle_pivot_to_role - limit_angle)
                 approach_coef = diff_angle / (math.pi * 0.5 - self._tuning_angle)
             

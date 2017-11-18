@@ -14,7 +14,7 @@ class WithKick(Task):
 
 
     def run(self):
-        WorldModel.commands[self._my_role].kick_power = 8.0
+        WorldModel.commands[self._my_role].kick_power = 6.0
 
         return TaskStatus.RUNNING
 
