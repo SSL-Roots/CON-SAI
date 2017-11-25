@@ -6,7 +6,7 @@ import  tf
 rospy.init_node('decision_maker')
 
 from world_model import WorldModel
-from play_manager import PlayManager
+from play_executer import PlayExecuter
 
 from geometry_msgs.msg import PoseStamped
 from geometry_msgs.msg import TwistStamped
@@ -80,7 +80,7 @@ def main():
     r   = rospy.Rate(10)
 
     while not rospy.is_shutdown():
-        play_manager.update()
+        play_executer.update()
 
         r.sleep()
 
@@ -89,7 +89,7 @@ def main():
 
 if __name__ == '__main__':
 
-    play_manager = PlayManager()
+    play_executer = PlayExecuter()
 
     # Publishers for the robots controll
     pubs_position = []

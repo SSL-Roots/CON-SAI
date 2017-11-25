@@ -9,7 +9,7 @@ from plays.play_book import PlayBook
 from plays.play_dummy import PlayDummy
 
 
-class PlayManager(object):
+class PlayExecuter(object):
 
     def __init__(self):
         self._play_termination = True
