@@ -69,11 +69,11 @@ def ballCallback(msg):
 
 
 def callback_friend_odom(msg, robot_id):
-    WorldModel.friend_odoms[robot_id] = msg
+    WorldModel.set_friend_odom(msg, robot_id)
 
 
 def callback_enemy_odom(msg, robot_id):
-    WorldModel.enemy_odoms[robot_id] = msg
+    WorldModel.set_enemy_odom(msg, robot_id)
 
 
 def main():

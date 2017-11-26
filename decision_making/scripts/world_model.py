@@ -72,10 +72,11 @@ class WorldModel(object):
             'THEIR_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
             'THEIR_PENALTY' : False, 'THEIR_PENALTY_START' : False,
             'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
-            'THEIR_TIMEOUT' : False}
+            'THEIR_TIMEOUT' : False,
+            'IN_PLAY' : False, 'BALL_IS_OUTSIDE' : False}
 
     recent_situations = {'BALL_MOVED' : False, 'OUR_ROBOT_CHANGED' : False}
-    current_situation = 'HALT'
+    _current_situation = 'HALT'
 
     assignments = OrderedDict()
     assignments['Role_0'] = None
@@ -89,16 +90,16 @@ class WorldModel(object):
                 'Role_2' : Command(), 'Role_3' : Command(),
                 'Role_4' : Command(), 'Role_5' : Command()}
 
-    ball_odom = Odometry()
+    _ball_odom = Odometry()
 
-    friend_goalie_id = 0
-    friend_color = 'blue'
-    friend_odoms = [Odometry()] * 12
-    existing_friends_id = [None] * 6
+    _friend_goalie_id = 0
+    _friend_color = 'blue'
+    _friend_odoms = [Odometry()] * 12
+    _existing_friends_id = [None] * 6
 
-    enemy_goalie_id = 0
-    enemy_odoms = [Odometry()] * 12
-    existing_enemies_id = [None] * 6
+    _enemy_goalie_id = 0
+    _enemy_odoms = [Odometry()] * 12
+    _existing_enemies_id = [None] * 6
 
     enemy_assignments = OrderedDict()
     enemy_assignments['Enemy_Goalie'] = None
@@ -162,9 +163,9 @@ class WorldModel(object):
         unassigned_roles, unassigned_IDs = WorldModel._check_unassignment()
 
         # Goalie_IDはRole_0に固定する
-        if WorldModel.friend_goalie_id in unassigned_IDs:
-            WorldModel.assignments['Role_0'] = WorldModel.friend_goalie_id
-            unassigned_IDs.remove(WorldModel.friend_goalie_id)
+        if WorldModel._friend_goalie_id in unassigned_IDs:
+            WorldModel.assignments['Role_0'] = WorldModel._friend_goalie_id
+            unassigned_IDs.remove(WorldModel._friend_goalie_id)
             unassigned_roles.remove('Role_0')
 
         for role in unassigned_roles:
@@ -176,7 +177,7 @@ class WorldModel(object):
     
     @classmethod
     def set_friend_color(cls, data):
-        WorldModel.friend_color = data
+        WorldModel._friend_color = data
         if data == 'blue':
             WorldModel._refbox_dict = WorldModel._refbox_dict_blue
         elif data == 'yellow':
@@ -185,13 +186,22 @@ class WorldModel(object):
 
     @classmethod
     def set_existing_friends_id(cls, data):
-        WorldModel.existing_friends_id  = list(data)
+        WorldModel._existing_friends_id  = list(data)
         
     
     @classmethod
     def set_existing_enemies_id(cls, data):
-        WorldModel.existing_enemies_id = list(data)
+        WorldModel._existing_enemies_id = list(data)
         
+
+    @classmethod
+    def set_friend_odom(cls, msg, robot_id):
+        WorldModel._friend_odoms[robot_id] = msg
+
+
+    @classmethod
+    def set_enemy_odom(cls, msg, robot_id):
+        WorldModel._enemy_odoms[robot_id] = msg
 
     @classmethod
     def set_refbox_command(cls, data):
@@ -205,7 +215,7 @@ class WorldModel(object):
         pose = None
 
         if name == 'Ball':
-            ball_pose = WorldModel.ball_odom.pose.pose.position
+            ball_pose = WorldModel._ball_odom.pose.pose.position
             pose = Pose(ball_pose.x, ball_pose.y, 0)
 
         elif name[:4] == 'Role':
@@ -225,7 +235,7 @@ class WorldModel(object):
         velocity = None
 
         if name == 'Ball':
-            linear = WorldModel.ball_odom.twist.twist.linear
+            linear = WorldModel._ball_odom.twist.twist.linear
             velocity = Velocity(linear.x, linear.y, 0)
 
         elif name[:4] == 'Role':
@@ -256,8 +266,8 @@ class WorldModel(object):
         if robot_id is None:
             return None
 
-        position = WorldModel.friend_odoms[robot_id].pose.pose.position
-        orientation = WorldModel.friend_odoms[robot_id].pose.pose.orientation
+        position = WorldModel._friend_odoms[robot_id].pose.pose.position
+        orientation = WorldModel._friend_odoms[robot_id].pose.pose.orientation
         yaw = tool.yawFromQuaternion(orientation)
 
         return Pose(position.x, position.y, yaw)
@@ -270,8 +280,8 @@ class WorldModel(object):
         if robot_id is None:
             return None
 
-        position = WorldModel.enemy_odoms[robot_id].pose.pose.position
-        orientation = WorldModel.enemy_odoms[robot_id].pose.pose.orientation
+        position = WorldModel._enemy_odoms[robot_id].pose.pose.position
+        orientation = WorldModel._enemy_odoms[robot_id].pose.pose.orientation
         yaw = tool.yawFromQuaternion(orientation)
 
         return Pose(position.x, position.y, yaw)
@@ -284,8 +294,8 @@ class WorldModel(object):
         if robot_id is None:
             return None
 
-        linear = WorldModel.friend_odoms[robot_id].twist.twist.linear
-        angular = WorldModel.friend_odoms[robot_id].twist.twist.angular
+        linear = WorldModel._friend_odoms[robot_id].twist.twist.linear
+        angular = WorldModel._friend_odoms[robot_id].twist.twist.angular
 
         return Velocity(linear.x, linear.y, angular.z)
         
@@ -297,8 +307,8 @@ class WorldModel(object):
         if robot_id is None:
             return None
 
-        linear = WorldModel.enemy_odoms[robot_id].twist.twist.linear
-        angular = WorldModel.enemy_odoms[robot_id].twist.twist.angular
+        linear = WorldModel._enemy_odoms[robot_id].twist.twist.linear
+        angular = WorldModel._enemy_odoms[robot_id].twist.twist.angular
 
         return Velocity(linear.x, linear.y, angular.z)
 
@@ -306,7 +316,7 @@ class WorldModel(object):
     @classmethod
     def _check_unassignment(cls):
         unassigned_roles = []
-        unassigned_IDs = WorldModel.existing_friends_id
+        unassigned_IDs = WorldModel._existing_friends_id
 
         for role, robot_id in WorldModel.assignments.items():
             # IDがアサインされていないRoleを取り出す
@@ -326,16 +336,16 @@ class WorldModel(object):
 
     @classmethod
     def _update_enemy_assignments(cls):
-        raw_id_list = list(WorldModel.existing_enemies_id)
+        raw_id_list = list(WorldModel._existing_enemies_id)
         
         # enemy_assignmnetsを初期化
         for key in WorldModel.enemy_assignments.keys():
             WorldModel.enemy_assignments[key] = None
         
         # raw listからgoalieのIDを取り除く
-        if WorldModel.enemy_goalie_id in raw_id_list:
-            raw_id_list.remove(WorldModel.enemy_goalie_id)
-            WorldModel.enemy_assignments['Enemy_Goalie'] = WorldModel.enemy_goalie_id
+        if WorldModel._enemy_goalie_id in raw_id_list:
+            raw_id_list.remove(WorldModel._enemy_goalie_id)
+            WorldModel.enemy_assignments['Enemy_Goalie'] = WorldModel._enemy_goalie_id
 
         key_i = 1
         for enemy_id in raw_id_list:
@@ -348,28 +358,28 @@ class WorldModel(object):
     def _update_situation(cls):
         if WorldModel._refbox_command_changed:
             WorldModel._refbox_command_changed = False
-            WorldModel.situations[WorldModel.current_situation] = False
+            WorldModel.situations[WorldModel._current_situation] = False
 
             refbox_command = WorldModel._refbox_dict[WorldModel._refbox_command]
 
             # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
             if refbox_command == 'NORMAL_START':
-                if WorldModel.current_situation == 'OUR_KICKOFF_PRE':
-                    WorldModel.current_situation = 'OUR_KICKOFF_START'
+                if WorldModel._current_situation == 'OUR_KICKOFF_PRE':
+                    WorldModel._current_situation = 'OUR_KICKOFF_START'
 
-                elif WorldModel.current_situation == 'OUR_PENALTY_PRE':
-                    WorldModel.current_situation = 'OUR_PENALTY_START'
+                elif WorldModel._current_situation == 'OUR_PENALTY_PRE':
+                    WorldModel._current_situation = 'OUR_PENALTY_START'
 
-                elif WorldModel.current_situation == 'THEIR_KICKOFF_PRE':
-                    WorldModel.current_situation = 'THEIR_KICKOFF_START'
+                elif WorldModel._current_situation == 'THEIR_KICKOFF_PRE':
+                    WorldModel._current_situation = 'THEIR_KICKOFF_START'
 
-                elif WorldModel.current_situation == 'THEIR_PENALTY_PRE':
-                    WorldModel.current_situation = 'THEIR_PENALTY_START'
+                elif WorldModel._current_situation == 'THEIR_PENALTY_PRE':
+                    WorldModel._current_situation = 'THEIR_PENALTY_START'
 
                 else:
-                    WorldModel.current_situation = 'FORCE_START'
+                    WorldModel._current_situation = 'FORCE_START'
             else:
-                WorldModel.current_situation = refbox_command
+                WorldModel._current_situation = refbox_command
 
             WorldModel.situations[refbox_command] = True
 
