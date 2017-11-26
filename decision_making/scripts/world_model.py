@@ -15,6 +15,7 @@ from referee_pb2 import SSL_Referee
 import tool
 import constants
 
+
 class Command(object):
     def __init__(self):
         self.target_pose = PoseStamped()
@@ -142,6 +143,7 @@ class WorldModel(object):
     _refbox_dict = _refbox_dict_blue
 
     _ball_kicked_speed = 1.0
+
 
     @classmethod
     def update_world(cls):
