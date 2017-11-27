@@ -65,7 +65,7 @@ def refboxCallback(msg):
 
 
 def ballCallback(msg):
-    WorldModel.ball_odom = msg
+    WorldModel.set_ball_odom(msg)
 
 
 def callback_friend_odom(msg, robot_id):

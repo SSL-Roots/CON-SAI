@@ -14,6 +14,7 @@ from consai_msgs.msg import Pose as Velocity
 from referee_pb2 import SSL_Referee
 import tool
 import constants
+from observer import Observer
 
 
 class Command(object):
@@ -75,7 +76,8 @@ class WorldModel(object):
             'THEIR_TIMEOUT' : False,
             'IN_PLAY' : False, 'BALL_IS_OUTSIDE' : False}
 
-    recent_situations = {'BALL_MOVED' : False, 'OUR_ROBOT_CHANGED' : False}
+    sub_situations = {'BALL_IS_IN_FIELD' : False}
+
     _current_situation = 'HALT'
 
     assignments = OrderedDict()
@@ -143,19 +145,16 @@ class WorldModel(object):
             SSL_Referee.TIMEOUT_YELLOW : 'OUR_TIMEOUT'}
     _refbox_dict = _refbox_dict_blue
 
+    _observer = Observer()
     _ball_kicked_speed = 1.0
 
 
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
+        WorldModel._update_sub_situations()
 
         WorldModel._update_enemy_assignments()
-
-
-    @classmethod
-    def reset_recent_situations(cls):
-        pass
 
     
     @classmethod
@@ -182,6 +181,11 @@ class WorldModel(object):
             WorldModel._refbox_dict = WorldModel._refbox_dict_blue
         elif data == 'yellow':
             WorldModel._refbox_dict = WorldModel._refbox_dict_yellow
+
+
+    @classmethod
+    def set_ball_odom(cls, msg):
+        WorldModel._ball_odom = msg
         
 
     @classmethod
@@ -202,6 +206,7 @@ class WorldModel(object):
     @classmethod
     def set_enemy_odom(cls, msg, robot_id):
         WorldModel._enemy_odoms[robot_id] = msg
+
 
     @classmethod
     def set_refbox_command(cls, data):
@@ -383,5 +388,14 @@ class WorldModel(object):
 
             WorldModel.situations[refbox_command] = True
 
+    
+    @classmethod
+    def _update_sub_situations(cls):
+        ball_pose = WorldModel.get_pose('Ball')
+
+        if WorldModel._observer.ball_is_in_field(ball_pose):
+            WorldModel.sub_situations['BALL_IS_IN_FIELD'] = True
+        else:
+            WorldModel.sub_situations['BALL_IS_IN_FIELD'] = False
 
 

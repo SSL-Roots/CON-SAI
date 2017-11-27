@@ -7,7 +7,6 @@ from pi_trees_ros.pi_trees_ros import *
 from pi_trees_lib.task_setup import *
 
 from world_model import WorldModel
-from observer import Observer
 from plays.play_book import PlayBook
 from plays.play_dummy import PlayDummy
 
@@ -18,12 +17,10 @@ class PlayExecuter(object):
         self._play_termination = True
         self._play = PlayDummy()
         self._play_past_time = 0.0
-        self._observer = Observer()
 
 
     def update(self):
         WorldModel.update_world()
-        self._observer.update()
 
         self._select_play()
 
@@ -47,7 +44,7 @@ class PlayExecuter(object):
                     possible_plays.append(play)
 
             # ボールがフィールド外に出たら強制PlayDummy
-            if self._observer.ball_is_in_field() == False:
+            if WorldModel.sub_situations['BALL_IS_IN_FIELD'] == False:
                 possible_plays = []
 
             # TODO(Asit) select a play randomly
@@ -94,6 +91,6 @@ class PlayExecuter(object):
             self._play_termination = True
 
         # ボールがフィールド外に出たらPlayを強制終了
-        if self._observer.ball_is_in_field() == False:
+        if WorldModel.sub_situations['BALL_IS_IN_FIELD'] == False:
             self._play_termination = True
 
