@@ -3,6 +3,7 @@
 
 import math
 
+from consai_msgs.msg import Pose
 import tool
 import constants
 
@@ -12,9 +13,13 @@ class Observer(object):
 
     def __init__(self):
         self._hysteresis = 0.05 # unit:meter
-        self._ball_is_in_field = False
+        self._moved_threshold = 0.3 # unit:meter
+        self._ball_initial_pose = Pose()
 
-    
+        self._ball_is_in_field = False
+        self._ball_is_moved = False
+
+
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
         fabs_y = math.fabs(pose.y)
@@ -28,3 +33,16 @@ class Observer(object):
                 self._ball_is_in_field = True
 
         return self._ball_is_in_field
+
+
+    def set_ball_initial_pose(self, pose):
+        self._ball_initial_pose = pose
+        self._ball_is_moved = False
+
+
+    def ball_is_moved(self, pose):
+        if tool.getSize(self._ball_initial_pose, pose) > self._moved_threshold:
+            self._ball_is_moved = True
+
+        return self._ball_is_moved
+        

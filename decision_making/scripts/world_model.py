@@ -76,7 +76,7 @@ class WorldModel(object):
             'THEIR_TIMEOUT' : False,
             'IN_PLAY' : False, 'BALL_IS_OUTSIDE' : False}
 
-    sub_situations = {'BALL_IS_IN_FIELD' : False}
+    sub_situations = {'BALL_IS_IN_FIELD' : False, 'IN_PLAY' : False}
 
     _current_situation = 'HALT'
 
@@ -393,9 +393,18 @@ class WorldModel(object):
     def _update_sub_situations(cls):
         ball_pose = WorldModel.get_pose('Ball')
 
+        # ボールがフィールド外に出たか判定
         if WorldModel._observer.ball_is_in_field(ball_pose):
             WorldModel.sub_situations['BALL_IS_IN_FIELD'] = True
         else:
             WorldModel.sub_situations['BALL_IS_IN_FIELD'] = False
 
+        # セットプレイからインプレイへの切り替わりを判定
+        if WorldModel.situations['HALT'] or WorldModel.situations['STOP']:
+            WorldModel.sub_situations['IN_PLAY'] = False
+            WorldModel._observer.set_ball_initial_pose(ball_pose)
+        else:
+            ball_is_moved = WorldModel._observer.ball_is_moved(ball_pose)
+            WorldModel.sub_situations['IN_PLAY'] = ball_is_moved
+        
 
