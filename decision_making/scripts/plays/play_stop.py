@@ -9,7 +9,7 @@ class PlayStop(Play):
     def __init__(self):
         super(PlayStop, self).__init__('PlayStop')
 
-        self.applicalbe = "STOP"
+        self.applicable = "STOP"
         self.done_aborted = "STOP"
 
         self.roles[0].loop_enable = True

@@ -40,7 +40,7 @@ class PlayExecuter(object):
             # Extract possible plays from playbook
             possible_plays = []
             for play in PlayBook.book:
-                if WorldModel.situations[play.applicalbe]:
+                if WorldModel.situations[play.applicable]:
                     possible_plays.append(play)
 
             # ボールがフィールド外に出たら強制PlayDummy

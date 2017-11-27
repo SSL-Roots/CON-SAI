@@ -7,7 +7,7 @@ class PlayHalt(Play):
     def __init__(self):
         super(PlayHalt, self).__init__('PlayHalt')
 
-        self.applicalbe = "HALT"
+        self.applicable = "HALT"
         self.done_aborted = "HALT"
 
         for i in range(6):

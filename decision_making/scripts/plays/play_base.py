@@ -4,7 +4,7 @@ from role_base import Role
 class Play(object):
     def __init__(self, name):
         self.name = name
-        self.applicalbe = None
+        self.applicable = None
         self.done = None
         self.done_aborted = None
         self.recent_done = None
