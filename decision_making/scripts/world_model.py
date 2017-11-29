@@ -74,7 +74,7 @@ class WorldModel(object):
             'THEIR_PENALTY' : False, 'THEIR_PENALTY_START' : False,
             'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
             'THEIR_TIMEOUT' : False,
-            'IN_PLAY' : False, 'BALL_IS_OUTSIDE' : False}
+            'BALL_IS_OUTSIDE' : False}
 
     sub_situations = {'BALL_IS_IN_FIELD' : False, 'IN_PLAY' : False}
 
@@ -113,8 +113,9 @@ class WorldModel(object):
 
     tf_listener = tf.TransformListener()
 
-    _refbox_command = None
+    _raw_refbox_command = None
     _refbox_command_changed = False
+    _current_refbox_command = ''
 
     _refbox_dict_blue = {SSL_Referee.HALT : 'HALT', SSL_Referee.STOP : 'STOP',
             SSL_Referee.NORMAL_START : 'NORMAL_START', 
@@ -210,9 +211,9 @@ class WorldModel(object):
 
     @classmethod
     def set_refbox_command(cls, data):
-        if WorldModel._refbox_command != data:
+        if WorldModel._raw_refbox_command != data:
             WorldModel._refbox_command_changed = True
-            WorldModel._refbox_command = data
+            WorldModel._raw_refbox_command = data
 
 
     @classmethod
@@ -365,7 +366,8 @@ class WorldModel(object):
             WorldModel._refbox_command_changed = False
             WorldModel.situations[WorldModel._current_situation] = False
 
-            refbox_command = WorldModel._refbox_dict[WorldModel._refbox_command]
+            # raw_refbox_commandをチームカラーによって見方/敵commandへ加工する
+            refbox_command = WorldModel._refbox_dict[WorldModel._raw_refbox_command]
 
             # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
             if refbox_command == 'NORMAL_START':
@@ -386,7 +388,18 @@ class WorldModel(object):
             else:
                 WorldModel._current_situation = refbox_command
 
-            WorldModel.situations[refbox_command] = True
+            WorldModel.situations[WorldModel._current_situation] = True
+            WorldModel._current_refbox_command = WorldModel._current_situation
+
+
+        # インプレイに切り替わったかを判定する
+        rospy.loginfo(WorldModel._current_refbox_command)
+        # if WorldModel._current_refbox_command[-5:] == 'START' or \
+        #         WorldModel._current_refbox_command[-6:] == 'DIRECT':
+        #
+        #     ball_pose = WorldModel.get_pose('Ball')
+        #     rospy.loginfo('hanteiiiiiiiiiiiiiiiiiiiiii')
+
 
     
     @classmethod
