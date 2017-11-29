@@ -74,9 +74,7 @@ class WorldModel(object):
             'THEIR_PENALTY' : False, 'THEIR_PENALTY_START' : False,
             'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
             'THEIR_TIMEOUT' : False,
-            'BALL_IS_OUTSIDE' : False}
-
-    sub_situations = {'BALL_IS_IN_FIELD' : False, 'IN_PLAY' : False}
+            'BALL_IN_OUTSIDE' : False}
 
     _current_situation = 'HALT'
 
@@ -153,7 +151,7 @@ class WorldModel(object):
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
-        WorldModel._update_sub_situations()
+        rospy.loginfo(WorldModel._current_situation)
 
         WorldModel._update_enemy_assignments()
 
@@ -392,32 +390,22 @@ class WorldModel(object):
             WorldModel._current_refbox_command = WorldModel._current_situation
 
 
-        # インプレイに切り替わったかを判定する
-        rospy.loginfo(WorldModel._current_refbox_command)
-        # if WorldModel._current_refbox_command[-5:] == 'START' or \
-        #         WorldModel._current_refbox_command[-6:] == 'DIRECT':
-        #
-        #     ball_pose = WorldModel.get_pose('Ball')
-        #     rospy.loginfo('hanteiiiiiiiiiiiiiiiiiiiiii')
-
-
-    
-    @classmethod
-    def _update_sub_situations(cls):
         ball_pose = WorldModel.get_pose('Ball')
 
         # ボールがフィールド外に出たか判定
         if WorldModel._observer.ball_is_in_field(ball_pose):
-            WorldModel.sub_situations['BALL_IS_IN_FIELD'] = True
-        else:
-            WorldModel.sub_situations['BALL_IS_IN_FIELD'] = False
+            WorldModel.situations[WorldModel._current_situation] = False
 
-        # セットプレイからインプレイへの切り替わりを判定
-        if WorldModel.situations['HALT'] or WorldModel.situations['STOP']:
-            WorldModel.sub_situations['IN_PLAY'] = False
-            WorldModel._observer.set_ball_initial_pose(ball_pose)
+            WorldModel._current_situation = WorldModel._current_refbox_command
+            WorldModel.situations[WorldModel._current_situation] = True
         else:
-            ball_is_moved = WorldModel._observer.ball_is_moved(ball_pose)
-            WorldModel.sub_situations['IN_PLAY'] = ball_is_moved
-        
+            WorldModel.situations[WorldModel._current_situation] = False
+
+            WorldModel._current_situation = 'BALL_IN_OUTSIDE'
+            WorldModel.situations[WorldModel._current_situation] = True
+
+        # インプレイに切り替わったかを判定する
+        if WorldModel._current_refbox_command[-5:] == 'START' or \
+                WorldModel._current_refbox_command[-6:] == 'DIRECT':
+                    pass
 

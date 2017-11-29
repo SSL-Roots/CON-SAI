@@ -43,10 +43,6 @@ class PlayExecuter(object):
                 if WorldModel.situations[play.applicable]:
                     possible_plays.append(play)
 
-            # ボールがフィールド外に出たら強制PlayDummy
-            if WorldModel.sub_situations['BALL_IS_IN_FIELD'] == False:
-                possible_plays = []
-
             # TODO(Asit) select a play randomly
             if possible_plays:
                 self._play = possible_plays[0]
@@ -89,8 +85,3 @@ class PlayExecuter(object):
                         not WorldModel.situations[self._play.done_aborted]):
 
             self._play_termination = True
-
-        # ボールがフィールド外に出たらPlayを強制終了
-        if WorldModel.sub_situations['BALL_IS_IN_FIELD'] == False:
-            self._play_termination = True
-
