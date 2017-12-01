@@ -74,7 +74,7 @@ class WorldModel(object):
             'THEIR_PENALTY' : False, 'THEIR_PENALTY_START' : False,
             'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
             'THEIR_TIMEOUT' : False,
-            'BALL_IN_OUTSIDE' : False}
+            'BALL_IN_OUTSIDE' : False, 'IN_PLAY' : False}
 
     _current_situation = 'HALT'
 
@@ -389,16 +389,24 @@ class WorldModel(object):
 
         ball_pose = WorldModel.get_pose('Ball')
 
+        # ボールが動いたらインプレイ判定、refbox_commandを上書きする
+        if WorldModel._current_refbox_command[-5:] == 'START' or \
+                WorldModel._current_refbox_command[-6:] == 'DIRECT':
+            if WorldModel._observer.ball_is_moved(ball_pose):
+                WorldModel._current_refbox_command = 'IN_PLAY'
+        else:
+            WorldModel._observer.set_ball_initial_pose(ball_pose)
+
+        # current_refbox_commandがIN_PLAYのとき、ボール位置で戦況を判定する
+        if WorldModel._current_refbox_command == 'IN_PLAY':
+            WorldModel._set_current_situation('IN_PLAY')
+
         # ボールがフィールド外に出たか判定
+        # update_situationの最後に実行すること
         if WorldModel._observer.ball_is_in_field(ball_pose):
             WorldModel._set_current_situation(WorldModel._current_refbox_command)
         else:
             WorldModel._set_current_situation('BALL_IN_OUTSIDE')
-
-        # インプレイに切り替わったかを判定する
-        if WorldModel._current_refbox_command[-5:] == 'START' or \
-                WorldModel._current_refbox_command[-6:] == 'DIRECT':
-                    pass
 
 
     @classmethod
