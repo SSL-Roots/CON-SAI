@@ -362,7 +362,6 @@ class WorldModel(object):
     def _update_situation(cls):
         if WorldModel._refbox_command_changed:
             WorldModel._refbox_command_changed = False
-            WorldModel.situations[WorldModel._current_situation] = False
 
             # raw_refbox_commandをチームカラーによって見方/敵commandへ加工する
             refbox_command = WorldModel._refbox_dict[WorldModel._raw_refbox_command]
@@ -370,42 +369,40 @@ class WorldModel(object):
             # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
             if refbox_command == 'NORMAL_START':
                 if WorldModel._current_situation == 'OUR_KICKOFF_PRE':
-                    WorldModel._current_situation = 'OUR_KICKOFF_START'
+                    refbox_command = 'OUR_KICKOFF_START'
 
                 elif WorldModel._current_situation == 'OUR_PENALTY_PRE':
-                    WorldModel._current_situation = 'OUR_PENALTY_START'
+                    refbox_command = 'OUR_PENALTY_START'
 
                 elif WorldModel._current_situation == 'THEIR_KICKOFF_PRE':
-                    WorldModel._current_situation = 'THEIR_KICKOFF_START'
+                    refbox_command = 'THEIR_KICKOFF_START'
 
                 elif WorldModel._current_situation == 'THEIR_PENALTY_PRE':
-                    WorldModel._current_situation = 'THEIR_PENALTY_START'
+                    refbox_command = 'THEIR_PENALTY_START'
 
                 else:
-                    WorldModel._current_situation = 'FORCE_START'
-            else:
-                WorldModel._current_situation = refbox_command
+                    refbox_command = 'FORCE_START'
 
-            WorldModel.situations[WorldModel._current_situation] = True
-            WorldModel._current_refbox_command = WorldModel._current_situation
+            WorldModel._set_current_situation(refbox_command)
+            WorldModel._current_refbox_command = refbox_command
 
 
         ball_pose = WorldModel.get_pose('Ball')
 
         # ボールがフィールド外に出たか判定
         if WorldModel._observer.ball_is_in_field(ball_pose):
-            WorldModel.situations[WorldModel._current_situation] = False
-
-            WorldModel._current_situation = WorldModel._current_refbox_command
-            WorldModel.situations[WorldModel._current_situation] = True
+            WorldModel._set_current_situation(WorldModel._current_refbox_command)
         else:
-            WorldModel.situations[WorldModel._current_situation] = False
-
-            WorldModel._current_situation = 'BALL_IN_OUTSIDE'
-            WorldModel.situations[WorldModel._current_situation] = True
+            WorldModel._set_current_situation('BALL_IN_OUTSIDE')
 
         # インプレイに切り替わったかを判定する
         if WorldModel._current_refbox_command[-5:] == 'START' or \
                 WorldModel._current_refbox_command[-6:] == 'DIRECT':
                     pass
 
+
+    @classmethod
+    def _set_current_situation(cls, situation):
+        WorldModel.situations[WorldModel._current_situation] = False
+        WorldModel._current_situation = situation
+        WorldModel.situations[WorldModel._current_situation] = True
