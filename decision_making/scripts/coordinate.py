@@ -15,8 +15,8 @@ class Coordinate(object):
     def __init__(self):
         self.pose = Pose() # pos_x, pos_y, thta
 
-        self._base = None
-        self._target = None
+        self._base = None # string data
+        self._target = None # string data
         self._update_func = None
 
         # arrival parameters
@@ -36,6 +36,12 @@ class Coordinate(object):
         self._tuning_param_y = 0.3
         self._tuning_param_pivot_y = 0.3
         self._tuning_angle = 30.0 * math.pi / 180.0  # 0 ~ 90 degree, do not edit 'math.pi / 180.0'
+
+        # keep x, y
+        self._keep_x = 0.0
+        self._keep_y = 0.0
+        self._range_x = [constants.FieldHalfX, -constants.FieldHalfX]
+        self._range_y = [constants.FieldHalfY, -constants.FieldHalfY]
 
 
     def update(self):
@@ -64,6 +70,32 @@ class Coordinate(object):
         self._pose_max.y = constants.BallRadius + constants.RobotRadius + self._tuning_param_y
 
         self._update_func = self._update_approach_to_shoot
+
+
+    def set_keep_x(self, keep_x=0.0, target="Ball", range_y_high=False, range_y_low=False):
+        
+        self._keep_x = keep_x
+        self._target = target
+
+        if range_y_high:
+            self._range_y[0] = range_y_high
+        if range_y_low:
+            self._range_y[1] = range_y_low
+
+        self._update_func = self._update_keep_x
+
+
+    def set_keep_y(self, keep_y=0.0, target="Ball", range_x_high=False, range_x_low=False):
+        
+        self._keep_y = keep_y
+        self._target = target
+
+        if range_x_high:
+            self._range_x[0] = range_x_high
+        if range_x_low:
+            self._range_x[1] = range_x_low
+
+        self._update_func = self._update_keep_y
 
 
     def is_arrived(self, role):
@@ -194,6 +226,46 @@ class Coordinate(object):
 
         self.pose = trans.invertedTransform(tr_approach_pose)
         self.pose.theta = angle_ball_to_target
+        
+        return True
+
+    
+    def _update_keep_x(self):
+        target_pose = WorldModel.get_pose(self._target)
+
+        if target_pose is None:
+            return False
+
+        keep_pose = Pose(self._keep_x, target_pose.y, 0.0)
+
+        if keep_pose.y > self._range_y[0]:
+            keep_pose.y = self._range_y[0]
+
+        elif keep_pose.y < self._range_y[1]:
+            keep_pose.y = self._range_y[1]
+
+        angle = tool.getAngle(keep_pose, target_pose)
+        self.pose = Pose(keep_pose.x, keep_pose.y, angle)
+        
+        return True
+
+    
+    def _update_keep_y(self):
+        target_pose = WorldModel.get_pose(self._target)
+
+        if target_pose is None:
+            return False
+
+        keep_pose = Pose(target_pose.x, self._keep_y, 0.0)
+
+        if keep_pose.x > self._range_x[0]:
+            keep_pose.x = self._range_x[0]
+
+        elif keep_pose.x < self._range_x[1]:
+            keep_pose.x = self._range_x[1]
+
+        angle = tool.getAngle(keep_pose, target_pose)
+        self.pose = Pose(keep_pose.x, keep_pose.y, angle)
         
         return True
 

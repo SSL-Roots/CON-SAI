@@ -10,3 +10,6 @@ GoalHalfSize = GoalSize * 0.5
 
 RobotRadius = 0.09
 BallRadius = 0.0215
+
+FieldHalfX = 5.2
+FieldHalfY = 3.7
