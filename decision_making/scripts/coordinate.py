@@ -267,11 +267,8 @@ class Coordinate(object):
 
         keep_pose = Pose(self._keep_x, target_pose.y, 0.0)
 
-        if keep_pose.y > self._range_y[0]:
-            keep_pose.y = self._range_y[0]
-
-        elif keep_pose.y < self._range_y[1]:
-            keep_pose.y = self._range_y[1]
+        keep_pose.y = tool.limit(keep_pose.y,
+                self._range_y[0], self._range_y[1])
 
         angle = tool.getAngle(keep_pose, target_pose)
         self.pose = Pose(keep_pose.x, keep_pose.y, angle)
@@ -287,11 +284,8 @@ class Coordinate(object):
 
         keep_pose = Pose(target_pose.x, self._keep_y, 0.0)
 
-        if keep_pose.x > self._range_x[0]:
-            keep_pose.x = self._range_x[0]
-
-        elif keep_pose.x < self._range_x[1]:
-            keep_pose.x = self._range_x[1]
+        keep_pose.x = tool.limit(keep_pose.x,
+                self._range_x[0], self._range_x[1])
 
         angle = tool.getAngle(keep_pose, target_pose)
         self.pose = Pose(keep_pose.x, keep_pose.y, angle)
