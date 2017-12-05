@@ -19,6 +19,9 @@ class Coordinate(object):
         self._target = None # string data
         self._update_func = None
 
+        self._range_x = [constants.FieldHalfX, -constants.FieldHalfX]
+        self._range_y = [constants.FieldHalfY, -constants.FieldHalfY]
+
         # arrival parameters
         self._arrived_position_tolerance = 0.1 # unit:meter
         self._arrived_angle_tolerance = 3.0 * math.pi / 180.0
@@ -42,6 +45,10 @@ class Coordinate(object):
         self._keep_y = 0.0
         self._range_x = [constants.FieldHalfX, -constants.FieldHalfX]
         self._range_y = [constants.FieldHalfY, -constants.FieldHalfY]
+
+        # intersection
+        self._pose1 = Pose(0, constants.FieldHalfY, 0)
+        self._pose2 = Pose(0, -constants.FieldHalfY, 0)
 
 
     def update(self):
@@ -96,6 +103,28 @@ class Coordinate(object):
             self._range_x[1] = range_x_low
 
         self._update_func = self._update_keep_y
+
+
+    def set_intersection(self, base="CONST_OUR_GOAL", target="Ball", pose1=False, pose2=False):
+
+        self._base = base
+        self._target = target
+
+        if pose1 and pose2:
+            self._pose1 = pose1
+            self._pose2 = pose2
+
+        if self._pose1.x > self._pose2.x:
+            self._range_x = [self._pose1.x, self._pose2.x]
+        else:
+            self._range_x = [self._pose2.x, self._pose1.x]
+
+        if self._pose1.y > self._pose2.y:
+            self._range_y = [self._pose1.y, self._pose2.y]
+        else:
+            self._range_y = [self._pose2.y, self._pose1.y]
+
+        self._update_func = self._update_intersection
 
 
     def is_arrived(self, role):
@@ -269,3 +298,25 @@ class Coordinate(object):
         
         return True
 
+    
+    def _update_intersection(self):
+        target_pose = WorldModel.get_pose(self._target)
+        base_pose = WorldModel.get_pose(self._base)
+
+        if target_pose is None or base_pose is None:
+            return False
+
+        intersection = tool.get_intersection(base_pose, target_pose, 
+                self._pose1, self._pose2)
+
+
+        angle = tool.getAngle(intersection, target_pose)
+
+        intersection.x = tool.limit(intersection.x, 
+                self._range_x[0], self._range_x[1])
+        intersection.y = tool.limit(intersection.y,
+                self._range_y[0], self._range_y[1])
+
+        self.pose = Pose(intersection.x, intersection.y, angle)
+
+        return True
