@@ -5,6 +5,8 @@ from play_pre_kickoff import PlayPreKickoff
 from play_kickoff import PlayKickoff
 from play_force_start import PlayForceStart
 from play_inplay import PlayInPlay
+from play_indirect import PlayIndirect
+from play_direct import PlayDirect
 
 class PlayBook(object):
 
@@ -15,3 +17,5 @@ class PlayBook(object):
     book.append(PlayKickoff())
     book.append(PlayForceStart())
     book.append(PlayInPlay())
+    book.append(PlayIndirect())
+    book.append(PlayDirect())
