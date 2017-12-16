@@ -178,7 +178,6 @@ class WorldModel(object):
             WorldModel.assignments['Role_0'] = WorldModel._friend_goalie_id
         
         # 残ったIDを順番にRoleに登録する
-        rospy.loginfo(IDs)
         for role, robot_id in WorldModel.assignments.items():
             if IDs and role != 'Role_0' and robot_id is None:
                 WorldModel.assignments[role] = IDs.pop(0)
@@ -439,7 +438,6 @@ class WorldModel(object):
         if WorldModel._current_refbox_command == 'IN_PLAY':
             WorldModel._set_current_situation('IN_PLAY')
 
-        # ボールがフィールド外に出たか判定
         # update_situationの最後に実行すること
         if WorldModel._observer.ball_is_in_field(ball_pose):
             WorldModel._set_current_situation(WorldModel._current_refbox_command)
@@ -457,7 +455,7 @@ class WorldModel(object):
     @classmethod
     def _update_closest_role(cls):
         thresh_dist = 1000
-        hysteresis = 0.5
+        hysteresis = 1.0
 
         ball_pose = WorldModel.get_pose('Ball')
 
