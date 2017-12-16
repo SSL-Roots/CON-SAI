@@ -158,19 +158,50 @@ class WorldModel(object):
     
     @classmethod
     def update_assignments(cls):
-        unassigned_roles, unassigned_IDs = WorldModel._check_unassignment()
-
-        # Goalie_IDはRole_0に固定する
-        if WorldModel._friend_goalie_id in unassigned_IDs:
-            WorldModel.assignments['Role_0'] = WorldModel._friend_goalie_id
-            unassigned_IDs.remove(WorldModel._friend_goalie_id)
-            unassigned_roles.remove('Role_0')
-
-        for role in unassigned_roles:
-            if unassigned_IDs and role != 'Role_0':
-                WorldModel.assignments[role] = unassigned_IDs.pop(0)
-            else:
+        # IDが存在しないRoleをNoneにする
+        IDs = WorldModel._existing_friends_id
+        
+        for role, robot_id in WorldModel.assignments.items():
+            if not robot_id in IDs:
                 WorldModel.assignments[role] = None
+
+        # IDsからすでにRoleが登録されてるIDを取り除く
+        for robot_id in WorldModel.assignments.values():
+            if robot_id in IDs:
+                IDs.remove(robot_id)
+
+        # Role_0にGoalie_IDを登録する
+        if WorldModel._friend_goalie_id in IDs:
+            IDs.remove(WorldModel._friend_goalie_id)
+            WorldModel.assignments['Role_0'] = WorldModel._friend_goalie_id
+        
+        # 残ったIDを順番にRoleに登録する
+        rospy.loginfo(IDs)
+        for role, robot_id in WorldModel.assignments.items():
+            if IDs and role != 'Role_0' and robot_id is None:
+                WorldModel.assignments[role] = IDs.pop(0)
+        
+        # IDが登録されてないRoleは末尾から詰める
+        target_i = 1
+        replace_i = 5
+        while replace_i - target_i > 0:
+            while replace_i > 2:
+                if WorldModel.assignments['Role_' + str(replace_i)] is not None:
+                    break
+                replace_i -= 1
+
+            target_role = 'Role_' + str(target_i)
+            if WorldModel.assignments[target_role] is None:
+                replace_role = 'Role_' + str(replace_i)
+                replace_ID = WorldModel.assignments[replace_role]
+                WorldModel.assignments[target_role] = replace_ID
+                WorldModel.assignments[replace_role] = None
+
+            target_i += 1
+
+        # Ball holder のRoleとRole_1を入れ替える
+        # Ball holderがRole_0だったら何もしない
+
 
     
     @classmethod
