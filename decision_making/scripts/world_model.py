@@ -208,6 +208,8 @@ class WorldModel(object):
             old_id = WorldModel.assignments['Role_1']
             WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
             WorldModel.assignments[closest_role] = old_id
+            # closest_role をRole_1にもどす
+            WorldModel._ball_closest_role = 'Role_1'
 
     
     @classmethod
@@ -480,6 +482,4 @@ class WorldModel(object):
 
         WorldModel._ball_closest_role = closest_role
             
-            
-
 
