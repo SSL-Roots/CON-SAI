@@ -147,6 +147,8 @@ class WorldModel(object):
     _observer = Observer()
     _ball_kicked_speed = 1.0
 
+    _ball_closest_role = None
+
 
     @classmethod
     def update_world(cls):
@@ -201,7 +203,12 @@ class WorldModel(object):
 
         # Ball holder のRoleとRole_1を入れ替える
         # Ball holderがRole_0だったら何もしない
-
+        WorldModel._update_closest_role()
+        closest_role = WorldModel._ball_closest_role
+        if closest_role and closest_role != 'Role_0':
+            old_id = WorldModel.assignments['Role_1']
+            WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
+            WorldModel.assignments[closest_role] = old_id
 
     
     @classmethod
@@ -445,3 +452,36 @@ class WorldModel(object):
         WorldModel.situations[WorldModel._current_situation] = False
         WorldModel._current_situation = situation
         WorldModel.situations[WorldModel._current_situation] = True
+
+
+    @classmethod
+    def _update_closest_role(cls):
+        thresh_dist = 1000
+        hysteresis = 0.5
+
+        ball_pose = WorldModel.get_pose('Ball')
+
+        closest_role = None
+        for i in range(6):
+            role = 'Role_' + str(i)
+            pose = WorldModel.get_pose(role)
+            
+            if pose is None:
+                continue
+
+            dist_to_ball = tool.getSize(pose, ball_pose)
+
+            # ヒステリシスをもたせる
+            if role == WorldModel._ball_closest_role:
+                dist_to_ball -= hysteresis
+
+            if dist_to_ball < thresh_dist:
+                thresh_dist = dist_to_ball
+                closest_role = role
+
+
+        WorldModel._ball_closest_role = closest_role
+            
+            
+
+
