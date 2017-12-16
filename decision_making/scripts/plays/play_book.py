@@ -1,5 +1,6 @@
 
 from play_halt import PlayHalt
+from play_outside import PlayOutside
 from play_stop import PlayStop
 from play_pre_kickoff import PlayPreKickoff
 from play_kickoff import PlayKickoff
@@ -12,6 +13,7 @@ class PlayBook(object):
 
     book = [] 
     book.append(PlayHalt())
+    book.append(PlayOutside())
     book.append(PlayStop())
     book.append(PlayPreKickoff())
     book.append(PlayKickoff())
