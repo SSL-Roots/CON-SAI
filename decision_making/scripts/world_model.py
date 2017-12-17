@@ -66,8 +66,8 @@ class Command(object):
 
 class WorldModel(object):
     situations = {'HALT' : False, 'STOP' : False, 'FORCE_START' : False,
-            'OUR_KICKOFF_PRE' : False, 'OUR_KICKOFF_START' : False,
-            'OUR_PENALTY_PRE' : False, 'OUR_PENALTY_START' : False,
+            'OUR_PRE_KICKOFF' : False, 'OUR_KICKOFF_START' : False,
+            'OUR_PRE_PENALTY' : False, 'OUR_PENALTY_START' : False,
             'OUR_DIRECT' : False, 'OUR_INDIRECT' : False,
             'OUR_TIMEOUT' : False,
             'THEIR_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
@@ -118,13 +118,13 @@ class WorldModel(object):
     _refbox_dict_blue = {SSL_Referee.HALT : 'HALT', SSL_Referee.STOP : 'STOP',
             SSL_Referee.NORMAL_START : 'NORMAL_START', 
             SSL_Referee.FORCE_START : 'FORCE_START',
-            SSL_Referee.PREPARE_KICKOFF_BLUE : 'OUR_KICKOFF_PRE',
-            SSL_Referee.PREPARE_PENALTY_BLUE : 'OUR_PENALTY_PRE',
+            SSL_Referee.PREPARE_KICKOFF_BLUE : 'OUR_PRE_KICKOFF',
+            SSL_Referee.PREPARE_PENALTY_BLUE : 'OUR_PRE_PENALTY',
             SSL_Referee.DIRECT_FREE_BLUE : 'OUR_DIRECT',
             SSL_Referee.INDIRECT_FREE_BLUE : 'OUR_INDIRECT',
             SSL_Referee.TIMEOUT_BLUE : 'OUR_TIMEOUT',
-            SSL_Referee.PREPARE_KICKOFF_YELLOW : 'THEIR_KICKOFF_PRE',
-            SSL_Referee.PREPARE_PENALTY_YELLOW : 'THEIR_PENALTY_PRE',
+            SSL_Referee.PREPARE_KICKOFF_YELLOW : 'THEIR_PRE_KICKOFF',
+            SSL_Referee.PREPARE_PENALTY_YELLOW : 'THEIR_PRE_PENALTY',
             SSL_Referee.DIRECT_FREE_YELLOW : 'THEIR_DIRECT',
             SSL_Referee.INDIRECT_FREE_YELLOW : 'THEIR_INDIRECT',
             SSL_Referee.TIMEOUT_YELLOW : 'THEIR_TIMEOUT'}
@@ -132,13 +132,13 @@ class WorldModel(object):
     _refbox_dict_yellow = {SSL_Referee.HALT : 'HALT', SSL_Referee.STOP : 'STOP',
             SSL_Referee.NORMAL_START : 'NORMAL_START', 
             SSL_Referee.FORCE_START : 'FORCE_START',
-            SSL_Referee.PREPARE_KICKOFF_BLUE : 'THEIR_KICKOFF_PRE',
-            SSL_Referee.PREPARE_PENALTY_BLUE : 'THEIR_PENALTY_PRE',
+            SSL_Referee.PREPARE_KICKOFF_BLUE : 'THEIR_PRE_KICKOFF',
+            SSL_Referee.PREPARE_PENALTY_BLUE : 'THEIR_PRE_PENALTY',
             SSL_Referee.DIRECT_FREE_BLUE : 'THEIR_DIRECT',
             SSL_Referee.INDIRECT_FREE_BLUE : 'THEIR_INDIRECT',
             SSL_Referee.TIMEOUT_BLUE : 'THEIR_TIMEOUT',
-            SSL_Referee.PREPARE_KICKOFF_YELLOW : 'OUR_KICKOFF_PRE',
-            SSL_Referee.PREPARE_PENALTY_YELLOW : 'OUR_PENALTY_PRE',
+            SSL_Referee.PREPARE_KICKOFF_YELLOW : 'OUR_PRE_KICKOFF',
+            SSL_Referee.PREPARE_PENALTY_YELLOW : 'OUR_PRE_PENALTY',
             SSL_Referee.DIRECT_FREE_YELLOW : 'OUR_DIRECT',
             SSL_Referee.INDIRECT_FREE_YELLOW : 'OUR_INDIRECT',
             SSL_Referee.TIMEOUT_YELLOW : 'OUR_TIMEOUT'}
@@ -407,16 +407,16 @@ class WorldModel(object):
 
             # NORMAL_STARTはKICKOFFとPENALTYのトリガーになるため、その切り分けを行う
             if refbox_command == 'NORMAL_START':
-                if WorldModel._current_situation == 'OUR_KICKOFF_PRE':
+                if WorldModel._current_situation == 'OUR_PRE_KICKOFF':
                     refbox_command = 'OUR_KICKOFF_START'
 
-                elif WorldModel._current_situation == 'OUR_PENALTY_PRE':
+                elif WorldModel._current_situation == 'OUR_PRE_PENALTY':
                     refbox_command = 'OUR_PENALTY_START'
 
-                elif WorldModel._current_situation == 'THEIR_KICKOFF_PRE':
+                elif WorldModel._current_situation == 'THEIR_PRE_KICKOFF':
                     refbox_command = 'THEIR_KICKOFF_START'
 
-                elif WorldModel._current_situation == 'THEIR_PENALTY_PRE':
+                elif WorldModel._current_situation == 'THEIR_PRE_PENALTY':
                     refbox_command = 'THEIR_PENALTY_START'
 
                 else:

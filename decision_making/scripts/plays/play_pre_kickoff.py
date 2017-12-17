@@ -11,8 +11,8 @@ class PlayPreKickoff(Play):
     def __init__(self):
         super(PlayPreKickoff, self).__init__('PlayPreKickoff')
 
-        self.applicable = "OUR_KICKOFF_PRE"
-        self.done_aborted = "OUR_KICKOFF_PRE"
+        self.applicable = "OUR_PRE_KICKOFF"
+        self.done_aborted = "OUR_PRE_KICKOFF"
 
         keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
         self.roles[0].loop_enable = True
