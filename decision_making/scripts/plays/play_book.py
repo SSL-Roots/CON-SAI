@@ -9,6 +9,9 @@ from play_inplay import PlayInPlay
 from play_indirect import PlayIndirect
 from play_direct import PlayDirect
 from play_their_pre_kickoff import PlayTheirPreKickoff
+from play_their_kickoff_start import PlayTheirKickoffStart
+from play_their_indirect import PlayTheirIndirect
+from play_their_direct import PlayTheirDirect
 
 class PlayBook(object):
 
@@ -23,3 +26,6 @@ class PlayBook(object):
     book.append(PlayIndirect())
     book.append(PlayDirect())
     book.append(PlayTheirPreKickoff())
+    book.append(PlayTheirKickoffStart())
+    book.append(PlayTheirIndirect())
+    book.append(PlayTheirDirect())

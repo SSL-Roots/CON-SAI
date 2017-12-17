@@ -6,12 +6,12 @@ from tactics.tactic_interpose import TacticInterpose
 from tactics.tactic_position import TacticPosition
 import constants
 
-class PlayTheirPreKickoff(Play):
+class PlayTheirKickoffStart(Play):
     def __init__(self):
-        super(PlayTheirPreKickoff, self).__init__('PlayTheirPreKickoff')
+        super(PlayTheirKickoffStart, self).__init__('PlayTheirKickoffStart')
 
-        self.applicable = "THEIR_PRE_KICKOFF"
-        self.done_aborted = "THEIR_PRE_KICKOFF"
+        self.applicable = "THEIR_KICKOFF_START"
+        self.done_aborted = "THEIR_KICKOFF_START"
 
         keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
         self.roles[0].loop_enable = True
