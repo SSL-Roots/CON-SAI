@@ -70,8 +70,8 @@ class WorldModel(object):
             'OUR_PRE_PENALTY' : False, 'OUR_PENALTY_START' : False,
             'OUR_DIRECT' : False, 'OUR_INDIRECT' : False,
             'OUR_TIMEOUT' : False,
-            'THEIR_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
-            'THEIR_PENALTY' : False, 'THEIR_PENALTY_START' : False,
+            'THEIR_PRE_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
+            'THEIR_PRE_PENALTY' : False, 'THEIR_PENALTY_START' : False,
             'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
             'THEIR_TIMEOUT' : False,
             'BALL_IN_OUTSIDE' : False, 'IN_PLAY' : False}
