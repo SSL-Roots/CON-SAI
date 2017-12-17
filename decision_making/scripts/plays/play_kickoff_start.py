@@ -8,9 +8,9 @@ from tactics.tactic_setplay_shoot import TacticSetplayShoot
 from consai_msgs.msg import Pose
 import constants
 
-class PlayKickoff(Play):
+class PlayKickoffStart(Play):
     def __init__(self):
-        super(PlayKickoff, self).__init__('PlayKickoff')
+        super(PlayKickoffStart, self).__init__('PlayKickoffStart')
 
         self.applicable = "OUR_KICKOFF_START"
         self.done_aborted = "OUR_KICKOFF_START"
