@@ -102,7 +102,7 @@ class WorldModel(object):
     _existing_enemies_id = [None] * 6
 
     enemy_assignments = OrderedDict()
-    enemy_assignments['Enemy_Goalie'] = None
+    enemy_assignments['Enemy_0'] = None
     enemy_assignments['Enemy_1'] = None
     enemy_assignments['Enemy_2'] = None
     enemy_assignments['Enemy_3'] = None
@@ -388,7 +388,7 @@ class WorldModel(object):
         # raw listからgoalieのIDを取り除く
         if WorldModel._enemy_goalie_id in raw_id_list:
             raw_id_list.remove(WorldModel._enemy_goalie_id)
-            WorldModel.enemy_assignments['Enemy_Goalie'] = WorldModel._enemy_goalie_id
+            WorldModel.enemy_assignments['Enemy_0'] = WorldModel._enemy_goalie_id
 
         key_i = 1
         for enemy_id in raw_id_list:
