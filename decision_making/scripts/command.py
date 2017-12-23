@@ -17,6 +17,9 @@ class Command(object):
         self.chip_enable = False
         self.navigation_enable = True
 
+        self._MAX_KICK_POWER = 8.0
+        self._MAX_DRIBBLE_POWER = 8.0
+
     
     def set_target_pose(self, x, y, yaw, frame_id):
         self.target_pose.header.stamp = rospy.Time()
@@ -44,6 +47,29 @@ class Command(object):
     def set_aim(self, x, y):
         self.aim.x = x
         self.aim.y = y
+
+
+    def set_kick(self, power, chip_enable=False):
+        kick_power = power
+
+        if kick_power < 0:
+            kick_power = 0.0
+        elif kick_power > self._MAX_KICK_POWER:
+            kick_power = self._MAX_KICK_POWER
+
+        self.kick_power =kick_power
+        self.chip_enable = chip_enable
+
+
+    def set_dribble(self, power):
+        dribble_power = power
+
+        if dribble_power < 0:
+            dribble_power = 0.0
+        elif dribble_power > self._MAX_DRIBBLE_POWER:
+            dribble_power = self._MAX_DRIBBLE_POWER
+
+        self.dribble_power = dribble_power
 
 
     def reset_adjustments(self):
