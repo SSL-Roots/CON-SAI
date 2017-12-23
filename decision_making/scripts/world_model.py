@@ -153,7 +153,7 @@ class WorldModel(object):
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
-        rospy.loginfo(WorldModel._current_situation)
+        rospy.loginfo('Situation: ' + WorldModel._current_situation)
 
         WorldModel._update_enemy_assignments()
 

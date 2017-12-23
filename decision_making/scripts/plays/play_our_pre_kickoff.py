@@ -7,9 +7,9 @@ from tactics.tactic_interpose import TacticInterpose
 from consai_msgs.msg import Pose
 import constants
 
-class PlayPreKickoff(Play):
+class PlayOurPreKickoff(Play):
     def __init__(self):
-        super(PlayPreKickoff, self).__init__('PlayPreKickoff')
+        super(PlayOurPreKickoff, self).__init__('PlayOurPreKickoff')
 
         self.applicable = "OUR_PRE_KICKOFF"
         self.done_aborted = "OUR_PRE_KICKOFF"
