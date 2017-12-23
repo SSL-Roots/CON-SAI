@@ -176,6 +176,11 @@ class WorldModel(object):
 
 
     @classmethod
+    def set_friend_goalie_id(cls, robot_id):
+        WorldModel._friend_goalie_id = robot_id
+
+
+    @classmethod
     def set_ball_odom(cls, msg):
         WorldModel._ball_odom = msg
         

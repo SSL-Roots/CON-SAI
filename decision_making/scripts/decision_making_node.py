@@ -144,6 +144,7 @@ if __name__ == '__main__':
                     callback_enemy_odom, callback_args=robot_id))
 
     WorldModel.set_friend_color(rospy.get_param('/friend_color'))
+    WorldModel.set_friend_goalie_id(rospy.get_param('/goalie_id'))
 
 
     main()
