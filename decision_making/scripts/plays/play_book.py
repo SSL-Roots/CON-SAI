@@ -4,6 +4,8 @@ from play_outside import PlayOutside
 from play_stop import PlayStop
 from play_our_pre_kickoff import PlayOurPreKickoff
 from play_our_kickoff_start import PlayOurKickoffStart
+from play_our_pre_penalty import PlayOurPrePenalty
+from play_our_penalty_start import PlayOurPenaltyStart
 from play_force_start import PlayForceStart
 from play_inplay import PlayInPlay
 from play_indirect import PlayIndirect
@@ -23,6 +25,8 @@ class PlayBook(object):
     book.append(PlayStop())
     book.append(PlayOurPreKickoff())
     book.append(PlayOurKickoffStart())
+    book.append(PlayOurPrePenalty())
+    book.append(PlayOurPenaltyStart())
     book.append(PlayForceStart())
     book.append(PlayInPlay())
     book.append(PlayIndirect())
