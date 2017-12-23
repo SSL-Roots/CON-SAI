@@ -19,6 +19,7 @@ from std_msgs.msg import UInt16MultiArray as UIntArray
 
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import AIStatus
+from consai_msgs.msg import RefereeTeamInfo
 
 
 def publish():
@@ -76,6 +77,14 @@ def callback_enemy_odom(msg, robot_id):
     WorldModel.set_enemy_odom(msg, robot_id)
 
 
+def callback_blue_info(msg):
+    WorldModel.set_blue_info(msg)
+
+
+def callback_yellow_info(msg):
+    WorldModel.set_yellow_info(msg)
+
+
 def main():
     r   = rospy.Rate(10)
 
@@ -99,6 +108,8 @@ if __name__ == '__main__':
 
     # Subscribers
     sub_refbox_command  = rospy.Subscriber("/refbox/command", Int8, refboxCallback)
+    sub_refbox_blue_info = rospy.Subscriber("/refbox/blue_info", RefereeTeamInfo, callback_blue_info)
+    sub_refbox_yellow_info = rospy.Subscriber("/refbox/yellow_info", RefereeTeamInfo, callback_yellow_info)
     sub_ball            = rospy.Subscriber("/ball_observer/estimation", Odometry, ballCallback)
     sub_friend_id              = rospy.Subscriber("/existing_friends_id",UIntArray,friendIDCallback)
     sub_enemy_id        = rospy.Subscriber("/existing_enemies_id",UIntArray,enemyIDCallback)

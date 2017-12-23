@@ -8,6 +8,7 @@ from collections import OrderedDict
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import Pose
 from consai_msgs.msg import Pose as Velocity
+from consai_msgs.msg import RefereeTeamInfo
 
 import tool
 import constants
@@ -49,10 +50,12 @@ class WorldModel(object):
     _friend_color = 'blue'
     _friend_odoms = [Odometry()] * 12
     _existing_friends_id = [None] * 6
+    _friend_team_info = RefereeTeamInfo()
 
     _enemy_goalie_id = 0
     _enemy_odoms = [Odometry()] * 12
     _existing_enemies_id = [None] * 6
+    _enemy_team_info = RefereeTeamInfo()
 
     enemy_assignments = OrderedDict()
     enemy_assignments['Enemy_0'] = None
@@ -109,6 +112,7 @@ class WorldModel(object):
         rospy.loginfo('Situation: ' + WorldModel._current_situation)
 
         WorldModel._update_enemy_assignments()
+        rospy.loginfo('enemy_goalie_id :' + str(WorldModel._enemy_goalie_id))
 
     
     @classmethod
@@ -178,6 +182,28 @@ class WorldModel(object):
     @classmethod
     def set_friend_goalie_id(cls, robot_id):
         WorldModel._friend_goalie_id = robot_id
+
+
+    @classmethod
+    def set_blue_info(cls, team_info):
+        if WorldModel._friend_color == 'blue':
+            WorldModel._friend_team_info = team_info
+        else:
+            WorldModel._enemy_team_info = team_info
+            WorldModel._enemy_goalie_id = team_info.goalie
+
+
+    @classmethod
+    def set_yellow_info(cls, team_info):
+        if WorldModel._friend_color == 'yellow':
+            WorldModel._friend_team_info = team_info
+        else:
+            WorldModel._enemy_team_info = team_info
+            WorldModel._enemy_goalie_id = team_info.goalie
+
+
+    def set_enemy_goalie_id(cls, robot_id):
+        WorldModel._enemy_goalie_id = robot_id
 
 
     @classmethod
