@@ -69,7 +69,7 @@ if __name__ == '__main__':
             commands.kick_speed_x = G_kick_vel.data
 
             if G_AIStatus.do_chip:
-                commands.kick_speed_z = 1.0
+                commands.kick_speed_z = G_kick_vel.data
 
             commands.dribble_power = G_AIStatus.dribble_power
 

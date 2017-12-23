@@ -4,7 +4,7 @@ from play_base import Play
 from tactics.tactic_keep import TacticKeep
 from tactics.tactic_intersection import TacticIntersection
 from tactics.tactic_interpose import TacticInterpose
-from tactics.tactic_inplay_shoot import TacticInplayShoot
+from tactics.tactic_clear import TacticClear
 from tactics.tactic_position import TacticPosition
 from consai_msgs.msg import Pose
 import constants
@@ -18,7 +18,7 @@ class PlayInPlayOurDefence(Play):
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticInplayShoot('TacticInplayShoot', self.roles[0].my_role)
+                TacticClear('TacticClear', self.roles[0].my_role)
                 )
 
         self.roles[1].loop_enable = True
