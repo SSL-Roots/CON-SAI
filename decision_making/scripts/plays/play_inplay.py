@@ -14,6 +14,7 @@ class PlayInPlay(Play):
 
         self.applicable = "IN_PLAY"
         self.done_aborted = "IN_PLAY"
+        self.assignment_type = "CLOSEST_BALL"
 
         keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
         self.roles[0].loop_enable = True

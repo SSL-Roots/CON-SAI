@@ -159,7 +159,7 @@ class WorldModel(object):
 
     
     @classmethod
-    def update_assignments(cls):
+    def update_assignments(cls, assignment_type=None):
         # IDが存在しないRoleをNoneにする
         IDs = WorldModel._existing_friends_id
         
@@ -202,14 +202,15 @@ class WorldModel(object):
 
         # Ball holder のRoleとRole_1を入れ替える
         # Ball holderがRole_0だったら何もしない
-        WorldModel._update_closest_role()
-        closest_role = WorldModel._ball_closest_role
-        if closest_role and closest_role != 'Role_0':
-            old_id = WorldModel.assignments['Role_1']
-            WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
-            WorldModel.assignments[closest_role] = old_id
-            # closest_role をRole_1にもどす
-            WorldModel._ball_closest_role = 'Role_1'
+        if assignment_type == 'CLOSEST_BALL':
+            WorldModel._update_closest_role()
+            closest_role = WorldModel._ball_closest_role
+            if closest_role and closest_role != 'Role_0':
+                old_id = WorldModel.assignments['Role_1']
+                WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
+                WorldModel.assignments[closest_role] = old_id
+                # closest_role をRole_1にもどす
+                WorldModel._ball_closest_role = 'Role_1'
 
     
     @classmethod
