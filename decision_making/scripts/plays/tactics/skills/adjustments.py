@@ -44,3 +44,18 @@ class WithChip(Task):
         WorldModel.commands[self._my_role].set_kick(self._kick_power,True)
 
         return TaskStatus.RUNNING
+
+
+class WithDribble(Task):
+    def __init__(self, name, my_role, dribble_power=6.0):
+        super(WithDribble, self).__init__(name)
+
+        self._my_role = my_role
+        self._dribble_power = dribble_power
+
+
+    def run(self):
+        WorldModel.commands[self._my_role].set_dribble(self._dribble_power)
+
+        return TaskStatus.RUNNING
+
