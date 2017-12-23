@@ -18,6 +18,8 @@ class Observer(object):
 
         self._ball_is_in_field = False
         self._ball_is_moved = False
+        self._ball_is_in_our_defence = False
+        self._ball_is_in_their_defence = False
 
 
     def ball_is_in_field(self, pose):
@@ -25,11 +27,13 @@ class Observer(object):
         fabs_y = math.fabs(pose.y)
 
         if self._ball_is_in_field == True:
-            if fabs_x > 4.5 + self._hysteresis or fabs_y > 3.0 + self._hysteresis:
+            if fabs_x > constants.FieldHalfX + self._hysteresis or \
+                    fabs_y > constants.FieldHalfY + self._hysteresis:
                 self._ball_is_in_field = False
 
         else:
-            if fabs_x < 4.5 - self._hysteresis and fabs_y < 3.0 - self._hysteresis:
+            if fabs_x < constants.FieldHalfX - self._hysteresis and \
+                    fabs_y < constants.FieldHalfY - self._hysteresis:
                 self._ball_is_in_field = True
 
         return self._ball_is_in_field
@@ -46,3 +50,47 @@ class Observer(object):
 
         return self._ball_is_moved
         
+
+    def ball_is_in_defence_area(self, pose, our_side=False):
+        target_upper = Pose()
+        target_lower = Pose()
+        is_in_defence = False
+
+        if our_side:
+            target_upper = constants.poses['CONST_OUR_GOAL_UPPER']
+            target_lower = constants.poses['CONST_OUR_GOAL_LOWER']
+            is_in_defence = self._ball_is_in_our_defence
+        else:
+            target_upper = constants.poses['CONST_THEIR_GOAL_UPPER']
+            target_lower = constants.poses['CONST_THEIR_GOAL_LOWER']
+            is_in_defence = self._ball_is_in_their_defence
+
+
+        if is_in_defence:
+            threshold = constants.DefenceLength + self._hysteresis
+
+            if tool.getSize(pose, target_upper) > threshold and \
+                    tool.getSize(pose, target_lower) > threshold:
+                is_in_defence = False
+
+        else:
+            threshold = constants.DefenceLength - self._hysteresis
+
+            if tool.getSize(pose, target_upper) < threshold or \
+                    tool.getSize(pose, target_lower) < threshold:
+                is_in_defence = True
+
+
+        if our_side:
+            self._ball_is_in_our_defence = is_in_defence
+        else:
+            self._ball_is_in_their_defence = is_in_defence
+
+
+        return is_in_defence
+
+
+
+
+
+
