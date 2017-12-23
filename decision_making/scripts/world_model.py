@@ -30,7 +30,6 @@ class WorldModel(object):
             'BALL_IN_OUR_DEFENCE' : False, 'BALL_IN_THEIR_DEFENCE' : False}
 
     _current_situation = 'HALT'
-    _temporal_situation = None
 
     assignments = OrderedDict()
     assignments['Role_0'] = None
@@ -403,15 +402,12 @@ class WorldModel(object):
                 # 相手のディフェンスエリアに入ったか判定
                 WorldModel._set_current_situation('BALL_IN_THEIR_DEFENCE')
 
-
         # ボールがフィールド外に出ることを判定
         # update_situationの最後に実行すること
         if WorldModel._observer.ball_is_in_field(ball_pose):
-            if WorldModel._temporal_situation:
-                WorldModel._set_current_situation(WorldModel._temporal_situation)
-                WorldModel._temporal_situation = None
+            if WorldModel._current_refbox_command != 'IN_PLAY':
+                WorldModel._set_current_situation(WorldModel._current_refbox_command)
         else:
-            WorldModel._temporal_situation = WorldModel._current_situation
             WorldModel._set_current_situation('BALL_IN_OUTSIDE')
 
 
