@@ -103,7 +103,8 @@ class WorldModel(object):
     _observer = Observer()
     _ball_kicked_speed = 1.0
 
-    _ball_closest_role = None
+    _ball_closest_frined_role = None
+    _ball_closest_enemy_role = None
 
 
     @classmethod
@@ -118,7 +119,7 @@ class WorldModel(object):
     @classmethod
     def update_assignments(cls, assignment_type=None):
         # IDが存在しないRoleをNoneにする
-        IDs = WorldModel._existing_friends_id
+        IDs = WorldModel._existing_friends_id[:]
         
         for role, robot_id in WorldModel.assignments.items():
             if not robot_id in IDs:
@@ -161,13 +162,13 @@ class WorldModel(object):
         # Ball holderがRole_0だったら何もしない
         if assignment_type == 'CLOSEST_BALL':
             WorldModel._update_closest_role()
-            closest_role = WorldModel._ball_closest_role
+            closest_role = WorldModel._ball_closest_frined_role
             if closest_role and closest_role != 'Role_0':
                 old_id = WorldModel.assignments['Role_1']
                 WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
                 WorldModel.assignments[closest_role] = old_id
                 # closest_role をRole_1にもどす
-                WorldModel._ball_closest_role = 'Role_1'
+                WorldModel._ball_closest_frined_role = 'Role_1'
 
     
     @classmethod
@@ -342,27 +343,6 @@ class WorldModel(object):
 
 
     @classmethod
-    def _check_unassignment(cls):
-        unassigned_roles = []
-        unassigned_IDs = WorldModel._existing_friends_id
-
-        for role, robot_id in WorldModel.assignments.items():
-            # IDがアサインされていないRoleを取り出す
-            if robot_id is None:
-                unassigned_roles.append(role)
-
-            # アサインされてるIDが存在しないRoleを取り出す
-            elif not robot_id in unassigned_IDs:
-                unassigned_roles.append(role)
-
-            # アサインされてるIDが存在したら、unassigned_IDsから取り出す
-            elif robot_id in unassigned_IDs:
-                unassigned_IDs.remove(robot_id)
-
-        return unassigned_roles, unassigned_IDs
-        
-
-    @classmethod
     def _update_enemy_assignments(cls):
         raw_id_list = list(WorldModel._existing_enemies_id)
         
@@ -450,15 +430,25 @@ class WorldModel(object):
 
 
     @classmethod
-    def _update_closest_role(cls):
+    def _update_closest_role(cls, is_friend_role=True):
         thresh_dist = 1000
         hysteresis = 1.0
 
         ball_pose = WorldModel.get_pose('Ball')
-
         closest_role = None
+
+        prev_closest_role = None
+        role_text = ''
+        
+        if is_friend_role:
+            role_text = 'Role_'
+            prev_closest_role = WorldModel._ball_closest_frined_role
+        else:
+            role_text = 'Enemy_'
+            prev_closest_role = WorldModel._ball_closest_enemy_role
+
         for i in range(6):
-            role = 'Role_' + str(i)
+            role = role_text + str(i)
             pose = WorldModel.get_pose(role)
             
             if pose is None:
@@ -467,7 +457,7 @@ class WorldModel(object):
             dist_to_ball = tool.getSize(pose, ball_pose)
 
             # ヒステリシスをもたせる
-            if role == WorldModel._ball_closest_role:
+            if role == prev_closest_role:
                 dist_to_ball -= hysteresis
 
             if dist_to_ball < thresh_dist:
@@ -475,6 +465,9 @@ class WorldModel(object):
                 closest_role = role
 
 
-        WorldModel._ball_closest_role = closest_role
+        if is_friend_role:
+            WorldModel._ball_closest_frined_role = closest_role
+        else:
+            WorldModel._ball_closest_enemy_role = closest_role
             
 
