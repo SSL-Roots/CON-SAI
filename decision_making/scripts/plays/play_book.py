@@ -12,6 +12,7 @@ from play_their_pre_kickoff import PlayTheirPreKickoff
 from play_their_kickoff_start import PlayTheirKickoffStart
 from play_their_indirect import PlayTheirIndirect
 from play_their_direct import PlayTheirDirect
+from play_their_pre_penalty import PlayTheirPrePenalty
 
 class PlayBook(object):
 
@@ -29,3 +30,4 @@ class PlayBook(object):
     book.append(PlayTheirKickoffStart())
     book.append(PlayTheirIndirect())
     book.append(PlayTheirDirect())
+    book.append(PlayTheirPrePenalty())
