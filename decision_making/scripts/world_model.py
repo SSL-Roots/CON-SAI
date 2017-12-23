@@ -161,7 +161,7 @@ class WorldModel(object):
         # Ball holder のRoleとRole_1を入れ替える
         # Ball holderがRole_0だったら何もしない
         if assignment_type == 'CLOSEST_BALL':
-            WorldModel._update_closest_role()
+            WorldModel._update_closest_role(True)
             closest_role = WorldModel._ball_closest_frined_role
             if closest_role and closest_role != 'Role_0':
                 old_id = WorldModel.assignments['Role_1']
@@ -344,22 +344,55 @@ class WorldModel(object):
 
     @classmethod
     def _update_enemy_assignments(cls):
-        raw_id_list = list(WorldModel._existing_enemies_id)
+        # IDが存在しないRoleをNoneにする
+        IDs = WorldModel._existing_enemies_id[:]
         
-        # enemy_assignmnetsを初期化
-        for key in WorldModel.enemy_assignments.keys():
-            WorldModel.enemy_assignments[key] = None
-        
-        # raw listからgoalieのIDを取り除く
-        if WorldModel._enemy_goalie_id in raw_id_list:
-            raw_id_list.remove(WorldModel._enemy_goalie_id)
-            WorldModel.enemy_assignments['Enemy_0'] = WorldModel._enemy_goalie_id
+        for role, robot_id in WorldModel.enemy_assignments.items():
+            if not robot_id in IDs:
+                WorldModel.enemy_assignments[role] = None
 
-        key_i = 1
-        for enemy_id in raw_id_list:
-            key = 'Enemy_' + str(key_i)
-            WorldModel.enemy_assignments[key] = enemy_id
-            key_i += 1
+        # IDsからすでにRoleが登録されてるIDを取り除く
+        for robot_id in WorldModel.enemy_assignments.values():
+            if robot_id in IDs:
+                IDs.remove(robot_id)
+
+        # Role_0にGoalie_IDを登録する
+        if WorldModel._enemy_goalie_id in IDs:
+            IDs.remove(WorldModel._enemy_goalie_id)
+            WorldModel.enemy_assignments['Enemy_0'] = WorldModel._enemy_goalie_id
+        
+        # 残ったIDを順番にRoleに登録する
+        for role, robot_id in WorldModel.enemy_assignments.items():
+            if IDs and role != 'Enemy_0' and robot_id is None:
+                WorldModel.enemy_assignments[role] = IDs.pop(0)
+        
+        # IDが登録されてないRoleは末尾から詰める
+        target_i = 1
+        replace_i = 5
+        while replace_i - target_i > 0:
+            while replace_i > 2:
+                if WorldModel.enemy_assignments['Enemy_' + str(replace_i)] is not None:
+                    break
+                replace_i -= 1
+
+            target_role = 'Enemy_' + str(target_i)
+            if WorldModel.enemy_assignments[target_role] is None:
+                replace_role = 'Enemy_' + str(replace_i)
+                replace_ID = WorldModel.enemy_assignments[replace_role]
+                WorldModel.enemy_assignments[target_role] = replace_ID
+                WorldModel.enemy_assignments[replace_role] = None
+
+            target_i += 1
+
+        # Ball holder のRoleとRole_1を入れ替える
+        WorldModel._update_closest_role(False)
+        closest_role = WorldModel._ball_closest_enemy_role
+        if closest_role:
+            old_id = WorldModel.enemy_assignments['Enemy_1']
+            WorldModel.enemy_assignments['Enemy_1'] = WorldModel.enemy_assignments[closest_role]
+            WorldModel.enemy_assignments[closest_role] = old_id
+            # closest_role をRole_1にもどす
+            WorldModel._ball_closest_enemy_role = 'Enemy_1'
 
 
     @classmethod
@@ -432,7 +465,7 @@ class WorldModel(object):
     @classmethod
     def _update_closest_role(cls, is_friend_role=True):
         thresh_dist = 1000
-        hysteresis = 1.0
+        hysteresis = 0.5
 
         ball_pose = WorldModel.get_pose('Ball')
         closest_role = None
