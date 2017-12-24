@@ -115,7 +115,7 @@ $ catkin_make
 # エラーがでなければOK
 ```
 
-CON-SAIの使い方は[チュートリアル](Tutorial.md)に書いてます。
+CON-SAIの使い方は[チュートリアル](doc/Tutorial.md)に書いてます。
 
 チュートリアルを始める前に下記のgrSimとReferee Boxをインストールしてください。
 
