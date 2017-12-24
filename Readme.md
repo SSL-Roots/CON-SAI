@@ -6,11 +6,16 @@ CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 
 ![running CON-SAI](https://github.com/SSL-Roots/CON-SAI/blob/Images/Images/CON-SAI-about.png "running CON-SAI")
 
+## CON-SAIの開発コンセプト
+CON-SAIを使う前に[コンセプト](doc/Concept.md)を読んでください。
+
 ## Requirements
-このAIプログラムはUbuntu 14.04で作成・テストしてます。
+CON-SAIはUbuntu 14.04で作成・テストしてます。
 
 また、使用しているROS IndigoはUbuntu 14.04以下で動作するため、
 Ubuntu 14.04のインストールを推奨します。
+
+*Ubuntu 16.04, ROS Kineticに向けても開発中です。*
 
 下記のPCスペックで問題なく動作します。
 * Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
@@ -133,7 +138,7 @@ RoboCup SSLのAI開発にはシミュレータ(grSim)と審判ソフト(Referee 
 grSimを使ったシミュレータ上でのロボット操作方法、
 実機ロボットの操作方法はこちらに書いてます。
 
-[チュートリアル](Tutorial.md)
+[チュートリアル](doc/Tutorial.md)
 
 
 ## Author

@@ -85,7 +85,10 @@ SAI-Visualizerにロボットとボールが描画されたら通信成功です
 
 Referee BoxでStop Game -> Kick Off -> Normal Start -> Haltとボタンを押してください。
 
-3台のロボットが動き、1台のロボットがボールを蹴ったら成功です。
+6台のロボットが動き、1台のロボットがボールを蹴ったら成功です。
+
+戦略プログラムの簡単な概要は、[decision_making_nodeについて](AboutDecisionMaking.md)
+に記載しています。
 
 
 ### チームカラー/サイドの切り替え
@@ -98,20 +101,17 @@ Referee BoxでStop Game -> Kick Off -> Normal Start -> Haltとボタンを押し
 friend_color : 'yellow'
 team_side    : 'right'
 robots_num   : 6
+goalie_id    : 0
 ```
 
 out_team.yamlを変更後、先ほどと同じようにロボットを動かしてみてください。
 
-見方サイドは右側になったにもかかわらず、
+味方サイドは右側になったにもかかわらず、
 SAI Visualizer上では黄色ロボットが左側に表示され、右側へボールを蹴ることが確認できます。
 
 これは、SSL-Visionから受信した座標をチームサイドに合わせて変換しているためです。
 
-見方サイドが常に左側(x軸座標でマイナス側)となるため、
+味方サイドが常に左側(x軸座標でマイナス側)となるため、
 右側を攻める戦略プログラムを作成すればコートチェンジにも問題なく対応できます。
-
-
-
-
 
 
