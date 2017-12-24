@@ -14,6 +14,7 @@ namespace Tool{
         while(angle < -M_PI){
             angle += 2.0*M_PI;
         }
+        return angle;
     }
 
     inline double toDegree(double angle) { return angle * 180.0 * M_1_PI;}
