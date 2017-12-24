@@ -6,7 +6,7 @@ import numpy
 
 from geometry_msgs.msg import Point
 from consai_msgs.msg import Pose
-from GlobalData import GlobalInfo
+
 
 def yawFromQuaternion(quaternion):
     euler = tf.transformations.euler_from_quaternion(

@@ -12,7 +12,7 @@ from consai_msgs.msg import RefereeTeamInfo
 
 import tool
 import constants
-from referee_pb2 import SSL_Referee
+from proto.referee_pb2 import SSL_Referee
 from command import Command
 from observer import Observer
 
