@@ -52,10 +52,11 @@ def twistCallBack(vel_robot):
 if __name__ == '__main__':
     rospy.init_node('velocity_transformer')
 
+    pub_vel_world = rospy.Publisher("cmd_vel_world", geometry_msgs.msg.Twist, queue_size=10)
+    pub_acc_world = rospy.Publisher("accel_world", geometry_msgs.msg.Accel, queue_size=10)
+
     sub_odom = rospy.Subscriber("odom", nav_msgs.msg.Odometry, odomCallBack)
     sub_cmdvel = rospy.Subscriber("cmd_vel", geometry_msgs.msg.Twist, twistCallBack)
 
-    pub_vel_world = rospy.Publisher("cmd_vel_world", geometry_msgs.msg.Twist, queue_size=10)
-    pub_acc_world = rospy.Publisher("accel_world", geometry_msgs.msg.Accel, queue_size=10)
 
     rospy.spin()
