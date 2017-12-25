@@ -23,7 +23,7 @@ class PlayTheirPenaltyStart(Play):
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
                 TacticLookIntersection('TacticLookIntersection',
-                    self.roles[0].my_role, target='Enemy_1',
+                    self.roles[0].my_role, target='Threat_0',
                     pose1 = pose1, pose2= pose2)
                 )
 
