@@ -3,7 +3,7 @@
 
 import rospy
 import tf
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import Pose
@@ -18,19 +18,32 @@ from observer import Observer
 
 
 class WorldModel(object):
-    situations = {'HALT' : False, 'STOP' : False, 'FORCE_START' : False,
-            'OUR_PRE_KICKOFF' : False, 'OUR_KICKOFF_START' : False,
-            'OUR_PRE_PENALTY' : False, 'OUR_PENALTY_START' : False,
-            'OUR_DIRECT' : False, 'OUR_INDIRECT' : False,
-            'OUR_TIMEOUT' : False,
-            'THEIR_PRE_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
-            'THEIR_PRE_PENALTY' : False, 'THEIR_PENALTY_START' : False,
-            'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
-            'THEIR_TIMEOUT' : False,
-            'BALL_IN_OUTSIDE' : False, 'IN_PLAY' : False,
-            'BALL_IN_OUR_DEFENCE' : False, 'BALL_IN_THEIR_DEFENCE' : False}
+    _s = ['HALT', 'STOP', 'FORCE_START',
+            'OUR_PRE_KICKOFF', 'OUR_KICKOFF_START',
+            'OUR_PRE_PENALTY', 'OUR_PENALTY_START',
+            'OUR_DIRECT', 'OUR_INDIRECT', 'OUR_TIMEOUT',
+            'THEIR_PRE_KICKOFF', 'THEIR_KICKOFF_START',
+            'THEIR_PRE_PENALTY', 'THEIR_PENALTY_START',
+            'THEIR_DIRECT', 'THEIR_INDIRECT', 'THEIR_TIMEOUT',
+            'BALL_IN_OUTSIDE', 'IN_PLAY',
+            'BALL_IN_OUR_DEFENCE', 'BALL_IN_THEIR_DEFENCE']
+
+    # テスト用のsituations
+    _test = []
+    for i in range(100):
+        key = 'TEST' + str(i)
+        _test.append(key)
+
+    # KeyError を防ぐためdefaultdictを使う
+    situations = defaultdict(lambda : False)
+    for key in _s:
+        situations[key] = False
+
+    for key in _test:
+        situations[key] = False
 
     _current_situation = 'HALT'
+    _current_test = ''
 
     assignments = OrderedDict()
     enemy_assignments = OrderedDict()
@@ -114,7 +127,6 @@ class WorldModel(object):
         rospy.loginfo('enemy_goalie_id :' + str(WorldModel._enemy_goalie_id))
 
         WorldModel._update_threat_assignments()
-        rospy.loginfo(WorldModel.enemy_assignments)
 
     
     @classmethod
@@ -237,6 +249,11 @@ class WorldModel(object):
         if WorldModel._raw_refbox_command != data:
             WorldModel._refbox_command_changed = True
             WorldModel._raw_refbox_command = data
+
+    
+    @classmethod
+    def set_test_name(cls, data):
+        WorldModel._current_test = data
 
 
     @classmethod
@@ -434,15 +451,21 @@ class WorldModel(object):
 
         # current_refbox_commandがIN_PLAYのとき、ボール位置で戦況を判定する
         if WorldModel._current_refbox_command == 'IN_PLAY':
-            WorldModel._set_current_situation('IN_PLAY')
 
-            if WorldModel._observer.ball_is_in_defence_area(ball_pose, True):
-                # 自分のディフェンスエリアに入ったか判定
-                WorldModel._set_current_situation('BALL_IN_OUR_DEFENCE')
+            # test_nameが入力されたら、testの実行を優先する
+            if WorldModel._current_test in WorldModel.situations:
+                WorldModel._set_current_situation(WorldModel._current_test)
 
-            elif WorldModel._observer.ball_is_in_defence_area(ball_pose, False):
-                # 相手のディフェンスエリアに入ったか判定
-                WorldModel._set_current_situation('BALL_IN_THEIR_DEFENCE')
+            else:
+                WorldModel._set_current_situation('IN_PLAY')
+
+                if WorldModel._observer.ball_is_in_defence_area(ball_pose, True):
+                    # 自分のディフェンスエリアに入ったか判定
+                    WorldModel._set_current_situation('BALL_IN_OUR_DEFENCE')
+
+                elif WorldModel._observer.ball_is_in_defence_area(ball_pose, False):
+                    # 相手のディフェンスエリアに入ったか判定
+                    WorldModel._set_current_situation('BALL_IN_THEIR_DEFENCE')
 
         # ボールがフィールド外に出ることを判定
         # update_situationの最後に実行すること
