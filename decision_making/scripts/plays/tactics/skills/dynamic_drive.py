@@ -15,7 +15,9 @@ class DynamicDrive(Task):
         self._always_running = always_running
 
     def run(self):
-        self._coordinate.update()
+
+        if self._coordinate.update() == False:
+            return TaskStatus.FAILURE
 
         pose = self._coordinate.pose
 

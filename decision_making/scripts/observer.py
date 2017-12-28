@@ -4,6 +4,7 @@
 import math
 
 from consai_msgs.msg import Pose
+from consai_msgs.msg import Pose as Velocity
 import tool
 import constants
 
@@ -15,11 +16,14 @@ class Observer(object):
         self._hysteresis = 0.05 # unit:meter
         self._moved_threshold = 0.03 # unit:meter
         self._ball_initial_pose = Pose()
+        self._moving_speed_threshold = 1.0
+        self._moving_speed_hysteresis = 0.3
 
         self._ball_is_in_field = False
         self._ball_is_moved = False
         self._ball_is_in_our_defence = False
         self._ball_is_in_their_defence = False
+        self._ball_is_moving = False
 
 
     def ball_is_in_field(self, pose):
@@ -90,7 +94,17 @@ class Observer(object):
         return is_in_defence
 
 
+    def ball_is_moving(self, velocity):
+        ball_speed = tool.getSizeFromCenter(velocity)
 
+        if self._ball_is_moving == False and \
+                ball_speed > self._moving_speed_threshold + self._moving_speed_hysteresis:
+            self._ball_is_moving = True
 
+        elif self._ball_is_moving == True and \
+                ball_speed < self._moving_speed_threshold - self._moving_speed_hysteresis:
+            self._ball_is_moving = False
+
+        return self._ball_is_moving
 
 

@@ -317,6 +317,13 @@ class WorldModel(object):
 
 
     @classmethod
+    def ball_is_moving(cls):
+        velocity = WorldModel.get_velocity('Ball')
+
+        return WorldModel._observer.ball_is_moving(velocity)
+
+
+    @classmethod
     def get_friend_pose(cls, robot_id):
 
         if robot_id is None:
