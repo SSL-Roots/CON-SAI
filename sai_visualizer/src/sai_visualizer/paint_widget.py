@@ -202,7 +202,7 @@ class PaintWidget(QWidget):
         # これ以降に描きたいものを重ねていく
         self.drawField(painter)
         
-        # self.drawTargets(painter)
+        self.drawTargets(painter)
 
         # self.drawAvoidPoints(painter)
 
