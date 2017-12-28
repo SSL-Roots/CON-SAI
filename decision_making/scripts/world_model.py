@@ -121,11 +121,10 @@ class WorldModel(object):
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
+        rospy.loginfo('Referee: ' + WorldModel._current_refbox_command)
         rospy.loginfo('Situation: ' + WorldModel._current_situation)
 
         WorldModel._update_enemy_assignments()
-        rospy.loginfo('enemy_goalie_id :' + str(WorldModel._enemy_goalie_id))
-
         WorldModel._update_threat_assignments()
 
     
@@ -451,21 +450,15 @@ class WorldModel(object):
 
         # current_refbox_commandがIN_PLAYのとき、ボール位置で戦況を判定する
         if WorldModel._current_refbox_command == 'IN_PLAY':
+            WorldModel._set_current_situation('IN_PLAY')
 
-            # test_nameが入力されたら、testの実行を優先する
-            if WorldModel._current_test in WorldModel.situations:
-                WorldModel._set_current_situation(WorldModel._current_test)
+            if WorldModel._observer.ball_is_in_defence_area(ball_pose, True):
+                # 自分のディフェンスエリアに入ったか判定
+                WorldModel._set_current_situation('BALL_IN_OUR_DEFENCE')
 
-            else:
-                WorldModel._set_current_situation('IN_PLAY')
-
-                if WorldModel._observer.ball_is_in_defence_area(ball_pose, True):
-                    # 自分のディフェンスエリアに入ったか判定
-                    WorldModel._set_current_situation('BALL_IN_OUR_DEFENCE')
-
-                elif WorldModel._observer.ball_is_in_defence_area(ball_pose, False):
-                    # 相手のディフェンスエリアに入ったか判定
-                    WorldModel._set_current_situation('BALL_IN_THEIR_DEFENCE')
+            elif WorldModel._observer.ball_is_in_defence_area(ball_pose, False):
+                # 相手のディフェンスエリアに入ったか判定
+                WorldModel._set_current_situation('BALL_IN_THEIR_DEFENCE')
 
         # ボールがフィールド外に出ることを判定
         # update_situationの最後に実行すること
@@ -474,6 +467,11 @@ class WorldModel(object):
                 WorldModel._set_current_situation(WorldModel._current_refbox_command)
         else:
             WorldModel._set_current_situation('BALL_IN_OUTSIDE')
+
+        # Test実行の判定
+        if WorldModel._current_refbox_command != 'HALT' and \
+                WorldModel._current_test in WorldModel.situations:
+            WorldModel._set_current_situation(WorldModel._current_test)
 
 
     @classmethod
