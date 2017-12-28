@@ -91,7 +91,7 @@ def callback_test_name(msg):
 
 
 def main():
-    r   = rospy.Rate(10)
+    r   = rospy.Rate(30)
 
     while not rospy.is_shutdown():
         play_executer.update()
