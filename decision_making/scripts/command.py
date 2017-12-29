@@ -20,6 +20,7 @@ class Command(object):
         self._MAX_KICK_POWER = 8.0
         self._MAX_DRIBBLE_POWER = 8.0
 
+        self.set_target_velocity(0,0,0)
     
     def set_target_pose(self, x, y, yaw, frame_id):
         self.target_pose.header.stamp = rospy.Time()

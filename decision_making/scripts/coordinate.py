@@ -27,7 +27,7 @@ class Coordinate(object):
         self._range_y = [constants.FieldHalfY, -constants.FieldHalfY]
 
         # arrival parameters
-        self._arrived_position_tolerance = 0.1 # unit:meter
+        self._arrived_position_tolerance = 0.4 # unit:meter
         self._arrived_angle_tolerance = 3.0 * math.pi / 180.0
 
         # interpose
@@ -66,6 +66,13 @@ class Coordinate(object):
             result = self._update_func()
 
         return result
+
+
+    def set_pose(self, x=0.0, y=0.0, theta=0.0):
+        # 任意の位置に移動する
+        self.pose = Pose(x, y, theta)
+
+        self._update_func = self._update_pose
 
 
     def set_interpose(self, base="CONST_OUR_GOAL", target="Ball", to_dist=None, from_dist=None):
@@ -201,6 +208,10 @@ class Coordinate(object):
                 arrived = True
 
         return arrived
+
+
+    def _update_pose(self):
+        return True
 
 
     def _update_interpose(self):
