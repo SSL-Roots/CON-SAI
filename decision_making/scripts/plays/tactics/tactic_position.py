@@ -7,7 +7,7 @@ from skills.dynamic_drive import DynamicDrive
 sys.path.append(os.pardir)
 from coordinate import Coordinate
 
-class TacticPosition(ParallelAll):
+class TacticPosition(Selector):
     def __init__(self, name, my_role, x, y, theta, always_running=False):
         super(TacticPosition, self).__init__(name)
 

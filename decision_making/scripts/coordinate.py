@@ -27,7 +27,7 @@ class Coordinate(object):
         self._range_y = [constants.FieldHalfY, -constants.FieldHalfY]
 
         # arrival parameters
-        self._arrived_position_tolerance = 0.4 # unit:meter
+        self._arrived_position_tolerance = 0.1 # unit:meter
         self._arrived_angle_tolerance = 3.0 * math.pi / 180.0
 
         # interpose
