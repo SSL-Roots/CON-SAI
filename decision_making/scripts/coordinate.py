@@ -41,7 +41,7 @@ class Coordinate(object):
         self._role_pose_hystersis = 0.1
         self._tuning_param_x = 0.3
         self._tuning_param_y = 0.3
-        self._tuning_param_pivot_y = 0.2
+        self._tuning_param_pivot_y = 0.1
         self._tuning_angle = 30.0 * math.pi / 180.0  # 0 ~ 90 degree, do not edit 'math.pi / 180.0'
 
         # keep x, y
