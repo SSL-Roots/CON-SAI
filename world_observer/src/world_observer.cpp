@@ -326,7 +326,7 @@ int main(int argc, char **argv)
     ros::NodeHandle nh("~");
 
     std::string poses_source;
-    nh.param<std::string>("poses_source", poses_source, "/vision_observations");
+    nh.param<std::string>("poses_source", poses_source, "vision_observations");
 
     std::string observe_target;
     if (!nh.getParam("observe_target", observe_target)) {

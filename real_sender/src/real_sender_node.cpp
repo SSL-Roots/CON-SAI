@@ -57,7 +57,7 @@ int main(int argc, char **argv) {
 
     for(int i=0;i<12;i++){
         std::stringstream topicStream;
-        topicStream << "/robot_" << i << "/robot_commands";
+        topicStream << "robot_" << i << "/robot_commands";
         std::string topicName = topicStream.str();
         senders[i].setID(i);
         subscribers[i] = nh.subscribe(topicName.c_str(),100,&Sender::callback, &senders[i]);

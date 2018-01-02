@@ -146,7 +146,7 @@ if __name__ == '__main__':
     commands = RobotCommand()
 
     # get parameters
-    friend_color = rospy.get_param('/friend_color')
+    friend_color = rospy.get_param('friend_color')
 
     # Define Subscriber
     rospy.Subscriber("joy", Joy, receiveJoy)

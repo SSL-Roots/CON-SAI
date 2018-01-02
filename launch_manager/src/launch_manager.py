@@ -75,9 +75,9 @@ def publishExistingIds():
 if __name__ == '__main__':
     rospy.init_node("launch_manager")
 
-    sub = rospy.Subscriber('/vision_observations', VisionObservations, callback)
-    pub_existing_friends_id  = rospy.Publisher('/existing_friends_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
-    pub_existing_enemies_id  = rospy.Publisher('/existing_enemies_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
+    sub = rospy.Subscriber('vision_observations', VisionObservations, callback)
+    pub_existing_friends_id  = rospy.Publisher('existing_friends_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
+    pub_existing_enemies_id  = rospy.Publisher('existing_enemies_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
 
     EXPIRATION_TIME_SEC    = rospy.get_param('~robot_expiration_time', 1.0) # robots expired time
 

@@ -45,9 +45,6 @@ if __name__ == '__main__':
     pub = rospy.Publisher(
         'robot_commands', robot_commands, queue_size=10)
 
-    # get parameters
-    friend_color = rospy.get_param('/friend_color')
-
     # Define Subscriber
     rospy.Subscriber("cmd_vel", geometry_msgs.msg.Twist, recvCmdvel)
     rospy.Subscriber("kick_velocity", std_msgs.msg.Float32, recvKickVel)

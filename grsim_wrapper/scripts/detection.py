@@ -348,8 +348,8 @@ if __name__ == '__main__':
     enemy_list = [0, 1, 2, 3, 4, 5]
     ##################
 
-    our_color = rospy.get_param('/friend_color', 'yellow').upper()
-    our_side = rospy.get_param('/team_side', 'right').upper()
+    our_color = rospy.get_param('friend_color', 'yellow').upper()
+    our_side = rospy.get_param('team_side', 'right').upper()
     multicast_addr = rospy.get_param('~multicast_addr', '224.5.23.2')
     multicast_port = rospy.get_param('~multicast_port', 10006)
 

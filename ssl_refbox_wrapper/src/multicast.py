@@ -31,7 +31,7 @@ class Multicast():
         # Set non-blocking receiving mode
         self.sock.setblocking(False)
 
-        self.publisher = rospy.Publisher('/raw_referee', std_msgs.msg.String, queue_size=10)
+        self.publisher = rospy.Publisher('raw_referee', std_msgs.msg.String, queue_size=10)
 
     def recv(self, buf_length):
         try:

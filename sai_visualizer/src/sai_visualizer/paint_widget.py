@@ -51,7 +51,7 @@ class PaintWidget(QWidget):
 
         self.friendDrawColor = Qt.cyan
         self.enemyDrawColor = Qt.yellow
-        self.friend_color = rospy.get_param("/friend_color", "blue")
+        self.friend_color = rospy.get_param("friend_color", "blue")
         if self.friend_color != "blue":
             self.friendDrawColor = Qt.yellow
             self.enemyDrawColor = Qt.cyan
@@ -60,18 +60,18 @@ class PaintWidget(QWidget):
 
 
         self.ballOdom = Odometry()
-        self.sub_ballPosition = rospy.Subscriber("/ball_observer/estimation", 
+        self.sub_ballPosition = rospy.Subscriber("ball_observer/estimation", 
                 Odometry,self.callbackBallOdom)
 
         self.friendsIDArray = UIntArray()
-        self.sub_friendsID = rospy.Subscriber("/existing_friends_id", 
+        self.sub_friendsID = rospy.Subscriber("existing_friends_id", 
                 UIntArray, self.callbackFriendsID)
 
         self.friendOdoms = [Odometry()] * 12
         self.sub_friendOdoms = []
 
         self.enemyIDArray = UIntArray()
-        self.sub_enemiesID = rospy.Subscriber("/existing_enemies_id",
+        self.sub_enemiesID = rospy.Subscriber("existing_enemies_id",
                 UIntArray, self.callbackEnemiesID)
 
         self.enemyOdoms = [Odometry()] * 12
@@ -88,11 +88,11 @@ class PaintWidget(QWidget):
 
         for i in xrange(12):
             strID = str(i)
-            topicFriend = "/robot_" + strID + "/odom"
-            topicEnemy = "/enemy_" + strID + "/odom"
-            topicPosition = "/robot_" + strID + "/move_base_simple/goal"
-            topicVelocity = "/robot_" + strID + "/move_base_simple/target_velocity"
-            topicAvoidPoint = "/robot_" + strID + "/avoid_point"
+            topicFriend = "robot_" + strID + "/odom"
+            topicEnemy = "enemy_" + strID + "/odom"
+            topicPosition = "robot_" + strID + "/move_base_simple/goal"
+            topicVelocity = "robot_" + strID + "/move_base_simple/target_velocity"
+            topicAvoidPoint = "robot_" + strID + "/avoid_point"
 
             self.sub_friendOdoms.append(
                     rospy.Subscriber(topicFriend, Odometry, 

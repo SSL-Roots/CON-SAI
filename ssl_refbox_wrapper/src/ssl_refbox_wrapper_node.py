@@ -26,7 +26,7 @@ def convert_team_info(data):
 if  __name__ == '__main__':
     rospy.init_node('ssl_refbox_wrapper_node')
 
-    our_color = rospy.get_param('/friend_color', 'yellow').upper()
+    our_color = rospy.get_param('friend_color', 'yellow').upper()
     multicast_addr = rospy.get_param('~multicast_addr', '224.5.23.13')
     multicast_port = rospy.get_param('~multicast_port', 10003)
 
