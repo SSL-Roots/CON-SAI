@@ -34,6 +34,8 @@
     <!-- launch Decision maker -->
     <node name="decision_maker" pkg="decision_making" type="decision_making_node.py" />
 
+    <node name="avoiding_point_generator" pkg="avoiding_point_generator" type="avoiding_point_generator_node" />
+
     <!-- launch "launch manager" -->
     <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" />
 
