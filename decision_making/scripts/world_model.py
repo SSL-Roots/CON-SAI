@@ -3,7 +3,7 @@
 
 import rospy
 import tf
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import Pose
@@ -18,27 +18,46 @@ from observer import Observer
 
 
 class WorldModel(object):
-    situations = {'HALT' : False, 'STOP' : False, 'FORCE_START' : False,
-            'OUR_PRE_KICKOFF' : False, 'OUR_KICKOFF_START' : False,
-            'OUR_PRE_PENALTY' : False, 'OUR_PENALTY_START' : False,
-            'OUR_DIRECT' : False, 'OUR_INDIRECT' : False,
-            'OUR_TIMEOUT' : False,
-            'THEIR_PRE_KICKOFF' : False, 'THEIR_KICKOFF_START' : False,
-            'THEIR_PRE_PENALTY' : False, 'THEIR_PENALTY_START' : False,
-            'THEIR_DIRECT' : False, 'THEIR_INDIRECT' : False,
-            'THEIR_TIMEOUT' : False,
-            'BALL_IN_OUTSIDE' : False, 'IN_PLAY' : False,
-            'BALL_IN_OUR_DEFENCE' : False, 'BALL_IN_THEIR_DEFENCE' : False}
+    _s = ['HALT', 'STOP', 'FORCE_START',
+            'OUR_PRE_KICKOFF', 'OUR_KICKOFF_START',
+            'OUR_PRE_PENALTY', 'OUR_PENALTY_START',
+            'OUR_DIRECT', 'OUR_INDIRECT', 'OUR_TIMEOUT',
+            'THEIR_PRE_KICKOFF', 'THEIR_KICKOFF_START',
+            'THEIR_PRE_PENALTY', 'THEIR_PENALTY_START',
+            'THEIR_DIRECT', 'THEIR_INDIRECT', 'THEIR_TIMEOUT',
+            'BALL_IN_OUTSIDE', 'IN_PLAY',
+            'BALL_IN_OUR_DEFENCE', 'BALL_IN_THEIR_DEFENCE']
+
+    # テスト用のsituations
+    _test = []
+    for i in range(100):
+        key = 'TEST' + str(i)
+        _test.append(key)
+
+    # KeyError を防ぐためdefaultdictを使う
+    situations = defaultdict(lambda : False)
+    for key in _s:
+        situations[key] = False
+
+    for key in _test:
+        situations[key] = False
 
     _current_situation = 'HALT'
+    _current_test = ''
 
     assignments = OrderedDict()
-    assignments['Role_0'] = None
-    assignments['Role_1'] = None
-    assignments['Role_2'] = None
-    assignments['Role_3'] = None
-    assignments['Role_4'] = None
-    assignments['Role_5'] = None
+    enemy_assignments = OrderedDict()
+    _threat_assignments = OrderedDict()
+
+    for i in range(6):
+        key = 'Role_' + str(i)
+        assignments[key] = None
+
+        key = 'Enemy_' + str(i)
+        enemy_assignments[key] = None
+
+        key = 'Threat_' + str(i)
+        _threat_assignments[key] = None
 
     commands = {'Role_0' : Command(), 'Role_1' : Command(),
                 'Role_2' : Command(), 'Role_3' : Command(),
@@ -56,14 +75,6 @@ class WorldModel(object):
     _enemy_odoms = [Odometry()] * 12
     _existing_enemies_id = [None] * 6
     _enemy_team_info = RefereeTeamInfo()
-
-    enemy_assignments = OrderedDict()
-    enemy_assignments['Enemy_0'] = None
-    enemy_assignments['Enemy_1'] = None
-    enemy_assignments['Enemy_2'] = None
-    enemy_assignments['Enemy_3'] = None
-    enemy_assignments['Enemy_4'] = None
-    enemy_assignments['Enemy_5'] = None
 
     tf_listener = tf.TransformListener()
 
@@ -110,10 +121,11 @@ class WorldModel(object):
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
+        rospy.loginfo('Referee: ' + WorldModel._current_refbox_command)
         rospy.loginfo('Situation: ' + WorldModel._current_situation)
 
         WorldModel._update_enemy_assignments()
-        rospy.loginfo('enemy_goalie_id :' + str(WorldModel._enemy_goalie_id))
+        WorldModel._update_threat_assignments()
 
     
     @classmethod
@@ -161,8 +173,7 @@ class WorldModel(object):
         # Ball holder のRoleとRole_1を入れ替える
         # Ball holderがRole_0だったら何もしない
         if assignment_type == 'CLOSEST_BALL':
-            WorldModel._update_closest_role(True)
-            closest_role = WorldModel._ball_closest_frined_role
+            closest_role = WorldModel._update_closest_role(True)
             if closest_role and closest_role != 'Role_0':
                 old_id = WorldModel.assignments['Role_1']
                 WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
@@ -238,6 +249,11 @@ class WorldModel(object):
             WorldModel._refbox_command_changed = True
             WorldModel._raw_refbox_command = data
 
+    
+    @classmethod
+    def set_test_name(cls, data):
+        WorldModel._current_test = data
+
 
     @classmethod
     def get_pose(cls, name):
@@ -248,10 +264,16 @@ class WorldModel(object):
             pose = Pose(ball_pose.x, ball_pose.y, 0)
 
         elif name[:4] == 'Role':
-            pose = WorldModel.get_friend_pose(name)
+            robot_id = WorldModel.assignments[name]
+            pose = WorldModel.get_friend_pose(robot_id)
 
         elif name[:5] == 'Enemy':
-            pose = WorldModel.get_enemy_pose(name)
+            robot_id = WorldModel.enemy_assignments[name]
+            pose = WorldModel.get_enemy_pose(robot_id)
+
+        elif name[:6] == 'Threat':
+            robot_id = WorldModel._threat_assignments[name]
+            pose = WorldModel.get_enemy_pose(robot_id)
 
         elif name[:5] == 'CONST':
             pose = constants.poses[name]
@@ -268,10 +290,16 @@ class WorldModel(object):
             velocity = Velocity(linear.x, linear.y, 0)
 
         elif name[:4] == 'Role':
-            velocity = WorldModel.get_friend_velocity(name)
+            robot_id = WorldModel.assignments[name]
+            velocity = WorldModel.get_friend_velocity(robot_id)
 
         elif name[:5] == 'Enemy':
-            velocity = WorldModel.get_enemy_velocity(name)
+            robot_id = WorldModel.enemy_assignments[name]
+            velocity = WorldModel.get_enemy_velocity(robot_id)
+
+        elif name[:6] == 'Threat':
+            robot_id = WorldModel._threat_assignments[name]
+            velocity = WorldModel.get_enemy_velocity(robot_id)
 
         return velocity
 
@@ -289,8 +317,14 @@ class WorldModel(object):
 
 
     @classmethod
-    def get_friend_pose(cls, role):
-        robot_id = WorldModel.assignments[role]
+    def ball_is_moving(cls):
+        velocity = WorldModel.get_velocity('Ball')
+
+        return WorldModel._observer.ball_is_moving(velocity)
+
+
+    @classmethod
+    def get_friend_pose(cls, robot_id):
 
         if robot_id is None:
             return None
@@ -303,8 +337,7 @@ class WorldModel(object):
         
 
     @classmethod
-    def get_enemy_pose(cls, role):
-        robot_id = WorldModel.enemy_assignments[role]
+    def get_enemy_pose(cls, robot_id):
 
         if robot_id is None:
             return None
@@ -317,8 +350,7 @@ class WorldModel(object):
 
 
     @classmethod
-    def get_friend_velocity(cls, role):
-        robot_id = WorldModel.assignments[role]
+    def get_friend_velocity(cls, robot_id):
 
         if robot_id is None:
             return None
@@ -330,8 +362,7 @@ class WorldModel(object):
         
 
     @classmethod
-    def get_enemy_velocity(cls, role):
-        robot_id = WorldModel.enemy_assignments[role]
+    def get_enemy_velocity(cls, robot_id):
 
         if robot_id is None:
             return None
@@ -383,16 +414,6 @@ class WorldModel(object):
                 WorldModel.enemy_assignments[replace_role] = None
 
             target_i += 1
-
-        # Ball holder のRoleとRole_1を入れ替える
-        WorldModel._update_closest_role(False)
-        closest_role = WorldModel._ball_closest_enemy_role
-        if closest_role:
-            old_id = WorldModel.enemy_assignments['Enemy_1']
-            WorldModel.enemy_assignments['Enemy_1'] = WorldModel.enemy_assignments[closest_role]
-            WorldModel.enemy_assignments[closest_role] = old_id
-            # closest_role をRole_1にもどす
-            WorldModel._ball_closest_enemy_role = 'Enemy_1'
 
 
     @classmethod
@@ -454,6 +475,11 @@ class WorldModel(object):
         else:
             WorldModel._set_current_situation('BALL_IN_OUTSIDE')
 
+        # Test実行の判定
+        if WorldModel._current_refbox_command != 'HALT' and \
+                WorldModel._current_test in WorldModel.situations:
+            WorldModel._set_current_situation(WorldModel._current_test)
+
 
     @classmethod
     def _set_current_situation(cls, situation):
@@ -503,4 +529,14 @@ class WorldModel(object):
         else:
             WorldModel._ball_closest_enemy_role = closest_role
             
+        return closest_role
+
+
+    @classmethod
+    def _update_threat_assignments(cls):
+        # Ballに一番近いEnemyをThreat_0にする
+        closest_role = WorldModel._update_closest_role(False)
+        if closest_role:
+            closest_id = WorldModel.enemy_assignments[closest_role]
+            WorldModel._threat_assignments['Threat_0'] = closest_id
 

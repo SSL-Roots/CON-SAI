@@ -41,7 +41,7 @@ class Coordinate(object):
         self._role_pose_hystersis = 0.1
         self._tuning_param_x = 0.3
         self._tuning_param_y = 0.3
-        self._tuning_param_pivot_y = 0.2
+        self._tuning_param_pivot_y = 0.1
         self._tuning_angle = 30.0 * math.pi / 180.0  # 0 ~ 90 degree, do not edit 'math.pi / 180.0'
 
         # keep x, y
@@ -54,6 +54,11 @@ class Coordinate(object):
         self._pose1 = Pose(0, constants.FieldHalfY, 0)
         self._pose2 = Pose(0, -constants.FieldHalfY, 0)
 
+        # receive_ball
+        self._can_receive_dist = 1.0 # unit:meter
+        self._can_receive_hysteresis = 0.3
+        self._receiving = False
+
 
     def update(self):
         result = False
@@ -61,6 +66,13 @@ class Coordinate(object):
             result = self._update_func()
 
         return result
+
+
+    def set_pose(self, x=0.0, y=0.0, theta=0.0):
+        # 任意の位置に移動する
+        self.pose = Pose(x, y, theta)
+
+        self._update_func = self._update_pose
 
 
     def set_interpose(self, base="CONST_OUR_GOAL", target="Ball", to_dist=None, from_dist=None):
@@ -164,7 +176,16 @@ class Coordinate(object):
             self._range_y = [self._pose2.y, self._pose1.y]
 
         self._update_func = self._update_look_intersection
+
+
+    def set_receive_ball(self, my_role=None):
+        # Ballが動いていたら、その軌道上に移動する
         
+        self._my_role = my_role
+        self._receiving = False
+
+        self._update_func = self._update_receive_ball
+
 
     def is_arrived(self, role):
         # robotが目標位置に到着したかを判断する
@@ -187,6 +208,10 @@ class Coordinate(object):
                 arrived = True
 
         return arrived
+
+
+    def _update_pose(self):
+        return True
 
 
     def _update_interpose(self):
@@ -378,4 +403,40 @@ class Coordinate(object):
         self.pose = Pose(intersection.x, intersection.y, angle)
 
         return True
+
+
+    def _update_receive_ball(self):
+        
+        ball_pose = WorldModel.get_pose('Ball')
+        ball_vel = WorldModel.get_velocity('Ball')
+        result = False
+
+        if WorldModel.ball_is_moving():
+            angle_velocity = tool.getAngleFromCenter(ball_vel)
+            trans = tool.Trans(ball_pose, angle_velocity)
+
+            role_pose = WorldModel.get_pose(self._my_role)
+            tr_pose = trans.transform(role_pose)
+
+            fabs_y = math.fabs(tr_pose.y)
+
+            if self._receiving == False and \
+                    fabs_y < self._can_receive_dist - self._can_receive_hysteresis:
+                self._receiving = True
+
+            elif self._receiving == True and \
+                    fabs_y > self._can_receive_dist + self._can_receive_hysteresis:
+                self._receiving = False
+
+            if self._receiving and tr_pose.x > 0.0:
+                tr_pose.y = 0.0
+                inv_pose = trans.invertedTransform(tr_pose)
+                angle_to_ball = tool.getAngle(inv_pose, ball_pose)
+                self.pose = Pose(inv_pose.x, inv_pose.y, angle_to_ball)
+                result = True
+
+
+        return result
+
+
 

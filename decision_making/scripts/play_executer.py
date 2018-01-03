@@ -8,6 +8,7 @@ from pi_trees_lib.task_setup import *
 
 from world_model import WorldModel
 from plays.play_book import PlayBook
+from plays.test_book import TestBook
 from plays.play_dummy import PlayDummy
 
 
@@ -42,6 +43,11 @@ class PlayExecuter(object):
             for play in PlayBook.book:
                 if WorldModel.situations[play.applicable]:
                     possible_plays.append(play)
+
+            # playとtestは混ざらないようにWorldModelで調整している
+            for test in TestBook.book:
+                if WorldModel.situations[test.applicable]:
+                    possible_plays.append(test)
 
             # TODO(Asit) select a play randomly
             if possible_plays:

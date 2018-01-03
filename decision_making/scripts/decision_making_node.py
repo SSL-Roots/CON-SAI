@@ -16,6 +16,7 @@ from std_msgs.msg import Int8
 from std_msgs.msg import Float32
 from std_msgs.msg import Header
 from std_msgs.msg import UInt16MultiArray as UIntArray
+from std_msgs.msg import String
 
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import AIStatus
@@ -85,8 +86,12 @@ def callback_yellow_info(msg):
     WorldModel.set_yellow_info(msg)
 
 
+def callback_test_name(msg):
+    WorldModel.set_test_name(msg.data)
+
+
 def main():
-    r   = rospy.Rate(10)
+    r   = rospy.Rate(30)
 
     while not rospy.is_shutdown():
         play_executer.update()
@@ -115,6 +120,7 @@ if __name__ == '__main__':
     sub_enemy_id        = rospy.Subscriber("existing_enemies_id",UIntArray,enemyIDCallback)
     subs_friend_odom = []
     subs_enemy_odom = []
+    sub_test_name = rospy.Subscriber('test_name', String, callback_test_name)
 
     for robot_id in xrange(12):
         id_str = str(robot_id)
