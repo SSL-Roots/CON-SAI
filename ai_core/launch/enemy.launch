@@ -1,6 +1,9 @@
 <launch>
+  <arg name="ai_name" default="/" />
+
   <arg name="number" />
   <group ns="enemy_$(arg number)">
+    <param name="ai_name" type="string" value="$(arg ai_name)" />
 
     <node pkg="tf" type="static_transform_publisher" name="enemy_$(arg number)_odom" args="0 0 0 0 0 0 1 map enemy_$(arg number)/odom 100" />
 

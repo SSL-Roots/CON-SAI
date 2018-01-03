@@ -325,18 +325,22 @@ int main(int argc, char **argv)
     ros::init(argc, argv, node_name);
     ros::NodeHandle nh("~");
 
+    // 起動時のnamespaceを取得
+    std::string ai_name = "/";
+    ros::param::get("ai_name", ai_name);
+
     std::string poses_source;
-    nh.param<std::string>("poses_source", poses_source, "vision_observations");
+    nh.param<std::string>("poses_source", poses_source, ai_name + "vision_observations");
 
     std::string observe_target;
-    if (!nh.getParam("observe_target", observe_target)) {
+    if (!ros::param::get("~observe_target", observe_target)) {
         ROS_ERROR("observe target is not set");
         return 0;
     }
 
     int observe_target_id;
     if (observe_target != "Ball") {
-        if (!nh.getParam("observe_target_id", observe_target_id)) {
+        if (!ros::param::get("~observe_target_id", observe_target_id)) {
             ROS_ERROR("observe target id is not set");
             return 0;
         }

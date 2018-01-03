@@ -1,6 +1,9 @@
 <launch>
+  <arg name="ai_name" default="/" />
+
   <arg name="number" />
   <group ns="robot_$(arg number)">
+    <param name="ai_name" type="string" value="$(arg ai_name)" />
 
     <node name="observer" pkg="world_observer" type="world_observer">
       <param name="observe_target" type="string" value="Friend" />

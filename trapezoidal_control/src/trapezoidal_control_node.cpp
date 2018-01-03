@@ -653,30 +653,30 @@ int main(int argc, char **argv){
     f = boost::bind(&Controller::callbackReconfigure, &controller, _1, _2);
     reconfigure_server.setCallback(f);
 
-    std::vector<ros::Subscriber> subs;
+    // 起動時のnamespaceを取得
+    std::string ai_name = "/";
+    nh.getParam("ai_name", ai_name);
 
-    // TODO:ai_core.launchをグルーピングしたことにより、Subscribeできていない
-    // avoid_pointを生成するnodeを新しく作る
-    // trapezoidal_controlでは、衝突回避用にメッセージをSubscribeしない
+    std::vector<ros::Subscriber> subs;
     for(int i=0; i< 12; i++){
         std::stringstream ss;
         ss << i;
         std::string topicName;
 
-        topicName = "enemy_" + ss.str() + "/odom";
+        topicName = ai_name + "enemy_" + ss.str() + "/odom";
         subs.push_back(nh.subscribe(topicName.c_str(),100,
                     &Controller::callbackEnemyPose, &controller));
 
-        topicName = "robot_" + ss.str() + "/odom";
+        topicName = ai_name + "robot_" + ss.str() + "/odom";
         subs.push_back(nh.subscribe(topicName.c_str(),100,
                     &Controller::callbackFriendPose, &controller));
     }
 
-    ros::Subscriber subEnemyIDs = nh.subscribe("existing_enemies_id",100,
+    ros::Subscriber subEnemyIDs = nh.subscribe(ai_name + "existing_enemies_id",100,
             &Controller::callbackEnemyIDs, &controller);
-    ros::Subscriber subFriendIDs = nh.subscribe("existing_friends_id",100,
+    ros::Subscriber subFriendIDs = nh.subscribe(ai_name + "existing_friends_id",100,
             &Controller::callbackFriendIDs, &controller);
-    ros::Subscriber subBall = nh.subscribe("ball_observer/estimation",100,
+    ros::Subscriber subBall = nh.subscribe(ai_name + "ball_observer/estimation",100,
             &Controller::callbackBallPoint, &controller);
 
     ros::Publisher publisher = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);

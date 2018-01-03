@@ -15,6 +15,7 @@ last_observation = VisionObservations()
 friend_processes = {}
 enemy_processes = {}
 
+ai_name = ""
 
 def callback(msg):
     global last_observation
@@ -26,7 +27,8 @@ def manageRobots():
 
     for friend in last_observation.friends:
         if (friend.robot_id in friend_processes) == False:
-            cmd = "roslaunch ai_core robot.launch number:=" + str(friend.robot_id)
+            cmd = "roslaunch ai_core robot.launch number:=" + str(friend.robot_id) \
+                    + " ai_name:=" + str(ai_name)
             p = subprocess.Popen(shlex.split(cmd))
             friend_processes[friend.robot_id] = [p, EXPIRATION_TIME_SEC]
             rospy.loginfo("Spawn friend : ID " + str(friend.robot_id))
@@ -45,7 +47,8 @@ def manageRobots():
 
     for enemy in last_observation.enemies:
         if (enemy.robot_id in enemy_processes) == False:
-            cmd = "roslaunch ai_core enemy.launch number:=" + str(enemy.robot_id)
+            cmd = "roslaunch ai_core enemy.launch number:=" + str(enemy.robot_id) \
+                    + " ai_name:=" + str(ai_name)
             p = subprocess.Popen(shlex.split(cmd))
             enemy_processes[enemy.robot_id] = [p, EXPIRATION_TIME_SEC]
             rospy.loginfo("Spawn enemy : ID " + str(enemy.robot_id))
@@ -80,6 +83,8 @@ if __name__ == '__main__':
     pub_existing_enemies_id  = rospy.Publisher('existing_enemies_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
 
     EXPIRATION_TIME_SEC    = rospy.get_param('~robot_expiration_time', 1.0) # robots expired time
+
+    ai_name = rospy.get_param('ai_name', '/')
 
     r = rospy.Rate(MAIN_CYCLE)
 
