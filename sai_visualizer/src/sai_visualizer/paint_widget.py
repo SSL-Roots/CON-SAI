@@ -83,8 +83,8 @@ class PaintWidget(QWidget):
         self.sub_targetVelocities = []
         self.targetIsPosition = [False] * 12
 
-        self.avoidPoints = [Point()] * 12
-        self.sub_avoidPoints = []
+        self.avoidingPoints = [Point()] * 12
+        self.sub_avoidingPoints = []
 
         for i in xrange(12):
             strID = str(i)
@@ -92,7 +92,7 @@ class PaintWidget(QWidget):
             topicEnemy = "enemy_" + strID + "/odom"
             topicPosition = "robot_" + strID + "/move_base_simple/goal"
             topicVelocity = "robot_" + strID + "/move_base_simple/target_velocity"
-            topicAvoidPoint = "robot_" + strID + "/avoid_point"
+            topicAvoidingPoint = "robot_" + strID + "/avoiding_point"
 
             self.sub_friendOdoms.append(
                     rospy.Subscriber(topicFriend, Odometry, 
@@ -110,9 +110,9 @@ class PaintWidget(QWidget):
                     rospy.Subscriber(topicVelocity, TwistStamped,
                         self.callbackTargetVelocity, callback_args=i))
 
-            self.sub_avoidPoints.append(
-                    rospy.Subscriber(topicAvoidPoint, Point,
-                        self.callbackAvoidPoint, callback_args=i))
+            self.sub_avoidingPoints.append(
+                    rospy.Subscriber(topicAvoidingPoint, Point,
+                        self.callbackAvoidingPoint, callback_args=i))
 
     def callbackBallOdom(self, msg):
         self.ballOdom = msg
@@ -139,8 +139,8 @@ class PaintWidget(QWidget):
         self.targetVelocities[robot_id] = msg
         self.targetIsPosition[robot_id] = False
 
-    def callbackAvoidPoint(self, msg, robot_id):
-        self.avoidPoints[robot_id] = msg
+    def callbackAvoidingPoint(self, msg, robot_id):
+        self.avoidingPoints[robot_id] = msg
 
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
@@ -204,7 +204,7 @@ class PaintWidget(QWidget):
         
         self.drawTargets(painter)
 
-        # self.drawAvoidPoints(painter)
+        self.drawAvoidingPoints(painter)
 
         self.drawFriends(painter)
         self.drawEnemis(painter)
@@ -503,11 +503,11 @@ class PaintWidget(QWidget):
         painter.setPen(Qt.red)
         painter.drawText(textPoint, text)
 
-    def drawAvoidPoints(self, painter):
+    def drawAvoidingPoints(self, painter):
         for robot_id in self.friendsIDArray.data:
-            self.drawAvoidPoint(painter, robot_id, self.avoidPoints[robot_id])
+            self.drawAvoidingPoint(painter, robot_id, self.avoidingPoints[robot_id])
 
-    def drawAvoidPoint(self, painter, robot_id, point):
+    def drawAvoidingPoint(self, painter, robot_id, point):
         drawPoint = self.convertToDrawWorld(point.x, point.y)
         size = self.CW.ROBOT_RADIUS * self.scaleOnField
 

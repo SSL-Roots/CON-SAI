@@ -4,10 +4,14 @@
 #include <complex>
 #include <cmath>
 
+#include <geometry_msgs/Point.h>
+
 typedef std::complex<double> Complex;
 
 namespace Tool{
-    inline double normalize(double angle){
+    constexpr double e = std::numeric_limits<double>::epsilon();
+
+    double normalize(double angle){
         while(angle > M_PI){
             angle -= 2.0*M_PI;
         }
@@ -17,14 +21,22 @@ namespace Tool{
         return angle;
     }
 
-    inline double toDegree(double angle) { return angle * 180.0 * M_1_PI;}
-    inline double toRadian(double angle) { return angle * 0.00555555 * M_PI;}
-    inline double getAngle(const Complex &z) { return normalize(std::arg(z));}
-    inline double getNorm(const Complex &z) { return std::norm(z);}
-    inline double getSize(const Complex &z) { return std::abs(z);}
-    inline Complex toUnit(double angle) { return std::polar(1.0, angle);}
-    inline Complex toUnit(const Complex &z) { return z / getSize(z);}
-    inline Complex getConjugate(const Complex &z) { return std::conj(z);}
+    double toDegree(double angle) { return angle * 180.0 * M_1_PI;}
+    double toRadian(double angle) { return angle * 0.00555555 * M_PI;}
+    double getAngle(const Complex &z) { return normalize(std::arg(z));}
+    double getNorm(const Complex &z) { return std::norm(z);}
+    double getSize(const Complex &z) { return std::abs(z);}
+    Complex toUnit(double angle) { return std::polar(1.0, angle);}
+    Complex toUnit(const Complex &z) { return z / getSize(z);}
+    Complex getConjugate(const Complex &z) { return std::conj(z);}
+    Complex toComplex(const geometry_msgs::Point &p) { return Complex(p.x, p.y);}
+    bool isEqual(const double value1, const double value2){
+        if(std::abs(value1 - value2) <= e){
+            return true;
+        }else{
+            return false;
+        }
+    }
 }
 
 class Transformation{

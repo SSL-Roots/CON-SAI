@@ -491,7 +491,7 @@ class WorldModel(object):
     @classmethod
     def _update_closest_role(cls, is_friend_role=True):
         thresh_dist = 1000
-        hysteresis = 0.5
+        hysteresis = 0.2
 
         ball_pose = WorldModel.get_pose('Ball')
         closest_role = None

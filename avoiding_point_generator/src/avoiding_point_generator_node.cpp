@@ -22,40 +22,89 @@
 #include "transformation.h"
 
 
-class Controller{
-    public:
-        Controller();
-        void update();
-        
-        geometry_msgs::Point getAvoidPoint();
+// ロボット位置情報と衝突回避コンフィグを保管するグローバル空間
+namespace GlobalInfo {
+    std::vector<geometry_msgs::Point> targetPoints(12);
+    std::vector<geometry_msgs::Point> friendPoints(12);
+    std::vector<geometry_msgs::Point> enemyPoints(12);
+    std::vector<int> friendIDs;
+    std::vector<int> enemyIDs;
+    geometry_msgs::Point ballPoint;
 
-        void callbackTargetPose(const geometry_msgs::PoseStampedConstPtr& msg);
-        void callbackRealPose(const nav_msgs::OdometryConstPtr& msg);
-        void callbackReconfigure(avoiding_point_generator::parameterConfig &config, uint32_t level);
-        void callbackEnemyPose(const ros::MessageEvent<nav_msgs::Odometry const>& event);
-        void callbackFriendPose(const ros::MessageEvent<nav_msgs::Odometry const>& event);
-        void callbackEnemyIDs(const std_msgs::UInt16MultiArrayConstPtr& msg);
-        void callbackFriendIDs(const std_msgs::UInt16MultiArrayConstPtr& msg);
-        void callbackAIStatus(const consai_msgs::AIStatus& msg);
-        void callbackBallPoint(const nav_msgs::OdometryConstPtr& msg);
+    // Obstacle Avoidance Config
+    struct ObstacleAvoidanceConfig{
+        double detectRange = 0.5;
+        double avoidRange = 0.5;
+        double startDetectionPos = 0.0;
+        double avoidHysteresis = 0.18;
+    };
+
+    ObstacleAvoidanceConfig OAConfig;
+
+    void callbackTargetPoint(const geometry_msgs::PoseStampedConstPtr &msg, const int id){
+        targetPoints[id] = msg->pose.position;
+    }
+
+    void callbackFriendPoint(const nav_msgs::OdometryConstPtr &msg, const int id){
+        friendPoints[id] = msg->pose.pose.position;
+    }
+
+    void callbackEnemyPoint(const nav_msgs::OdometryConstPtr &msg, const int id){
+        enemyPoints[id] = msg->pose.pose.position;
+    }
+
+    void callbackFriendIDs(const std_msgs::UInt16MultiArrayConstPtr& msg){
+        friendIDs.clear();
+        std::copy(msg->data.begin(), msg->data.end(), std::back_inserter(friendIDs));
+    }
+
+    void callbackEnemyIDs(const std_msgs::UInt16MultiArrayConstPtr& msg){
+        enemyIDs.clear();
+        std::copy(msg->data.begin(), msg->data.end(), std::back_inserter(enemyIDs));
+    }
+
+    void callbackBallPoint(const nav_msgs::OdometryConstPtr &msg){
+        ballPoint = msg->pose.pose.position;
+    }
+        
+    void callbackReconfigure(avoiding_point_generator::parameterConfig &config, uint32_t level){
+        OAConfig.detectRange = config.detectRange;
+        OAConfig.avoidRange = config.avoidRange;
+        OAConfig.startDetectionPos = config.startDetectionPos;
+        OAConfig.avoidHysteresis = config.avoidHysteresis;
+    }
+}
+
+
+class ObstacleAvoidingPointGenerator{
+    public:
+        ObstacleAvoidingPointGenerator(){
+        }
+
+        void updateAvoidingPoint();
+
+        geometry_msgs::Point getAvoidingPoint(){
+            return mAvoidingPoint;
+        }
+
+        void setTargetPoint(const geometry_msgs::Point &point){
+            mTargetPoint = point;
+        }
+
+        void setRobotPoint(const geometry_msgs::Point &point){
+            mRobotPoint = point;
+        }
+
+        void callbackAIStatus(const consai_msgs::AIStatus &msg){
+            mAIStatus = msg;
+        }
+
 
     private:
-        const double mPeriod_;
-        geometry_msgs::Pose mTargetPose;
-        geometry_msgs::Pose mRealPose;
-        geometry_msgs::Twist mRealVel;
-        geometry_msgs::Pose mEnemyPoses[12];
-        geometry_msgs::Pose mFriendPoses[12];
-        std::vector<int> mEnemyIDs;
-        std::vector<int> mFriendIDs;
-        geometry_msgs::Point mAvoidPoint;
+        geometry_msgs::Point mTargetPoint;
+        geometry_msgs::Point mRobotPoint;
+        geometry_msgs::Point mAvoidingPoint;
         consai_msgs::AIStatus mAIStatus;
-        geometry_msgs::Point mBallPoint;
-
-        double mDetectRange;
-        double mAvoidRange;
-        double mStartDetectionPos;
-        double mAvoidHysteresis;
         bool mAvoidPointIsUpperImag;
 
         struct OAParameter{
@@ -63,271 +112,164 @@ class Controller{
             double trAvoidUpperImag;
             double trAvoidLowerImag;
             double trGoalPosReal;
+            bool avoiding;
             OAParameter(){
                 trAvoidReal = 0;
                 trAvoidUpperImag = 0;
                 trAvoidLowerImag = 0;
                 trGoalPosReal = 0;
+                avoiding = false;
             }
         };
 
-
-        geometry_msgs::Point calcuAvoidingPoint(const geometry_msgs::Point &targetPos);
-        OAParameter updateObstacleDetection(const Transformation &trans, 
-                double posX, double posY, const OAParameter &parameter);
-        OAParameter updateAvoidingPoints(const Transformation &trans,
-                double posX, double posY, const OAParameter &parameter);
+        OAParameter detectObstacle(const Transformation &trans, 
+                const geometry_msgs::Point &point, const OAParameter &parameter);
+        OAParameter detectObstacleOverlap(const Transformation &trans,
+                const geometry_msgs::Point &point, const OAParameter &parameter);
 };
 
-Controller::Controller()
-    :mPeriod_(0.016){
 
-    mDetectRange = 0.5;
-    mAvoidRange = 0.5;
-    mStartDetectionPos = 0.0;
-    mAvoidHysteresis = 0.18;
-    mAvoidPointIsUpperImag = true;
-}
-
-void Controller::update(){
-}
-
-
-geometry_msgs::Point Controller::getAvoidPoint(){
-    return mAvoidPoint;
-}
-
-void Controller::callbackTargetPose(const geometry_msgs::PoseStampedConstPtr& msg){
-    mTargetPose = msg->pose;
-}
-
-void Controller::callbackRealPose(const nav_msgs::OdometryConstPtr& msg){
-    mRealPose = msg->pose.pose;
-    mRealVel = msg->twist.twist;
-}
-
-void Controller::callbackReconfigure(avoiding_point_generator::parameterConfig &config, uint32_t level){
-    mDetectRange = config.detectRange;
-    mAvoidRange = config.avoidRange;
-    mStartDetectionPos = config.startDetectionPos;
-    mAvoidHysteresis = config.avoidHysteresis;
-}
-
-void Controller::callbackEnemyPose(const ros::MessageEvent<nav_msgs::Odometry const>& event){
-    const ros::M_string& header = event.getConnectionHeader();
-    std::string topic = header.at("topic");
-
-    // TODO: ここをもっと綺麗にしたい
-    // idを抽出
-    int size = topic.size();
-
-    std::string idStr;
-    if(size == 13){
-        idStr = topic.substr(7,1);
-    }else{
-        idStr = topic.substr(7,2);
-    }
-
-    int id = std::atoi(idStr.c_str());
-    const nav_msgs::OdometryConstPtr& msg = event.getMessage();
-    mEnemyPoses[id] = msg->pose.pose;
-}
-
-void Controller::callbackFriendPose(const ros::MessageEvent<nav_msgs::Odometry const>& event){
-    const ros::M_string& header = event.getConnectionHeader();
-    std::string topic = header.at("topic");
-
-    // TODO: ここももっと綺麗にしたい
-    // idを抽出
-    int size = topic.size();
-
-    std::string idStr;
-    if(size == 13){
-        idStr = topic.substr(7,1);
-    }else{
-        idStr = topic.substr(7,2);
-    }
-
-    int id = std::atoi(idStr.c_str());
-    const nav_msgs::OdometryConstPtr& msg = event.getMessage();
-    mFriendPoses[id] = msg->pose.pose;
-}
-
-
-void Controller::callbackEnemyIDs(const std_msgs::UInt16MultiArrayConstPtr& msg){
-    mEnemyIDs.clear();
-    std::copy(msg->data.begin(), msg->data.end(), std::back_inserter(mEnemyIDs));
-}
-
-void Controller::callbackFriendIDs(const std_msgs::UInt16MultiArrayConstPtr& msg){
-    mFriendIDs.clear();
-    std::copy(msg->data.begin(), msg->data.end(), std::back_inserter(mFriendIDs));
-}
-
-void Controller::callbackAIStatus(const consai_msgs::AIStatus& msg){
-    mAIStatus = msg;
-}
-
-void Controller::callbackBallPoint(const nav_msgs::OdometryConstPtr& msg){
-    mBallPoint = msg->pose.pose.position;
-}
-
-
-geometry_msgs::Point Controller::calcuAvoidingPoint(const geometry_msgs::Point &targetPos){
+void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
     // 障害物の横に回避ポイントを作成する
     // 障害物が横並びの時は、大幅に避けるポイントを作成する
     
 
     // 自分の位置から目標位置までの座標系を作成
-    Complex startPos(mRealPose.position.x,mRealPose.position.y);
-    Complex goalPos(targetPos.x, targetPos.y);
+    Complex startPos = Tool::toComplex(mRobotPoint);
+    Complex goalPos = Tool::toComplex(mTargetPoint);
     double angleToGoal = Tool::getAngle(goalPos - startPos);
 
     Transformation trans(startPos, angleToGoal);
     Complex trGoalPos = trans.transform(goalPos);
 
 
-
-    // 自分に最も近い障害物と、その左右回避位置を生成
+    // 自分に最も近い障害物の発見し、その回避位置を生成
     OAParameter parameter;
     parameter.trAvoidReal = trGoalPos.real();
     parameter.trGoalPosReal = trGoalPos.real();
 
-    // double trAvoidReal = trGoalPos.real();
-    // double trAvoidUpperImag=0, trAvoidLowerImag=0;
-    geometry_msgs::Pose obstacle;
-    std::vector<int>::iterator it;
-    int id;
-
     // 敵ロボット
-    for(it=mEnemyIDs.begin(); it!=mEnemyIDs.end(); ++it){
-        id = *it;
-        obstacle = mEnemyPoses[id];
-
-        parameter = updateObstacleDetection(trans,
-                obstacle.position.x, obstacle.position.y, parameter);
+    for(int id : GlobalInfo::enemyIDs){
+        geometry_msgs::Point obstacle = GlobalInfo::enemyPoints[id];
+        parameter = detectObstacle(trans, obstacle, parameter);
     }
-    // 見方ロボット
-    for(it=mFriendIDs.begin(); it!=mFriendIDs.end(); ++it){
-        id = *it;
-        obstacle = mFriendPoses[id];
-
-        parameter = updateObstacleDetection(trans,
-                obstacle.position.x, obstacle.position.y, parameter);
+    // 味方ロボット
+    for(int id : GlobalInfo::friendIDs){
+        geometry_msgs::Point obstacle = GlobalInfo::friendPoints[id];
+        parameter = detectObstacle(trans, obstacle, parameter);
     }
     // ボール回避は任意
     if(mAIStatus.avoidBall){
-        parameter = updateObstacleDetection(trans,
-            mBallPoint.x, mBallPoint.y, parameter);
+        parameter = detectObstacle(trans, GlobalInfo::ballPoint, parameter);
     }
-
-
+    
 
     // 横並びロボット回避位置を生成
     // 障害物がなければ計算省略
-    if(parameter.trAvoidUpperImag == 0 && parameter.trAvoidLowerImag == 0){
+    if(parameter.avoiding){
         // 横並び計算漏れを防ぐため計算をループさせる(ループ回数はテキトー)
         for(int loop=0; loop < 7; loop++){
+            double old_upperImag = parameter.trAvoidUpperImag;
+            double old_lowerImag = parameter.trAvoidLowerImag;
 
             // 敵ロボット
-            for(it=mEnemyIDs.begin(); it!=mEnemyIDs.end(); ++it){
-                id = *it;
-                obstacle = mEnemyPoses[id];
-
-                parameter = updateAvoidingPoints(trans,
-                        obstacle.position.x, obstacle.position.y, parameter);
+            for(int id : GlobalInfo::enemyIDs){
+                geometry_msgs::Point obstacle = GlobalInfo::enemyPoints[id];
+                parameter = detectObstacleOverlap(trans, obstacle, parameter);
             }
-
             // 見方ロボット
-            for(it=mFriendIDs.begin(); it!=mFriendIDs.end(); ++it){
-                id = *it;
-                obstacle = mFriendPoses[id];
-                parameter = updateAvoidingPoints(trans,
-                        obstacle.position.x, obstacle.position.y, parameter);
+            for(int id : GlobalInfo::friendIDs){
+                geometry_msgs::Point obstacle = GlobalInfo::friendPoints[id];
+                parameter = detectObstacleOverlap(trans, obstacle, parameter);
             }
-
             // ボール回避は任意
             if(mAIStatus.avoidBall){
-                parameter = updateAvoidingPoints(trans,
-                    mBallPoint.x, mBallPoint.y, parameter);
+                parameter = detectObstacleOverlap(trans, GlobalInfo::ballPoint, parameter);
+            }
+
+            // 回避位置がほとんど更新されなかったらループを抜ける
+            if(Tool::isEqual(old_upperImag, parameter.trAvoidUpperImag) &&
+                    Tool::isEqual(old_lowerImag, parameter.trAvoidLowerImag)){
+                break;
             }
         }
-    }
 
-    // 変換座標系で、左右どちらから避けるかを決定する
-    Complex trAvoidPos = trGoalPos;
-    double upperSize = fabs(parameter.trAvoidUpperImag);
-    double lowerSize = fabs(parameter.trAvoidLowerImag);
-
-    // 左右の回避位置生成にヒステリシスをもたせる
-    if(mAvoidPointIsUpperImag == true){
-        if(lowerSize < upperSize - mAvoidHysteresis){
-            mAvoidPointIsUpperImag = false;
-        }
-    }else{
-        if(upperSize < lowerSize - mAvoidHysteresis){
-            mAvoidPointIsUpperImag = true;
-        }
-    }
-    if(mAvoidPointIsUpperImag == true){
-        trAvoidPos = Complex(parameter.trAvoidReal, parameter.trAvoidUpperImag);
-    }else{
-        trAvoidPos = Complex(parameter.trAvoidReal, parameter.trAvoidLowerImag);
-    }
-    
-    // 座標系を元に戻して終了
-    Complex avoidPos = trans.invertedTransform(trAvoidPos);
-
-    geometry_msgs::Point output;
-    output.x = avoidPos.real();
-    output.y = avoidPos.imag();
-    output.z = 0;
-
-    return output;
-}
+        // 近い方のImagでAvoidingPointを生成する
+        Complex trAvoidPos = trGoalPos;
+        double upperSize = fabs(parameter.trAvoidUpperImag);
+        double lowerSize = fabs(parameter.trAvoidLowerImag);
         
-Controller::OAParameter Controller::updateObstacleDetection(const Transformation &trans,
-        double posX, double posY, const OAParameter &parameter){
+        // 左右の回避位置生成にヒステリシスをもたせる
+        if(mAvoidPointIsUpperImag == true){
+            if(lowerSize < upperSize - GlobalInfo::OAConfig.avoidHysteresis){
+                mAvoidPointIsUpperImag = false;
+            }
+        }else{
+            if(upperSize < lowerSize - GlobalInfo::OAConfig.avoidHysteresis){
+                mAvoidPointIsUpperImag = true;
+            }
+        }
+        if(mAvoidPointIsUpperImag == true){
+            trAvoidPos = Complex(parameter.trAvoidReal, parameter.trAvoidUpperImag);
+        }else{
+            trAvoidPos = Complex(parameter.trAvoidReal, parameter.trAvoidLowerImag);
+        }
+        
+        // 座標系を元に戻して終了
+        Complex avoidPos = trans.invertedTransform(trAvoidPos);
+        mAvoidingPoint.x = avoidPos.real();
+        mAvoidingPoint.y = avoidPos.imag();
+    }else{
+        // 障害物がない場合は、targetPosをavoidingPointに設定する
+        mAvoidingPoint = mTargetPoint;
+    }
+}
+
+
+ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::detectObstacle(
+        const Transformation &trans,
+        const geometry_msgs::Point &point, const OAParameter &parameter){
+
     OAParameter output = parameter;
 
-    Complex obstaclePos(posX, posY);
-
+    Complex obstaclePos = Tool::toComplex(point);
     Complex trObstPos = trans.transform(obstaclePos);
 
-    // 自分と目標位置の直線上にいるかチェック
-    if(trObstPos.real() > mStartDetectionPos 
-            && trObstPos.real() < parameter.trGoalPosReal
-            && fabs(trObstPos.imag()) < mDetectRange){
+    // 自分と移動目標位置を結んだ直線上にいる障害物を見つける
+    // 一番近い障害物を見つけるため
+    // parameterのtrAvoidRealを障害物のrealで上書きしていく
+    if(trObstPos.real() > GlobalInfo::OAConfig.startDetectionPos
+            && trObstPos.real() < parameter.trAvoidReal
+            && fabs(trObstPos.imag()) < GlobalInfo::OAConfig.detectRange){
 
         // 避けれる上下位置を計算
-        double upperImag = trObstPos.imag() + mAvoidRange;
-        double lowerImag = trObstPos.imag() - mAvoidRange;
+        double upperImag = trObstPos.imag() + GlobalInfo::OAConfig.avoidRange;
+        double lowerImag = trObstPos.imag() - GlobalInfo::OAConfig.avoidRange;
 
-        // より近いロボットの距離と回避位置を記憶
-        if(trObstPos.real() < parameter.trAvoidReal){
-            output.trAvoidReal = trObstPos.real();
-            output.trAvoidUpperImag = upperImag;
-            output.trAvoidLowerImag = lowerImag;
-        }
+        output.trAvoidReal = trObstPos.real();
+        output.trAvoidUpperImag = upperImag;
+        output.trAvoidLowerImag = lowerImag;
+        output.avoiding = true;
     }
 
     return output;
 }
 
-Controller::OAParameter Controller::updateAvoidingPoints(const Transformation &trans,
-        double posX, double posY, const OAParameter &parameter){
+
+ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::detectObstacleOverlap(
+        const Transformation &trans,
+        const geometry_msgs::Point &point, const OAParameter &parameter){
 
     OAParameter output = parameter;
 
-    Complex obstaclePos(posX, posY);
-
+    Complex obstaclePos = Tool::toComplex(point);
     Complex trObstPos = trans.transform(obstaclePos);
 
-    // 自分と目標位置の直線上にいるかチェック
-    if(trObstPos.real() > mStartDetectionPos 
+    // 回避範囲(upper <-> lower)の重なりを見つけ、最端の回避位置を生成する
+    if(trObstPos.real() > GlobalInfo::OAConfig.startDetectionPos
             && trObstPos.real() < parameter.trGoalPosReal){
-        double upperImag = trObstPos.imag() + mAvoidRange;
-        double lowerImag = trObstPos.imag() - mAvoidRange;
+        double upperImag = trObstPos.imag() + GlobalInfo::OAConfig.avoidRange;
+        double lowerImag = trObstPos.imag() - GlobalInfo::OAConfig.avoidRange;
 
         if(upperImag > parameter.trAvoidLowerImag 
                 && upperImag < parameter.trAvoidUpperImag 
@@ -351,58 +293,79 @@ int main(int argc, char **argv){
     ros::NodeHandle nh;
     ros::Rate r(60);
 
-    Controller controller;
-    // ros::Subscriber subTargetPose = nh.subscribe("move_base_simple/goal",100,
-    //         &Controller::callbackTargetPose, &controller);
-    // ros::Subscriber subTargetVel = nh.subscribe("move_base_simple/target_velocity",
-    //         100, &Controller::callbackTargetVel, &controller);
-    // ros::Subscriber subRealPose = nh.subscribe("odom", 100,
-    //         &Controller::callbackRealPose, &controller);
-    // ros::Subscriber subAIStatus = nh.subscribe("ai_status", 100,
-    //         &Controller::callbackAIStatus, &controller);
-    //
-
     // Dynamic Reconfigureの設定
     dynamic_reconfigure::Server<avoiding_point_generator::parameterConfig> reconfigure_server;
     dynamic_reconfigure::Server<avoiding_point_generator::parameterConfig>::CallbackType f;
     
-    f = boost::bind(&Controller::callbackReconfigure, &controller, _1, _2);
+    f = boost::bind(&GlobalInfo::callbackReconfigure, _1, _2);
     reconfigure_server.setCallback(f);
-    //
+
+    std::vector<ObstacleAvoidingPointGenerator> generator(12);
+
     // // 起動時のnamespaceを取得
     // std::string ai_name = "/";
     // nh.getParam("ai_name", ai_name);
-    //
-    // std::vector<ros::Subscriber> subs;
-    // for(int i=0; i< 12; i++){
-    //     std::stringstream ss;
-    //     ss << i;
-    //     std::string topicName;
-    //
-    //     topicName = ai_name + "enemy_" + ss.str() + "/odom";
-    //     subs.push_back(nh.subscribe(topicName.c_str(),100,
-    //                 &Controller::callbackEnemyPose, &controller));
-    //
-    //     topicName = ai_name + "robot_" + ss.str() + "/odom";
-    //     subs.push_back(nh.subscribe(topicName.c_str(),100,
-    //                 &Controller::callbackFriendPose, &controller));
-    // }
-    //
-    // ros::Subscriber subEnemyIDs = nh.subscribe(ai_name + "existing_enemies_id",100,
-    //         &Controller::callbackEnemyIDs, &controller);
-    // ros::Subscriber subFriendIDs = nh.subscribe(ai_name + "existing_friends_id",100,
-    //         &Controller::callbackFriendIDs, &controller);
-    // ros::Subscriber subBall = nh.subscribe(ai_name + "ball_observer/estimation",100,
-    //         &Controller::callbackBallPoint, &controller);
-    //
-    // ros::Publisher publisher = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
-    // ros::Publisher pub_avoidPoint = nh.advertise<geometry_msgs::Point>("avoid_point",1000);
+
+
+    // Subscriberを作成
+    ros::Subscriber subFriendIDs = nh.subscribe("existing_friends_id", 100,
+            GlobalInfo::callbackFriendIDs);
+    ros::Subscriber subEnemyIDs = nh.subscribe("existing_enemies_id", 100,
+            GlobalInfo::callbackEnemyIDs);
+    ros::Subscriber subBallPoint = nh.subscribe("ball_observer/estimation", 100,
+            GlobalInfo::callbackBallPoint);
+
+    std::vector<ros::Subscriber> subs_targetPoint;
+    std::vector<ros::Subscriber> subs_friendPoint;
+    std::vector<ros::Subscriber> subs_enemyPoint;
+    std::vector<ros::Subscriber> subs_AIStatus;
+
+    // Publisherを作成
+    std::vector<ros::Publisher> pubs_avoidingPoint;
+
+    for(int i=0; i< 12; i++){
+        std::string topicName;
+
+        // callbackに引数を与えるため、boost::bindを使用
+        topicName = "robot_" + std::to_string(i) + "/move_base_simple/goal";
+        ros::Subscriber sub = nh.subscribe<geometry_msgs::PoseStamped>(
+                topicName.c_str(), 100,
+                boost::bind(GlobalInfo::callbackTargetPoint, _1, i));
+        subs_targetPoint.push_back(sub);
+
+        topicName = "robot_" + std::to_string(i) + "/odom";
+        sub = nh.subscribe<nav_msgs::Odometry>(
+                topicName.c_str(), 100,
+                boost::bind(GlobalInfo::callbackFriendPoint, _1, i));
+        subs_friendPoint.push_back(sub);
+
+        topicName = "enemy_" + std::to_string(i) + "/odom";
+        sub = nh.subscribe<nav_msgs::Odometry>(
+                topicName.c_str(), 100,
+                boost::bind(GlobalInfo::callbackEnemyPoint, _1, i));
+        subs_enemyPoint.push_back(sub);
+
+        topicName = "robot_" + std::to_string(i) + "/ai_status";
+        sub = nh.subscribe(
+                topicName.c_str(), 100,
+                &ObstacleAvoidingPointGenerator::callbackAIStatus,
+                &generator[i]);
+        subs_AIStatus.push_back(sub);
+
+        topicName = "robot_" + std::to_string(i) + "/avoiding_point";
+        ros::Publisher pub = nh.advertise<geometry_msgs::Point>(topicName, 100);
+        pubs_avoidingPoint.push_back(pub);
+    }
 
     while (ros::ok()){
-        // controller.update();
-        // pub_avoidPoint.publish(controller.getAvoidPoint());
+        // 存在している味方ロボットのavoidingPointを計算する
+        for(int id : GlobalInfo::friendIDs){
+            generator[id].setRobotPoint(GlobalInfo::friendPoints[id]);
+            generator[id].setTargetPoint(GlobalInfo::targetPoints[id]);
+            generator[id].updateAvoidingPoint();
 
-        ROS_INFO("avoiding_point_generator");
+            pubs_avoidingPoint[id].publish(generator[id].getAvoidingPoint());
+        }
 
         ros::spinOnce();
         r.sleep();

@@ -28,7 +28,7 @@ class Controller{
         void update();
         
         geometry_msgs::Twist getCommandVelocity();
-        geometry_msgs::Point getAvoidPoint();
+        geometry_msgs::Point getAvoidingPoint();
 
         void callbackTargetPose(const geometry_msgs::PoseStampedConstPtr& msg);
         void callbackTargetVel(const geometry_msgs::TwistStampedConstPtr& msg);
@@ -40,6 +40,7 @@ class Controller{
         void callbackFriendIDs(const std_msgs::UInt16MultiArrayConstPtr& msg);
         void callbackAIStatus(const consai_msgs::AIStatus& msg);
         void callbackBallPoint(const nav_msgs::OdometryConstPtr& msg);
+        void callbackAvoidingPoint(const geometry_msgs::Point& msg);
 
     private:
         const double mPeriod_;
@@ -52,9 +53,9 @@ class Controller{
         geometry_msgs::Pose mFriendPoses[12];
         std::vector<int> mEnemyIDs;
         std::vector<int> mFriendIDs;
-        geometry_msgs::Point mAvoidPoint;
         consai_msgs::AIStatus mAIStatus;
         geometry_msgs::Point mBallPoint;
+        geometry_msgs::Point mAvoidingPoint;
 
         bool mIsVelocityControl;
         double mPrevSpeed;
@@ -141,8 +142,8 @@ geometry_msgs::Twist Controller::getCommandVelocity(){
     return mCommandVel;
 }
 
-geometry_msgs::Point Controller::getAvoidPoint(){
-    return mAvoidPoint;
+geometry_msgs::Point Controller::getAvoidingPoint(){
+    return mAvoidingPoint;
 }
 
 void Controller::callbackTargetPose(const geometry_msgs::PoseStampedConstPtr& msg){
@@ -236,13 +237,18 @@ void Controller::callbackBallPoint(const nav_msgs::OdometryConstPtr& msg){
     mBallPoint = msg->pose.pose.position;
 }
 
+void Controller::callbackAvoidingPoint(const geometry_msgs::Point& msg){
+    mAvoidingPoint = msg;
+}
+
+
 void Controller::poseControl(){
 
-    geometry_msgs::Point avoidPoint;
-    avoidPoint = calcuAvoidingPoint(mTargetPose.position);
-
-    mAvoidPoint = avoidPoint;
-    geometry_msgs::Vector3 linearVel = trapezoidalLinearControl(avoidPoint);
+    // geometry_msgs::Point avoidPoint;
+    // avoidPoint = calcuAvoidingPoint(mTargetPose.position);
+    //
+    // mAvoidPoint = avoidPoint;
+    geometry_msgs::Vector3 linearVel = trapezoidalLinearControl(mAvoidingPoint);
 
     // 移動方向をロボット座標系に変換
     double realYaw = yawFromQuaternion(mRealPose.orientation);
@@ -646,6 +652,8 @@ int main(int argc, char **argv){
             &Controller::callbackRealPose, &controller);
     ros::Subscriber subAIStatus = nh.subscribe("ai_status", 100,
             &Controller::callbackAIStatus, &controller);
+    ros::Subscriber subAvoidingPoint = nh.subscribe("avoiding_point", 100,
+            &Controller::callbackAvoidingPoint, &controller);
 
     dynamic_reconfigure::Server<trapezoidal_control::parameterConfig> reconfigure_server;
     dynamic_reconfigure::Server<trapezoidal_control::parameterConfig>::CallbackType f;
@@ -654,40 +662,40 @@ int main(int argc, char **argv){
     reconfigure_server.setCallback(f);
 
     // 起動時のnamespaceを取得
-    std::string ai_name = "/";
-    nh.getParam("ai_name", ai_name);
+    // std::string ai_name = "/";
+    // nh.getParam("ai_name", ai_name);
 
-    std::vector<ros::Subscriber> subs;
-    for(int i=0; i< 12; i++){
-        std::stringstream ss;
-        ss << i;
-        std::string topicName;
+    // std::vector<ros::Subscriber> subs;
+    // for(int i=0; i< 12; i++){
+    //     std::stringstream ss;
+    //     ss << i;
+    //     std::string topicName;
+    //
+    //     topicName = ai_name + "enemy_" + ss.str() + "/odom";
+    //     subs.push_back(nh.subscribe(topicName.c_str(),100,
+    //                 &Controller::callbackEnemyPose, &controller));
+    //
+    //     topicName = ai_name + "robot_" + ss.str() + "/odom";
+    //     subs.push_back(nh.subscribe(topicName.c_str(),100,
+    //                 &Controller::callbackFriendPose, &controller));
+    // }
 
-        topicName = ai_name + "enemy_" + ss.str() + "/odom";
-        subs.push_back(nh.subscribe(topicName.c_str(),100,
-                    &Controller::callbackEnemyPose, &controller));
-
-        topicName = ai_name + "robot_" + ss.str() + "/odom";
-        subs.push_back(nh.subscribe(topicName.c_str(),100,
-                    &Controller::callbackFriendPose, &controller));
-    }
-
-    ros::Subscriber subEnemyIDs = nh.subscribe(ai_name + "existing_enemies_id",100,
-            &Controller::callbackEnemyIDs, &controller);
-    ros::Subscriber subFriendIDs = nh.subscribe(ai_name + "existing_friends_id",100,
-            &Controller::callbackFriendIDs, &controller);
-    ros::Subscriber subBall = nh.subscribe(ai_name + "ball_observer/estimation",100,
-            &Controller::callbackBallPoint, &controller);
+    // ros::Subscriber subEnemyIDs = nh.subscribe(ai_name + "existing_enemies_id",100,
+    //         &Controller::callbackEnemyIDs, &controller);
+    // ros::Subscriber subFriendIDs = nh.subscribe(ai_name + "existing_friends_id",100,
+    //         &Controller::callbackFriendIDs, &controller);
+    // ros::Subscriber subBall = nh.subscribe(ai_name + "ball_observer/estimation",100,
+    //         &Controller::callbackBallPoint, &controller);
 
     ros::Publisher publisher = nh.advertise<geometry_msgs::Twist>("cmd_vel", 1000);
-    ros::Publisher pub_avoidPoint = nh.advertise<geometry_msgs::Point>("avoid_point",1000);
+    // ros::Publisher pub_avoidPoint = nh.advertise<geometry_msgs::Point>("avoid_point",1000);
 
     while (ros::ok()){
         controller.update();
         geometry_msgs::Twist cmdVel = controller.getCommandVelocity();
 
-        publisher.publish(controller.getCommandVelocity());
-        pub_avoidPoint.publish(controller.getAvoidPoint());
+        publisher.publish(cmdVel);
+        // pub_avoidPoint.publish(controller.getAvoidPoint());
 
         ros::spinOnce();
         r.sleep();

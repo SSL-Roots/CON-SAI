@@ -20,6 +20,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_compile_options(-std=c++11)
+
 add_executable(${PROJECT_NAME}_node src/avoiding_point_generator_node.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node
