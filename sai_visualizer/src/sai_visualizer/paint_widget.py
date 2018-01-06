@@ -9,13 +9,47 @@ import math
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt,QPointF, QRectF
-from python_qt_binding.QtGui import QWidget,QPainter, QPen, QColor
+from python_qt_binding.QtCore import Qt, QPointF, QRectF
+from python_qt_binding import QT_BINDING_VERSION
+g_PYQT_MAJOR_VERSION = int(QT_BINDING_VERSION.split('.')[0])
+if g_PYQT_MAJOR_VERSION == 4:
+    from python_qt_binding.QtGui import QWidget
+elif g_PYQT_MAJOR_VERSION == 5:
+    from python_qt_binding.QtWidgets import QWidget
+from python_qt_binding.QtGui import QPainter, QPen, QColor
 
 from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt16MultiArray as UIntArray
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from geometry_msgs.msg import Point
+
+# monkey patch
+import types
+import functools
+from python_qt_binding.QtGui import QMouseEvent
+def mouseevent_wrapper(func):
+    if g_PYQT_MAJOR_VERSION == 5:
+        @functools.wraps(func)
+        def wrapper(self, event):
+            def _posF(self):
+                return self.localPos()
+            event.posF = types.MethodType(_posF, event)
+            return func(self, event)
+        return wrapper
+    else:
+        return func
+
+def wheelevent_wrapper(func):
+    if g_PYQT_MAJOR_VERSION == 5:
+        @functools.wraps(func)
+        def wrapper(self, event):
+            def _delta(self):
+                return self.angleDelta()
+            event.delta = types.MethodType(_delta, event)
+            return func(self, event)
+        return wrapper
+    else:
+        return func
 
 class ConstWorld():
     def __init__(self):
@@ -142,6 +176,7 @@ class PaintWidget(QWidget):
     def callbackAvoidingPoint(self, msg, robot_id):
         self.avoidingPoints[robot_id] = msg
 
+    @mouseevent_wrapper
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             self.clickPoint = event.posF()
@@ -150,6 +185,7 @@ class PaintWidget(QWidget):
 
         self.update()
 
+    @mouseevent_wrapper
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             pos = event.posF()
@@ -157,13 +193,14 @@ class PaintWidget(QWidget):
 
         self.update()
 
+    @mouseevent_wrapper
     def mouseReleaseEvent(self, event):
         self.trans += self.mouseTrans
         self.mouseTrans = QPointF(0.0, 0.0)
 
         self.update()
 
-
+    @wheelevent_wrapper
     def wheelEvent(self, event):
         # マウスのホイール操作でスケールを変える
         if event.delta() > 0:
