@@ -2,18 +2,12 @@
 #include <ros/console.h>
 #include <dynamic_reconfigure/server.h>
 #include <avoiding_point_generator/parameterConfig.h>
-#include <tf/transform_datatypes.h>
 #include <vector>
 #include <string>
-#include <sstream>
 #include <algorithm> //std::copy
 #include <iterator> //std::back_inserter
 
 #include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <geometry_msgs/Twist.h>
-#include <geometry_msgs/Vector3.h>
-#include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/Odometry.h>
 #include <std_msgs/UInt16MultiArray.h>
