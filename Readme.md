@@ -10,17 +10,12 @@ CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 CON-SAIを使う前に[コンセプト](doc/Concept.md)を読んでください。
 
 ## Requirements
-CON-SAIはUbuntu 14.04で作成・テストしてます。
-
-また、使用しているROS IndigoはUbuntu 14.04以下で動作するため、
-Ubuntu 14.04のインストールを推奨します。
-
-*Ubuntu 16.04, ROS Kineticに向けても開発中です。*
+CON-SAIはUbuntu 16.04で作成・テストしてます。
 
 下記のPCスペックで問題なく動作します。
-* Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
-* 8 GB of RAM
-* 有線LANポート（試合会場では有線LANでロボット・ボール位置座標データを受信します)
+- Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
+- 8 GB of RAM
+- 有線LANポート（試合会場では有線LANでロボット・ボール位置座標データを受信します)
 
 ## Installation
 
@@ -29,14 +24,15 @@ Ubuntu 14.04のインストールを推奨します。
 は、ロボットソフトウェア開発をサポートする
 ライブラリ・ツールが豊富に含まれたオープンソースソフトウェアです。
 
-ROSにはいくつかのDistributionがありますが、**Indigo**をインストールしてください。
+ROSにはいくつかのDistributionがありますが、**Kinetic**をインストールしてください。
+
+(Indigoでも動作確認済みですが、今後はサポートしません。)
 
 フルインストール推奨です。
 
-[**ROS Indigo の Ubuntu へのインストール**](
-http://wiki.ros.org/ja/indigo/Installation/Ubuntu
+[**ROS Kinetic の Ubuntu へのインストール**](
+http://wiki.ros.org/ja/kinetic/Installation/Ubuntu
 )
-
 
 ROSインストール後はチュートリアルをひと通り実施してください。
 
@@ -64,28 +60,26 @@ $ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 ### Google Protobufをインストール
 
-[**ダウンロード protobuf-2.5.0.zip**](
-https://github.com/google/protobuf/releases/download/v2.5.0/protobuf-2.5.0.zip
+Google Protocol Bufferは[GitHub](
+https://github.com/google/protobuf
 )
+から最新版(> v3.5.1)をダウンロード可能です。
+
+しかし、RoboCup SSLで使われているツールは、v2.6.1でビルドされているものがほとんどのため、
+ここでは、v2.6.1をインストールします。
+
+(Proto3 でもビルド可能ですが、余計なWarningが発生するためProto2を使います)
 
 ```zsh
-$ cd {Download Directory}
-$ unzip protobuf-2.5.0.zip
-$ cd protobuf-2.5.0
+$ sudo apt-get install libprotobuf-dev libprotoc-dev protobuf-compiler
+# 念の為versionチェック(2.6.1がインストールされていればOK)
+$ apt-cache policy libprotobuf-dev libprotoc-dev protobuf-compiler
 
-# Install protobuf for C++
-$ ./configure
-$ make
-$ make check 
-# checkでエラー吐いたらREADME.txtを見て対処してください
-$ sudo make install
-    
-# Install protobuf for python
-$ cd python
-$ python setup.py build
-$ python setup.py test
-# testでエラーはいたらREADME.txtを見て対処して
-$ sudo python setup.py install
+
+# Install protobuf for python2
+$ pip2 install protobuf==2.6.1
+# versionチェック(2.6.1がインストールされていればOK)
+$ pip2 show protobuf
 ```
 
 ### その他インストール

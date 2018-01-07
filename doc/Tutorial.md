@@ -62,26 +62,16 @@ Referee Boxディレクトリ内のreferee.confを確認してください。
 </node>
 ```
 
-### CON-SAIとビジュアライザの起動
+### CON-SAIとSAI-Visualizerの起動
 
 ```zsh
-# CON-SAIの起動
+# CON-SAIとSAI-Visualizerの起動
 $ roslaunch ai_core ai_core.launch
-
-# 別のターミナルで
-# SAI Visualizerの起動
-$ rqt --standalone sai_visualizer
-
-# もしくはrqt単体で起動し、/Plugins/Visualization/SAI-Visualizer から選択することも可能です
-$ rqt
-
 ```
-
-![open sai_visualizer](https://github.com/SSL-Roots/CON-SAI/blob/Images/Images/rqt_open_sai.png "open SAI-Visualizer")
 
 CON-SAI起動後、grSimとReferee Boxを起動してください。
 
-SAI-Visualizerにロボットとボールが描画されたら通信成功です。
+SAI-Visualizerにロボットとボールが描画されたら、grSimから位置情報の受信成功です。
 
 Referee BoxでStop Game -> Kick Off -> Normal Start -> Haltとボタンを押してください。
 
@@ -93,18 +83,21 @@ Referee BoxでStop Game -> Kick Off -> Normal Start -> Haltとボタンを押し
 
 ### チームカラー/サイドの切り替え
 
-下記ファイルのfriend_colorをyellowに、team_sideをrightにすることで、
-右守りのイエローチームとしてAIを動かせます
+下記のように、ai_core.launch起動時に引数を指定できます。
 
-**ai_core/param/our_team.yaml**
-```yaml
-friend_color : 'yellow'
-team_side    : 'right'
-robots_num   : 6
-goalie_id    : 0
+```zsh
+# default (左守りのブルーチーム)
+$ roslaunch ai_core ai_core.launch
+
+# 左守りのブルーチーム
+$ roslaunch ai_core ai_core.launch color:=blue side:=left
+
+# 右守りのイエローチーム
+$ roslaunch ai_core ai_core.launch color:=yellow side:=right
 ```
 
-out_team.yamlを変更後、先ほどと同じようにロボットを動かしてみてください。
+それでは、**右守りのイエローチーム**としてCON-SAIを起動し、
+先ほどと同じようにロボットを動かしてみてください。
 
 味方サイドは右側になったにもかかわらず、
 SAI Visualizer上では黄色ロボットが左側に表示され、右側へボールを蹴ることが確認できます。
@@ -115,3 +108,37 @@ SAI Visualizer上では黄色ロボットが左側に表示され、右側へボ
 右側を攻める戦略プログラムを作成すればコートチェンジにも問題なく対応できます。
 
 
+### CON-SAI vs CON-SAI
+最後に、CON-SAI同士で対戦をします。
+
+ai_core.launch起動時にai_nameを設定することで、
+CON-SAIの全ノードをグルーピングできます。
+
+```zsh
+# ai_name には "/hoge/" のようにスラッシュで囲われた文字列を入力してください
+
+$ roslaunch ai_core ai_core.launch ai_name:=/ai1/
+
+# NG : Visualizerにロボットが描画されません
+# roslaunch ai_core ai_core.launch ai_name:=ai1
+```
+
+
+それでは、ターミナルを2つ用意して、
+**/ai1/ 右守りブルーチーム** と **/ai2/ 左守りイエローチーム**を起動しましょう。
+```zsh
+# Terminal 1 (左守りブルーチーム)
+$ roslaunch ai_core ai_core.launch ai_name:=/ai1/ color:=blue side:=left
+
+
+# Terminal 2 (右守りイエローチーム)
+$ roslaunch ai_core ai_core.launch ai_name:=/ai2/ color:=yellow side:=right
+```
+*注意: CON-SAIを2つ起動すると動作が重たくなります*
+
+SAI-Visualizerも2つ起動されますが、ここでは閉じてください。
+
+Referee Boxを操作して2チームのロボットが動くことを確認してください。
+
+動作が重たい場合は、grSim上でロボットを何台かTurn offしてください。
+(ロボットを右クリックして操作できます。)
