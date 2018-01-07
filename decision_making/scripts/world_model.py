@@ -43,7 +43,7 @@ class WorldModel(object):
         situations[key] = False
 
     _current_situation = 'HALT'
-    _current_test = ''
+    _current_test = 'DUMMY_TEST'
 
     assignments = OrderedDict()
     enemy_assignments = OrderedDict()
