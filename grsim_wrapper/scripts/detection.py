@@ -2,8 +2,9 @@
 import rospy
 import tf
 import math
-import messages_robocup_ssl_wrapper_pb2
 import multicast
+
+from proto import messages_robocup_ssl_wrapper_pb2
 
 import geometry_msgs
 from geometry_msgs.msg import PoseStamped

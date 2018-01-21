@@ -21,6 +21,8 @@ find_package(catkin REQUIRED COMPONENTS
    AIStatus.msg
    Pose.msg
    RefereeTeamInfo.msg
+   ReplaceRobot.msg
+   ReplaceBall.msg
  )
 
  generate_messages(
