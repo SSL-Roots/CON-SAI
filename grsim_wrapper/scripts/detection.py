@@ -119,27 +119,6 @@ class PoseMaker(object):
         return pose
 
 
-def convertMsgToPoseArray(time, id_list, detection_msg):
-    # return each robot's PoseArray
-
-    # instatinate PoseMaker
-    robot_poses = {}
-    for i in id_list:
-        robot_poses[i] = PoseMaker(time, 'map')
-
-    # change detection_msg to PoseArray
-    for robot in detection_msg:
-        if robot.robot_id in id_list:
-            robot_poses[robot.robot_id].add(robot)
-
-    # align PoseArrays
-    pose_arrays = {}
-    for i in id_list:
-        pose_arrays[i] = robot_poses[i].get()
-
-    return pose_arrays
-
-
 class FormatConverter:
 
     def __init__(self, friend_color, do_side_invert):
@@ -148,6 +127,7 @@ class FormatConverter:
         self.do_side_invert = do_side_invert
 
     def protobufToTable(self, protobuf_binary):
+        ssl_wrapper = messages_robocup_ssl_wrapper_pb2.SSL_WrapperPacket()
         ssl_wrapper.ParseFromString(protobuf_binary)
 
         header = {
@@ -227,6 +207,7 @@ class FormatConverter:
 
         return rosmsg
 
+
     def observationToVisionPacket(self, observation):
         vision_packet   = VisionPacket()
 
@@ -263,125 +244,149 @@ class FormatConverter:
         return  pose
 
 
+class VisionReceiver:
+    def __init__(self):
+
+        # This class receives vision data and publish it
+        self._ROBOT_NUM = 6
+        self._robot_list = [0, 1, 2, 3, 4, 5]
+        self._enemy_list = [0, 1, 2, 3, 4, 5]
+
+        self._our_color = rospy.get_param('friend_color', 'yellow').upper()
+        self._our_side = rospy.get_param('team_side', 'right').upper()
+        self._host = rospy.get_param('~multicast_addr', '224.5.23.2')
+        self._port = rospy.get_param('~multicast_port', 10006)
+
+        self._sock = multicast.Multicast(self._host, self._port)
 
 
-def receive():
-    buf = sock.recv(2*1024)
-    if buf == None:
-        return  False
+        # make publishers
+        self._ball_publisher = AbstractGeometry(self._our_side, 'pose_ball')
+        self._robot_publisher = {}
+        for n in self._robot_list:
+            self._robot_publisher[n] = AbstractGeometry(self._our_side, 'pose_friend_' + str(n))
 
-    while not buf == None:
-        format_converter.protobufToTable(buf)
-        receive_legacy(buf)
-        buf = sock.recv(2*1024)
+        self._enemy_publisher = {}
+        for n in self._enemy_list:
+            self._enemy_publisher[n] = AbstractGeometry(self._our_side, 'pose_enemy_' + str(n))
 
-    ros_msg = format_converter.tableToRosmsg()
-    format_converter.refreshTable()
-    pub_vision_observations.publish(ros_msg)
+        self._friend_list_publisher = rospy.Publisher('friend_poses', RobotPoses, queue_size=10)
+        self._enemy_list_publisher = rospy.Publisher('enemy_poses', RobotPoses, queue_size=10)
 
+        self._vision_observations_publisher = rospy.Publisher(
+            'vision_observations', VisionObservations, queue_size=10)
 
-def receive_legacy(buf):
-    current_time = rospy.Time.now()
-    ssl_wrapper.ParseFromString(buf)  # Parse sent data
+        self._do_side_invert = True
+        if self._our_side == 'LEFT':
+            self._do_side_invert = False
 
-    # Publish the ball information
-    ball_poses = PoseMaker(current_time, 'map')
-    for pose in ssl_wrapper.detection.balls:
-        ball_poses.add(pose)
-    ball.publish(ball_poses.get())
-
-    # Publish robot information
-    if our_color == 'BLUE':
-        detection_friend = ssl_wrapper.detection.robots_blue
-        detection_enemy = ssl_wrapper.detection.robots_yellow
-    else:
-        detection_friend = ssl_wrapper.detection.robots_yellow
-        detection_enemy = ssl_wrapper.detection.robots_blue
-
-    friend_pose_arrays = convertMsgToPoseArray(current_time, robot_list, detection_friend)
-    enemy_pose_arrays = convertMsgToPoseArray(current_time, enemy_list, detection_enemy)
-
-    for i in robot_list:
-        robot_publisher[i].publish(friend_pose_arrays[i])
-
-    for i in enemy_list:
-        enemy_publisher[i].publish(enemy_pose_arrays[i])
-
-    ##########################################
-    friend_poses_msg = getRobotPosesFromProtobufMsg(detection_friend)
-    enemy_poses_msg = getRobotPosesFromProtobufMsg(detection_enemy)
-    friend_list_publisher.publish(friend_poses_msg)
-    enemy_list_publisher.publish(enemy_poses_msg)
+        self._format_converter = FormatConverter(self._our_color.lower(), self._do_side_invert)
 
 
+    def receive(self):
 
-def getRobotPosesFromProtobufMsg(detection_msg):
-    robot_poses_msg = RobotPoses()
-    current_time = rospy.Time.now()
+        buf = self._sock.recv(2*1024)
+        if buf == None:
+            return  False
 
-    poses = []
-    id_list = []
+        while not buf == None:
+            self._format_converter.protobufToTable(buf)
+            self._receive_legacy(buf)
+            buf = self._sock.recv(2*1024)
 
-    for robot in detection_msg:
-        if robot.robot_id not in id_list:
-            id_list.append(robot.robot_id)
-            poses.append(PoseMaker(current_time, 'map'))
+        ros_msg = self._format_converter.tableToRosmsg()
+        self._format_converter.refreshTable()
+        self._vision_observations_publisher.publish(ros_msg)
 
-        index = id_list.index(robot.robot_id)
-        poses[index].add(robot)
 
-    robot_poses_msg.header.stamp = current_time
-    robot_poses_msg.header.frame_id = 'map'
+    def _receive_legacy(self, buf):
+        current_time = rospy.Time.now()
+        ssl_wrapper = messages_robocup_ssl_wrapper_pb2.SSL_WrapperPacket()
+        ssl_wrapper.ParseFromString(buf)  # Parse sent data
 
-    robot_poses_msg.robot_id = id_list
-    for p in poses:
-        robot_poses_msg.poses.append(p.get())
+        # Publish the ball information
+        ball_poses = PoseMaker(current_time, 'map')
+        for pose in ssl_wrapper.detection.balls:
+            ball_poses.add(pose)
+        self._ball_publisher.publish(ball_poses.get())
 
-    return robot_poses_msg
+        # Publish robot information
+        if self._our_color == 'BLUE':
+            detection_friend = ssl_wrapper.detection.robots_blue
+            detection_enemy = ssl_wrapper.detection.robots_yellow
+        else:
+            detection_friend = ssl_wrapper.detection.robots_yellow
+            detection_enemy = ssl_wrapper.detection.robots_blue
+
+        friend_pose_arrays = self._convertMsgToPoseArray(current_time, self._robot_list, detection_friend)
+        enemy_pose_arrays = self._convertMsgToPoseArray(current_time, self._enemy_list, detection_enemy)
+
+        for i in self._robot_list:
+            self._robot_publisher[i].publish(friend_pose_arrays[i])
+
+        for i in self._enemy_list:
+            self._enemy_publisher[i].publish(enemy_pose_arrays[i])
+
+        friend_poses_msg = self._getRobotPosesFromProtobufMsg(detection_friend)
+        enemy_poses_msg = self._getRobotPosesFromProtobufMsg(detection_enemy)
+        self._friend_list_publisher.publish(friend_poses_msg)
+        self._enemy_list_publisher.publish(enemy_poses_msg)
+
+
+    def _convertMsgToPoseArray(self, time, id_list, detection_msg):
+        # return each robot's PoseArray
+
+        # instatinate PoseMaker
+        robot_poses = {}
+        for i in id_list:
+            robot_poses[i] = PoseMaker(time, 'map')
+
+        # change detection_msg to PoseArray
+        for robot in detection_msg:
+            if robot.robot_id in id_list:
+                robot_poses[robot.robot_id].add(robot)
+
+        # align PoseArrays
+        pose_arrays = {}
+        for i in id_list:
+            pose_arrays[i] = robot_poses[i].get()
+
+        return pose_arrays
+
+
+    def _getRobotPosesFromProtobufMsg(self, detection_msg):
+        robot_poses_msg = RobotPoses()
+        current_time = rospy.Time.now()
+
+        poses = []
+        id_list = []
+
+        for robot in detection_msg:
+            if robot.robot_id not in id_list:
+                id_list.append(robot.robot_id)
+                poses.append(PoseMaker(current_time, 'map'))
+
+            index = id_list.index(robot.robot_id)
+            poses[index].add(robot)
+
+        robot_poses_msg.header.stamp = current_time
+        robot_poses_msg.header.frame_id = 'map'
+
+        robot_poses_msg.robot_id = id_list
+        for p in poses:
+            robot_poses_msg.poses.append(p.get())
+
+        return robot_poses_msg
 
 
 if __name__ == '__main__':
     rospy.init_node('grsim_geometry_loader')
 
-    ##################
-    ROBOT_NUM = 6
-    robot_list = [0, 1, 2, 3, 4, 5]
-    enemy_list = [0, 1, 2, 3, 4, 5]
-    ##################
-
-    our_color = rospy.get_param('friend_color', 'yellow').upper()
-    our_side = rospy.get_param('team_side', 'right').upper()
-    multicast_addr = rospy.get_param('~multicast_addr', '224.5.23.2')
-    multicast_port = rospy.get_param('~multicast_port', 10006)
-
-    sock = multicast.Multicast(multicast_addr, multicast_port)
-
-    # make protobuf instance
-    ssl_wrapper = messages_robocup_ssl_wrapper_pb2.SSL_WrapperPacket()
-
-    ball = AbstractGeometry(our_side, 'pose_ball')
-    robot_publisher = {}
-    for n in robot_list:
-        robot_publisher[n] = AbstractGeometry(our_side, 'pose_friend_' + str(n))
-
-    enemy_publisher = {}
-    for n in enemy_list:
-        enemy_publisher[n] = AbstractGeometry(our_side, 'pose_enemy_' + str(n))
-
-    enemy_list_publisher = rospy.Publisher('enemy_poses', RobotPoses, queue_size=10)
-    friend_list_publisher = rospy.Publisher('friend_poses', RobotPoses, queue_size=10)
-
-    pub_vision_observations = rospy.Publisher(
-        'vision_observations', VisionObservations, queue_size=10)
-
-    if our_side == 'LEFT':
-        do_side_invert  = False
-    else:
-        do_side_invert  = True
-    format_converter = FormatConverter(our_color.lower(), do_side_invert)
+    receiver = VisionReceiver()
 
     r   = rospy.Rate(60)
     while not rospy.is_shutdown():
-        receive()
+        # receive()
+        receiver.receive()
 
         r.sleep()
