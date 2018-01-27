@@ -1,5 +1,5 @@
 <launch>
-  <arg name="ai_name" default="/blue/" />
+  <arg name="ai_name" default="/" />
   <arg name="color" default="blue" />
   <arg name="side" default="left" />
 
