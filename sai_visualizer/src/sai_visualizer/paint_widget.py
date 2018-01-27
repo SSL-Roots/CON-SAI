@@ -44,7 +44,11 @@ def wheelevent_wrapper(func):
         @functools.wraps(func)
         def wrapper(self, event):
             def _delta(self):
-                return self.angleDelta()
+                # in Qt4, eveet.delta() returns int value
+                # in Qt5, event.angleDelta() returns QPoint value
+                return self.angleDelta().y()
+
+            rospy.loginfo(event.angleDelta())
             event.delta = types.MethodType(_delta, event)
             return func(self, event)
         return wrapper
