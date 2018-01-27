@@ -17,6 +17,7 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler
 from tf.transformations import euler_from_quaternion
 from consai_msgs.msg import RobotPoses, VisionObservations, VisionRobotPackets, VisionPacket
+from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
 
 
 def reversePoint(self):
@@ -276,6 +277,9 @@ class VisionReceiver:
         self._vision_observations_publisher = rospy.Publisher(
             'vision_observations', VisionObservations, queue_size=10)
 
+        self._geometry_field_size_publisher = rospy.Publisher(
+            'geometry_field_size', GeometryFieldSize, queue_size=10)
+
         self._do_side_invert = True
         if self._our_side == 'LEFT':
             self._do_side_invert = False
@@ -292,6 +296,7 @@ class VisionReceiver:
         while not buf == None:
             self._format_converter.protobufToTable(buf)
             self._receive_legacy(buf)
+            self._receive_geometry(buf)
             buf = self._sock.recv(2*1024)
 
         ros_msg = self._format_converter.tableToRosmsg()
@@ -331,6 +336,54 @@ class VisionReceiver:
         enemy_poses_msg = self._getRobotPosesFromProtobufMsg(detection_enemy)
         self._friend_list_publisher.publish(friend_poses_msg)
         self._enemy_list_publisher.publish(enemy_poses_msg)
+
+
+    def _receive_geometry(self, buf):
+        ssl_wrapper = messages_robocup_ssl_wrapper_pb2.SSL_WrapperPacket()
+        ssl_wrapper.ParseFromString(buf)
+
+
+        if ssl_wrapper.HasField('geometry'):
+            field_size = GeometryFieldSize()
+
+            field = ssl_wrapper.geometry.field
+
+            # SSL_geometry uses meter unit
+            # CON-SAI uses milli meters
+
+            field_size.field_length = field.field_length / 1000.0
+            field_size.field_width = field.field_width / 1000.0
+            field_size.goal_width = field.goal_width / 1000.0
+            field_size.goal_depth = field.goal_depth / 1000.0
+            field_size.boundary_width = field.boundary_width / 1000.0
+
+        
+            for line in field.field_lines:
+                line_segment = FieldLineSegment()
+
+                line_segment.name = line.name
+                line_segment.p1_x = line.p1.x / 1000.0
+                line_segment.p1_y = line.p1.y / 1000.0
+                line_segment.p2_x = line.p2.x / 1000.0
+                line_segment.p2_y = line.p2.y / 1000.0
+                line_segment.thickness = line.thickness / 1000.0
+                field_size.field_lines.append(line_segment)
+            
+            for arc in field.field_arcs:
+                circular_arc = FieldCircularArc()
+
+                circular_arc.name = arc.name
+                circular_arc.center_x = arc.center.x / 1000.0
+                circular_arc.center_y = arc.center.y / 1000.0
+                circular_arc.radius = arc.radius / 1000.0
+                circular_arc.a1 = arc.a1
+                circular_arc.a2 = arc.a2
+                circular_arc.thickness = arc.thickness / 1000.0
+                field_size.field_arcs.append(circular_arc)
+
+                rospy.loginfo(circular_arc)
+
+            self._geometry_field_size_publisher.publish(field_size)
 
 
     def _convertMsgToPoseArray(self, time, id_list, detection_msg):
