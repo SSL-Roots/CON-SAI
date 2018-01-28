@@ -26,6 +26,7 @@ from std_msgs.msg import UInt16MultiArray as UIntArray
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from geometry_msgs.msg import Point
 from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
+from consai_msgs.msg import ReplaceBall, ReplaceRobot
 
 from geometry import Geometry
 
@@ -69,7 +70,6 @@ class PaintWidget(QWidget):
         self.scaleOnField   = 1.0
         self.world_height   = 0.0
         self.world_width    = 0.0
-        self.rotatingWorld  = False
         self.trans      = QPointF(0.0,0.0) # 慢性的なトランス
         self.mouseTrans = QPointF(0.0, 0.0) # マウス操作で発生する一時的なトランス
         self.scale      = QPointF(1.0,1.0)
@@ -84,6 +84,24 @@ class PaintWidget(QWidget):
             self.friendDrawColor = Qt.yellow
             self.enemyDrawColor = Qt.cyan
         self.targetPosDrawColor = QColor(102, 0, 255, 100)
+
+        # Replace
+        self._CLICK_POS_THRESHOLD = 0.1
+        self._CLICK_VEL_ANGLE_THRESHOLD = self._CLICK_POS_THRESHOLD + 0.2
+        self._replace_ball = ReplaceBall()
+        self._replace_pos = QPointF()
+        self._replace_vel = QPointF()
+        self._replace_angle = 0.0
+        self._replace_func = None
+
+        # Status
+        self._should_rotate_world = False
+        self._can_replace = False
+        self._is_ballpos_replacement = False
+        self._is_ballvel_replacement = False
+        self._is_robotpos_replacement = False
+        self._is_robotangle_replacement = False
+
 
         # Configs
         # This function enables mouse tracking without pressing mouse button
@@ -149,6 +167,10 @@ class PaintWidget(QWidget):
                     rospy.Subscriber(topicAvoidingPoint, Point,
                         self.callbackAvoidingPoint, callback_args=i))
 
+        # Publishers
+        self._pub_replace_ball = rospy.Publisher(
+                'replacement_ball', ReplaceBall, queue_size=10)
+
 
     def callbackGeometry(self, msg):
         self.field_geometry = msg
@@ -197,6 +219,9 @@ class PaintWidget(QWidget):
     def mousePressEvent(self, event):
         if event.buttons() == Qt.LeftButton:
             self.clickPoint = event.posF()
+
+            self._can_replace = self._isReplacementClick(self.clickPoint)
+
         elif event.buttons() == Qt.RightButton:
             self.resetPainterState()
 
@@ -207,17 +232,24 @@ class PaintWidget(QWidget):
     def mouseMoveEvent(self, event):
         self._current_mouse_pos = event.posF()
 
-        if event.buttons() == Qt.LeftButton:
-            pos = event.posF()
-            self.mouseTrans = (pos - self.clickPoint) / self.scale.x()
+        if self._can_replace :
+            pass
+        elif event.buttons() == Qt.LeftButton:
+                pos = event.posF()
+                self.mouseTrans = (pos - self.clickPoint) / self.scale.x()
 
         self.update()
 
 
     @mouseevent_wrapper
     def mouseReleaseEvent(self, event):
-        self.trans += self.mouseTrans
-        self.mouseTrans = QPointF(0.0, 0.0)
+        if self._can_replace:
+            self._can_replace = False
+            self._replace_func(event.posF())
+
+        else:
+            self.trans += self.mouseTrans
+            self.mouseTrans = QPointF(0.0, 0.0)
 
         self.update()
 
@@ -255,7 +287,7 @@ class PaintWidget(QWidget):
         painter.scale(self.scale.x(), self.scale.y())
         painter.translate(self.trans + self.mouseTrans)
 
-        if self.rotatingWorld == True:
+        if self._should_rotate_world == True:
             painter.rotate(-90)
 
 
@@ -270,6 +302,9 @@ class PaintWidget(QWidget):
         self.drawBallVelocity(painter)
         self.drawBall(painter)
         self.drawCoordinateText(painter)
+
+        if self._is_ballpos_replacement or self._is_robotpos_replacement:
+            self.drawPosReplacement(painter)
 
 
     def resetPainterState(self):
@@ -290,15 +325,15 @@ class PaintWidget(QWidget):
             # Widgetが横長のとき
             self.world_height = widgetHeight
             self.world_width = widgetHeight * self.geometry.WORLD_W_PER_H
-            self.rotatingWorld = False
+            self._should_rotate_world = False
         elif w_per_h <= self.geometry.WORLD_H_PER_W:
             # Widgetが縦長のとき
             self.world_height = widgetWidth
             self.world_width = widgetWidth * self.geometry.WORLD_W_PER_H
-            self.rotatingWorld = True
+            self._should_rotate_world = True
         else:
             # 描画回転にヒステリシス性をもたせる
-            if self.rotatingWorld == True:
+            if self._should_rotate_world == True:
                 self.world_height = widgetHeight * self.geometry.WORLD_H_PER_W
                 self.world_width = widgetHeight
             else:
@@ -326,7 +361,7 @@ class PaintWidget(QWidget):
         x -= self.width() * 0.5 / self.scale.x()
         y -= self.height() * 0.5 / self.scale.y()
 
-        if self.rotatingWorld:
+        if self._should_rotate_world:
             x, y = -y, x
 
         real_x = x / self.scaleOnField
@@ -334,6 +369,46 @@ class PaintWidget(QWidget):
         point = QPointF(real_x, real_y)
 
         return point
+
+    
+    def _isReplacementClick(self, mouse_pos):
+        real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
+
+        is_clicked = False
+
+        if self._isBallPosClicked(real_pos):
+            is_clicked = True
+            self._is_ballpos_replacement = True
+            self._replace_func = self._replaceBallPos
+
+        return is_clicked
+
+        
+    def _isBallPosClicked(self, real_pos):
+        posX = self.ballOdom.pose.pose.position.x
+        posY = self.ballOdom.pose.pose.position.y
+        ball_pos = QPointF(posX, posY)
+
+        return self._isClicked(real_pos, ball_pos)
+
+
+    def _isClicked(self, real_pos1, real_pos2):
+        diff = real_pos1 - real_pos2
+        if math.hypot(diff.x(), diff.y()) < self._CLICK_POS_THRESHOLD:
+            return True
+
+        return False
+
+
+    def _replaceBallPos(self, mouse_pos):
+        real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
+
+        replace = ReplaceBall()
+        replace.pos_x = real_pos.x()
+        replace.pos_y = real_pos.y()
+        self._pub_replace_ball.publish(replace)
+
+        self._is_ballpos_replacement = False
 
 
     def drawField(self, painter):
@@ -535,4 +610,15 @@ class PaintWidget(QWidget):
         painter.drawText(draw_pos, text)
 
 
+    def drawPosReplacement(self, painter):
+        startPos = self.convertToRealWorld(
+                self.clickPoint.x(), self.clickPoint.y())
+        currentPos = self.convertToRealWorld(
+                self._current_mouse_pos.x(), self._current_mouse_pos.y())
+
+        startPoint = self.convertToDrawWorld(startPos.x(), startPos.y())
+        currentPoint = self.convertToDrawWorld(currentPos.x(), currentPos.y())
+
+        painter.setPen(QPen(Qt.red,2))
+        painter.drawLine(startPoint, currentPoint)
 
