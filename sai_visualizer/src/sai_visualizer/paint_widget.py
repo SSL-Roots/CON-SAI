@@ -22,6 +22,7 @@ from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt16MultiArray as UIntArray
 from geometry_msgs.msg import PoseStamped, TwistStamped
 from geometry_msgs.msg import Point
+from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
 
 # monkey patch
 import types
@@ -48,39 +49,73 @@ def wheelevent_wrapper(func):
                 # in Qt5, event.angleDelta() returns QPoint value
                 return self.angleDelta().y()
 
-            rospy.loginfo(event.angleDelta())
             event.delta = types.MethodType(_delta, event)
             return func(self, event)
         return wrapper
     else:
         return func
 
-class ConstWorld():
+
+class Geometry(object):
     def __init__(self):
-        self.FIELD_HEIGHT = 7.4
-        self.FIELD_WIDTH = 10.4
-        self.FIELD_H_PER_W = self.FIELD_HEIGHT/self.FIELD_WIDTH
-        self.FIELD_W_PER_H = self.FIELD_WIDTH/self.FIELD_HEIGHT
-        self.FIELD_CENTER_RADIUS = 0.5
-        self.FIELD_DEFENCE_RADIUS = 1.0
-        self.FIELD_STREACH = 0.25
-        self.WALL_HEIGHT = self.FIELD_HEIGHT - 0.4 * 2.0
-        self.WALL_WIDTH = self.FIELD_WIDTH - 0.4 * 2.0
-        self.PLAY_FIELD_HEIGHT = 6.0
-        self.PLAY_FIELD_WIDTH = 9.0
-        self.GOAL_HEIGHT = 1.0
-        self.GOAL_WIDTH = 0.18
-        self.BALL_RADIUS = 0.043
-        self.ROBOT_RADIUS = 0.18 * 0.5
+        # Qt objects uses width & height
+        # SSL-Vision uses length & width :(
+
+        self.FIELD_WIDTH        = 9.0
+        self.FIELD_HEIGHT       = 6.0
+
+        # We hope the vision will send these parameters
+        self.DIST_TO_WALL       = 0.3
+        self.DIST_TO_OUTSIDE    = 0.7
+
+        self.BALL_RADIUS        = 0.043
+        self.ROBOT_RADIUS       = 0.18 * 0.5
+
+        self.WORLD_WIDTH    = self.FIELD_WIDTH + self.DIST_TO_OUTSIDE * 2.0
+        self.WORLD_HEIGHT   = self.FIELD_HEIGHT + self.DIST_TO_OUTSIDE * 2.0
+
+        self.WALL_WIDTH     = self.FIELD_WIDTH + self.DIST_TO_WALL * 2.0
+        self.WALL_HEIGHT    = self.FIELD_HEIGHT + self.DIST_TO_WALL * 2.0
+
+        self.WORLD_H_PER_W = self.WORLD_HEIGHT / self.WORLD_WIDTH
+        self.WORLD_W_PER_H = self.WORLD_WIDTH / self.WORLD_HEIGHT
+
+
+    def set_field(self, width, height):
+        self.FIELD_WIDTH = width
+        self.FIELD_HEIGHT = height
+        self._reflesh()
+
+    def set_dist_to_wall(self, dist_to_wall):
+        self.DIST_TO_WALL = dist_to_wall
+        self._reflesh
+
+
+    def set_dist_to_outside(self, dist_to_outside):
+        self.DIST_TO_OUTSIDE = dist_to_outside
+        self._reflesh()
+
+
+    def _reflesh(self):
+        self.WORLD_WIDTH    = self.FIELD_WIDTH + self.DIST_TO_OUTSIDE * 2.0
+        self.WORLD_HEIGHT   = self.FIELD_HEIGHT + self.DIST_TO_OUTSIDE * 2.0
+
+        self.WALL_WIDTH     = self.FIELD_WIDTH + self.DIST_TO_WALL * 2.0
+        self.WALL_HEIGHT    = self.FIELD_HEIGHT + self.DIST_TO_WALL * 2.0
+
+        self.WORLD_H_PER_W = self.WORLD_HEIGHT / self.WORLD_WIDTH
+        self.WORLD_W_PER_H = self.WORLD_WIDTH / self.WORLD_HEIGHT
+
 
 class PaintWidget(QWidget):
     def __init__(self,parent=None):
         super(PaintWidget,self).__init__(parent)
 
-        self.CW = ConstWorld()
+        self.geometry = Geometry()
+
         self.scaleOnField = 1.0
-        self.fieldHeight = 0.0
-        self.fieldWidth = 0.0
+        self.world_height = 0.0
+        self.world_width = 0.0
         self.rotatingWorld = False
         self.trans = QPointF(0.0,0.0) # 慢性的なトランス
         self.mouseTrans = QPointF(0.0, 0.0) # マウス操作で発生する一時的なトランス
@@ -96,6 +131,10 @@ class PaintWidget(QWidget):
 
         self.targetPosDrawColor = QColor(102, 0, 255, 100)
 
+        self.field_geometry = GeometryFieldSize()
+        self.sub_geometry = rospy.Subscriber("geometry_field_size",
+                GeometryFieldSize, self.callbackGeometry)
+        
 
         self.ballOdom = Odometry()
         self.sub_ballPosition = rospy.Subscriber("ball_observer/estimation", 
@@ -152,33 +191,49 @@ class PaintWidget(QWidget):
                     rospy.Subscriber(topicAvoidingPoint, Point,
                         self.callbackAvoidingPoint, callback_args=i))
 
+
+    def callbackGeometry(self, msg):
+        self.field_geometry = msg
+        self.geometry.set_field(
+                self.field_geometry.field_length, 
+                self.field_geometry.field_width)
+
+
     def callbackBallOdom(self, msg):
         self.ballOdom = msg
         # self.update()
+
 
     def callbackFriendsID(self, msg):
         self.friendsIDArray = msg
         # self.update()
 
+
     def callbackFriendOdom(self, msg, robot_id):
         self.friendOdoms[robot_id] = msg
+
 
     def callbackEnemiesID(self, msg):
         self.enemyIDArray = msg
 
+
     def callbackEnemiesOdom(self, msg, robot_id):
         self.enemyOdoms[robot_id] = msg
+
 
     def callbackTargetPosition(self, msg, robot_id):
         self.targetPositions[robot_id] = msg
         self.targetIsPosition[robot_id] = True
 
+
     def callbackTargetVelocity(self, msg, robot_id):
         self.targetVelocities[robot_id] = msg
         self.targetIsPosition[robot_id] = False
 
+
     def callbackAvoidingPoint(self, msg, robot_id):
         self.avoidingPoints[robot_id] = msg
+
 
     @mouseevent_wrapper
     def mousePressEvent(self, event):
@@ -189,6 +244,7 @@ class PaintWidget(QWidget):
 
         self.update()
 
+
     @mouseevent_wrapper
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
@@ -197,12 +253,14 @@ class PaintWidget(QWidget):
 
         self.update()
 
+
     @mouseevent_wrapper
     def mouseReleaseEvent(self, event):
         self.trans += self.mouseTrans
         self.mouseTrans = QPointF(0.0, 0.0)
 
         self.update()
+
 
     @wheelevent_wrapper
     def wheelEvent(self, event):
@@ -223,6 +281,7 @@ class PaintWidget(QWidget):
     def resizeEvent(self, event):
         # widgetのサイズ変更によるイベント
         self.updateDrawState()
+
 
     def paintEvent(self, event):
         painter = QPainter(self)
@@ -252,10 +311,12 @@ class PaintWidget(QWidget):
         self.drawBallVelocity(painter)
         self.drawBall(painter)
 
+
     def resetPainterState(self):
         self.trans = QPointF(1.0,1.0)
         self.mouseTrans = QPointF(0.0, 0.0)
         self.scale = QPointF(1.0, 1.0)
+
 
     def updateDrawState(self):
         # Widgetのサイズに合わせて、描くフィールドのサイズを変える
@@ -265,26 +326,27 @@ class PaintWidget(QWidget):
         widgetWidth = float(self.width())
         w_per_h = widgetWidth/widgetHeight
 
-        if w_per_h >= self.CW.FIELD_W_PER_H:
+        if w_per_h >= self.geometry.WORLD_W_PER_H:
             # Widgetが横長のとき
-            self.fieldHeight = widgetHeight
-            self.fieldWidth = widgetHeight * self.CW.FIELD_W_PER_H
+            self.world_height = widgetHeight
+            self.world_width = widgetHeight * self.geometry.WORLD_W_PER_H
             self.rotatingWorld = False
-        elif w_per_h <= self.CW.FIELD_H_PER_W:
+        elif w_per_h <= self.geometry.WORLD_H_PER_W:
             # Widgetが縦長のとき
-            self.fieldHeight = widgetWidth
-            self.fieldWidth = widgetWidth * self.CW.FIELD_W_PER_H
+            self.world_height = widgetWidth
+            self.world_width = widgetWidth * self.geometry.WORLD_W_PER_H
             self.rotatingWorld = True
         else:
             # 描画回転にヒステリシス性をもたせる
             if self.rotatingWorld == True:
-                self.fieldHeight = widgetHeight * self.CW.FIELD_H_PER_W
-                self.fieldWidth = widgetHeight
+                self.world_height = widgetHeight * self.geometry.WORLD_H_PER_W
+                self.world_width = widgetHeight
             else:
-                self.fieldHeight = widgetWidth * self.CW.FIELD_H_PER_W
-                self.fieldWidth = widgetWidth
+                self.world_height = widgetWidth * self.geometry.WORLD_H_PER_W
+                self.world_width = widgetWidth
 
-        self.scaleOnField = self.fieldWidth / self.CW.FIELD_WIDTH
+        self.scaleOnField = self.world_width / self.geometry.WORLD_WIDTH
+
 
     def convertToDrawWorld(self, x, y):
         drawX = x * self.scaleOnField
@@ -293,128 +355,39 @@ class PaintWidget(QWidget):
 
         return point
 
+
     def drawField(self, painter):
         # draw green surface rectangle
         painter.setPen(Qt.black)
         painter.setBrush(Qt.green)
-
-        rx = -self.fieldWidth * 0.5
-        ry = -self.fieldHeight * 0.5
-
-        rect = QRectF(rx, ry, self.fieldWidth, self.fieldHeight)
-        painter.drawRect(rect)
-
-        # draw wall rectangle
-        painter.setPen(QPen(Qt.black,3))
-        painter.setBrush(Qt.NoBrush)
         
-        sizeX = self.CW.WALL_WIDTH * self.scaleOnField
-        sizeY = self.CW.WALL_HEIGHT * self.scaleOnField
-
-        rx = -sizeX * 0.5
-        ry = -sizeY * 0.5
-
-        rect = QRectF(rx, ry, sizeX, sizeY)
+        rx = -self.world_width * 0.5
+        ry = -self.world_height * 0.5
+        
+        rect = QRectF(rx, ry, self.world_width, self.world_height)
         painter.drawRect(rect)
 
-        # draw center circle
+        # draw white lines
         painter.setPen(QPen(Qt.white,2))
-        point = self.convertToDrawWorld(0.0, 0.0)
-        size = self.CW.FIELD_CENTER_RADIUS * self.scaleOnField
-        painter.drawEllipse(point, size, size)
 
-        # draw play field rectangle
-        sizeX = self.CW.PLAY_FIELD_WIDTH * self.scaleOnField
-        sizeY = self.CW.PLAY_FIELD_HEIGHT * self.scaleOnField
+        for line in self.field_geometry.field_lines:
+            p1 = self.convertToDrawWorld(line.p1_x, line.p1_y)
+            p2 = self.convertToDrawWorld(line.p2_x, line.p2_y)
+            painter.drawLine(p1, p2)
 
-        rx = -sizeX * 0.5
-        ry = -sizeY * 0.5
+        for arc in self.field_geometry.field_arcs:
+            top_left = self.convertToDrawWorld(
+                    arc.center_x - arc.radius, arc.center_y + arc.radius)
+            size = arc.radius * 2.0 * self.scaleOnField
 
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        painter.drawRect(rect)
+            start_angle = math.degrees(arc.a1)
+            end_angle = math.degrees(arc.a2)
+            span_angle = end_angle - start_angle
 
-        # draw mid-line
-        point1 = self.convertToDrawWorld(-self.CW.PLAY_FIELD_WIDTH * 0.5, 0)
-        point2 = self.convertToDrawWorld(self.CW.PLAY_FIELD_WIDTH * 0.5, 0)
-
-        painter.drawLine(point1, point2)
-
-        # draw center line
-        point1 = self.convertToDrawWorld(0, self.CW.PLAY_FIELD_HEIGHT * 0.5)
-        point2 = self.convertToDrawWorld(0, -self.CW.PLAY_FIELD_HEIGHT * 0.5)
-
-        painter.drawLine(point1, point2)
-
-        # draw streach line
-        x = self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
-        point1 = self.convertToDrawWorld(x, self.CW.FIELD_STREACH * 0.5)
-        point2 = self.convertToDrawWorld(x, -self.CW.FIELD_STREACH * 0.5)
-        painter.drawLine(point1, point2)
-
-        x *= -1.0
-        point1 = self.convertToDrawWorld(x, self.CW.FIELD_STREACH * 0.5)
-        point2 = self.convertToDrawWorld(x, -self.CW.FIELD_STREACH * 0.5)
-        painter.drawLine(point1, point2)
-
-        # draw defence arc
-        sizeX = self.CW.FIELD_DEFENCE_RADIUS * 2.0 * self.scaleOnField
-        sizeY = self.CW.FIELD_DEFENCE_RADIUS * 2.0 * self.scaleOnField
-
-        rx = self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
-        ry = self.CW.FIELD_STREACH * 0.5 + self.CW.FIELD_DEFENCE_RADIUS
-        ry *= -1.0
-        rx *= self.scaleOnField
-        ry *= self.scaleOnField
-
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        startAngle = 90 * 16
-        spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle) # top right
-        
-        ry = self.CW.FIELD_STREACH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
-        ry *= self.scaleOnField
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        startAngle = 180 * 16
-        spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle) # bottom right
-
-
-        rx = -self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
-        ry = self.CW.FIELD_STREACH * 0.5 + self.CW.FIELD_DEFENCE_RADIUS
-        ry *= -1.0
-        rx *= self.scaleOnField
-        ry *= self.scaleOnField
-
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        startAngle = 0 * 16
-        spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle) # top left
-
-        ry = self.CW.FIELD_STREACH * 0.5 - self.CW.FIELD_DEFENCE_RADIUS
-        ry *= self.scaleOnField
-
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        startAngle = 270 * 16
-        spanAngle = 90 * 16
-        painter.drawArc(rect, startAngle, spanAngle) # bottom left
-
-        
-        # draw goal rectangle
-        sizeX = self.CW.GOAL_WIDTH * self.scaleOnField
-        sizeY = self.CW.GOAL_HEIGHT * self.scaleOnField
-
-        rx = self.CW.PLAY_FIELD_WIDTH * 0.5
-        ry = -self.CW.GOAL_HEIGHT * 0.5
-        rx *= self.scaleOnField
-        ry *= self.scaleOnField
-
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        painter.drawRect(rect)
-
-        rx = -self.CW.PLAY_FIELD_WIDTH * 0.5 - self.CW.GOAL_WIDTH
-        rx *= self.scaleOnField
-        rect = QRectF(rx, ry, sizeX, sizeY)
-        painter.drawRect(rect)
+            # angle must be 1/16 degrees order
+            start_angle *= 16 
+            span_angle *= 16
+            painter.drawArc(top_left.x(), top_left.y(), size, size, start_angle, span_angle)
 
 
     def drawBall(self, painter):
@@ -422,11 +395,12 @@ class PaintWidget(QWidget):
         posY = self.ballOdom.pose.pose.position.y
 
         point = self.convertToDrawWorld(posX,posY)
-        size = self.CW.BALL_RADIUS * self.scaleOnField
+        size = self.geometry.BALL_RADIUS * self.scaleOnField
 
         painter.setPen(Qt.black)
         painter.setBrush(Qt.red)
         painter.drawEllipse(point, size, size)
+
 
     def drawBallVelocity(self, painter):
         ballPos = self.ballOdom.pose.pose.position
@@ -454,10 +428,12 @@ class PaintWidget(QWidget):
             self.drawRobot(painter, robot_id, 
                     self.friendOdoms[robot_id], self.friendDrawColor)
 
+
     def drawEnemis(self, painter):
         for robot_id in self.enemyIDArray.data:
             self.drawRobot(painter, robot_id,
                     self.enemyOdoms[robot_id], self.enemyDrawColor)
+
 
     def drawRobot(self, painter,robot_id, odom, color):
         # draw robot body on its position
@@ -465,7 +441,7 @@ class PaintWidget(QWidget):
         posY = odom.pose.pose.position.y
 
         point = self.convertToDrawWorld(posX, posY)
-        size = self.CW.ROBOT_RADIUS * self.scaleOnField
+        size = self.geometry.ROBOT_RADIUS * self.scaleOnField
 
         painter.setPen(Qt.black)
         painter.setBrush(color)
@@ -477,8 +453,8 @@ class PaintWidget(QWidget):
         euler = tf.transformations.euler_from_quaternion(
                 (orientation.x, orientation.y, orientation.z, orientation.w))
         # euler <- (roll, pitch, yaw)
-        linePosX = self.CW.ROBOT_RADIUS * math.cos(euler[2])
-        linePosY = self.CW.ROBOT_RADIUS * math.sin(euler[2])
+        linePosX = self.geometry.ROBOT_RADIUS * math.cos(euler[2])
+        linePosY = self.geometry.ROBOT_RADIUS * math.sin(euler[2])
         linePoint = point + self.convertToDrawWorld(linePosX, linePosY)
         painter.drawLine(point, linePoint)
 
@@ -487,6 +463,7 @@ class PaintWidget(QWidget):
         textPosY = 0.15
         textPoint = point + self.convertToDrawWorld(textPosY, textPosY)
         painter.drawText(textPoint, str(robot_id))
+
 
     def drawTargets(self, painter):
         for robot_id in self.friendsIDArray.data:
@@ -497,12 +474,13 @@ class PaintWidget(QWidget):
                 self.drawTargetVelocity(painter,
                         robot_id, self.targetVelocities[robot_id])
 
+
     def drawTargetPosition(self, painter, robot_id, positionStamped):
         posX = positionStamped.pose.position.x
         posY = positionStamped.pose.position.y
 
         point = self.convertToDrawWorld(posX, posY)
-        size = self.CW.ROBOT_RADIUS * self.scaleOnField
+        size = self.geometry.ROBOT_RADIUS * self.scaleOnField
 
         painter.setPen(Qt.black)
         painter.setBrush(self.targetPosDrawColor)
@@ -513,8 +491,8 @@ class PaintWidget(QWidget):
         euler = tf.transformations.euler_from_quaternion(
                 (orientation.x, orientation.y, orientation.z, orientation.w))
         # euler <- (roll, pitch, yaw)
-        linePosX = self.CW.ROBOT_RADIUS * math.cos(euler[2])
-        linePosY = self.CW.ROBOT_RADIUS * math.sin(euler[2])
+        linePosX = self.geometry.ROBOT_RADIUS * math.cos(euler[2])
+        linePosY = self.geometry.ROBOT_RADIUS * math.sin(euler[2])
         linePoint = point + self.convertToDrawWorld(linePosX, linePosY)
         painter.drawLine(point, linePoint)
 
@@ -523,6 +501,7 @@ class PaintWidget(QWidget):
         textPosY = 0.15
         textPoint = point + self.convertToDrawWorld(textPosY, textPosY)
         painter.drawText(textPoint, str(robot_id))
+
 
     def drawTargetVelocity(self, painter, robot_id, twistStamped):
         odom = self.friendOdoms[robot_id]
@@ -544,13 +523,15 @@ class PaintWidget(QWidget):
         painter.setPen(Qt.red)
         painter.drawText(textPoint, text)
 
+
     def drawAvoidingPoints(self, painter):
         for robot_id in self.friendsIDArray.data:
             self.drawAvoidingPoint(painter, robot_id, self.avoidingPoints[robot_id])
 
+
     def drawAvoidingPoint(self, painter, robot_id, point):
         drawPoint = self.convertToDrawWorld(point.x, point.y)
-        size = self.CW.ROBOT_RADIUS * self.scaleOnField
+        size = self.geometry.ROBOT_RADIUS * self.scaleOnField
 
         painter.setPen(Qt.black)
         painter.setBrush(Qt.red)
