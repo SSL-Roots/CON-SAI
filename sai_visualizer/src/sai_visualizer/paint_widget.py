@@ -6,17 +6,20 @@ import rospy
 import rospkg
 import tf
 import math
+import types
+import functools
 
 from qt_gui.plugin import Plugin
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, QPointF, QRectF
 from python_qt_binding import QT_BINDING_VERSION
+from python_qt_binding.QtGui import QPainter, QPen, QColor
+from python_qt_binding.QtGui import QMouseEvent
 g_PYQT_MAJOR_VERSION = int(QT_BINDING_VERSION.split('.')[0])
 if g_PYQT_MAJOR_VERSION == 4:
     from python_qt_binding.QtGui import QWidget
 elif g_PYQT_MAJOR_VERSION == 5:
     from python_qt_binding.QtWidgets import QWidget
-from python_qt_binding.QtGui import QPainter, QPen, QColor
 
 from nav_msgs.msg import Odometry
 from std_msgs.msg import UInt16MultiArray as UIntArray
@@ -24,10 +27,10 @@ from geometry_msgs.msg import PoseStamped, TwistStamped
 from geometry_msgs.msg import Point
 from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
 
+from geometry import Geometry
+
+
 # monkey patch
-import types
-import functools
-from python_qt_binding.QtGui import QMouseEvent
 def mouseevent_wrapper(func):
     if g_PYQT_MAJOR_VERSION == 5:
         @functools.wraps(func)
@@ -39,6 +42,7 @@ def mouseevent_wrapper(func):
         return wrapper
     else:
         return func
+
 
 def wheelevent_wrapper(func):
     if g_PYQT_MAJOR_VERSION == 5:
@@ -56,85 +60,39 @@ def wheelevent_wrapper(func):
         return func
 
 
-class Geometry(object):
-    def __init__(self):
-        # Qt objects uses width & height
-        # SSL-Vision uses length & width :(
-
-        self.FIELD_WIDTH        = 9.0
-        self.FIELD_HEIGHT       = 6.0
-
-        # We hope the vision will send these parameters
-        self.DIST_TO_WALL       = 0.3
-        self.DIST_TO_OUTSIDE    = 0.7
-
-        self.BALL_RADIUS        = 0.043
-        self.ROBOT_RADIUS       = 0.18 * 0.5
-
-        self.WORLD_WIDTH    = self.FIELD_WIDTH + self.DIST_TO_OUTSIDE * 2.0
-        self.WORLD_HEIGHT   = self.FIELD_HEIGHT + self.DIST_TO_OUTSIDE * 2.0
-
-        self.WALL_WIDTH     = self.FIELD_WIDTH + self.DIST_TO_WALL * 2.0
-        self.WALL_HEIGHT    = self.FIELD_HEIGHT + self.DIST_TO_WALL * 2.0
-
-        self.WORLD_H_PER_W = self.WORLD_HEIGHT / self.WORLD_WIDTH
-        self.WORLD_W_PER_H = self.WORLD_WIDTH / self.WORLD_HEIGHT
-
-
-    def set_field(self, width, height):
-        self.FIELD_WIDTH = width
-        self.FIELD_HEIGHT = height
-        self._reflesh()
-
-    def set_dist_to_wall(self, dist_to_wall):
-        self.DIST_TO_WALL = dist_to_wall
-        self._reflesh
-
-
-    def set_dist_to_outside(self, dist_to_outside):
-        self.DIST_TO_OUTSIDE = dist_to_outside
-        self._reflesh()
-
-
-    def _reflesh(self):
-        self.WORLD_WIDTH    = self.FIELD_WIDTH + self.DIST_TO_OUTSIDE * 2.0
-        self.WORLD_HEIGHT   = self.FIELD_HEIGHT + self.DIST_TO_OUTSIDE * 2.0
-
-        self.WALL_WIDTH     = self.FIELD_WIDTH + self.DIST_TO_WALL * 2.0
-        self.WALL_HEIGHT    = self.FIELD_HEIGHT + self.DIST_TO_WALL * 2.0
-
-        self.WORLD_H_PER_W = self.WORLD_HEIGHT / self.WORLD_WIDTH
-        self.WORLD_W_PER_H = self.WORLD_WIDTH / self.WORLD_HEIGHT
-
-
 class PaintWidget(QWidget):
     def __init__(self,parent=None):
         super(PaintWidget,self).__init__(parent)
 
+        # geometry parameters
         self.geometry = Geometry()
-
-        self.scaleOnField = 1.0
-        self.world_height = 0.0
-        self.world_width = 0.0
-        self.rotatingWorld = False
-        self.trans = QPointF(0.0,0.0) # 慢性的なトランス
+        self.scaleOnField   = 1.0
+        self.world_height   = 0.0
+        self.world_width    = 0.0
+        self.rotatingWorld  = False
+        self.trans      = QPointF(0.0,0.0) # 慢性的なトランス
         self.mouseTrans = QPointF(0.0, 0.0) # マウス操作で発生する一時的なトランス
-        self.scale = QPointF(1.0,1.0)
+        self.scale      = QPointF(1.0,1.0)
         self.clickPoint = QPointF(0.0,0.0)
+        self._current_mouse_pos = QPointF(0.0,0.0)
 
+        # Colors
         self.friendDrawColor = Qt.cyan
         self.enemyDrawColor = Qt.yellow
         self.friend_color = rospy.get_param("friend_color", "blue")
         if self.friend_color != "blue":
             self.friendDrawColor = Qt.yellow
             self.enemyDrawColor = Qt.cyan
-
         self.targetPosDrawColor = QColor(102, 0, 255, 100)
 
+        # Configs
+        # This function enables mouse tracking without pressing mouse button
+        self.setMouseTracking(True)
+
+        # Subscribers
         self.field_geometry = GeometryFieldSize()
         self.sub_geometry = rospy.Subscriber("geometry_field_size",
                 GeometryFieldSize, self.callbackGeometry)
-        
 
         self.ballOdom = Odometry()
         self.sub_ballPosition = rospy.Subscriber("ball_observer/estimation", 
@@ -190,10 +148,6 @@ class PaintWidget(QWidget):
             self.sub_avoidingPoints.append(
                     rospy.Subscriber(topicAvoidingPoint, Point,
                         self.callbackAvoidingPoint, callback_args=i))
-
-        # This function enables mouse tracking without pressing mouse button
-        self.setMouseTracking(True)
-        self._current_mouse_pos = QPointF()
 
 
     def callbackGeometry(self, msg):
@@ -286,7 +240,7 @@ class PaintWidget(QWidget):
 
     def resizeEvent(self, event):
         # widgetのサイズ変更によるイベント
-        self.updateDrawState()
+        self.resizeDrawWorld()
 
 
     def paintEvent(self, event):
@@ -308,9 +262,8 @@ class PaintWidget(QWidget):
         # これ以降に描きたいものを重ねていく
         self.drawField(painter)
         
-        self.drawTargets(painter)
-
         self.drawAvoidingPoints(painter)
+        self.drawTargets(painter)
 
         self.drawFriends(painter)
         self.drawEnemis(painter)
@@ -325,7 +278,7 @@ class PaintWidget(QWidget):
         self.scale = QPointF(1.0, 1.0)
 
 
-    def updateDrawState(self):
+    def resizeDrawWorld(self):
         # Widgetのサイズに合わせて、描くフィールドのサイズを変える
         # 描画の回転判断もしてくれるすぐれもの
 
@@ -364,7 +317,6 @@ class PaintWidget(QWidget):
 
 
     def convertToRealWorld(self, x, y):
-
         x /= self.scale.x()
         y /= self.scale.y()
 
