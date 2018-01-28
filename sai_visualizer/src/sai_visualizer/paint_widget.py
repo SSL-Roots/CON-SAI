@@ -191,6 +191,10 @@ class PaintWidget(QWidget):
                     rospy.Subscriber(topicAvoidingPoint, Point,
                         self.callbackAvoidingPoint, callback_args=i))
 
+        # This function enables mouse tracking without pressing mouse button
+        self.setMouseTracking(True)
+        self._current_mouse_pos = QPointF()
+
 
     def callbackGeometry(self, msg):
         self.field_geometry = msg
@@ -247,6 +251,8 @@ class PaintWidget(QWidget):
 
     @mouseevent_wrapper
     def mouseMoveEvent(self, event):
+        self._current_mouse_pos = event.posF()
+
         if event.buttons() == Qt.LeftButton:
             pos = event.posF()
             self.mouseTrans = (pos - self.clickPoint) / self.scale.x()
@@ -310,10 +316,11 @@ class PaintWidget(QWidget):
         self.drawEnemis(painter)
         self.drawBallVelocity(painter)
         self.drawBall(painter)
+        self.drawCoordinateText(painter)
 
 
     def resetPainterState(self):
-        self.trans = QPointF(1.0,1.0)
+        self.trans = QPointF(0.0,0.0)
         self.mouseTrans = QPointF(0.0, 0.0)
         self.scale = QPointF(1.0, 1.0)
 
@@ -352,6 +359,27 @@ class PaintWidget(QWidget):
         drawX = x * self.scaleOnField
         drawY = -y * self.scaleOnField
         point = QPointF(drawX, drawY)
+
+        return point
+
+
+    def convertToRealWorld(self, x, y):
+
+        x /= self.scale.x()
+        y /= self.scale.y()
+
+        x -= (self.trans.x() + self.mouseTrans.x())
+        y -= (self.trans.y() + self.mouseTrans.y()) 
+
+        x -= self.width() * 0.5 / self.scale.x()
+        y -= self.height() * 0.5 / self.scale.y()
+
+        if self.rotatingWorld:
+            x, y = -y, x
+
+        real_x = x / self.scaleOnField
+        real_y = -y / self.scaleOnField
+        point = QPointF(real_x, real_y)
 
         return point
 
@@ -542,3 +570,17 @@ class PaintWidget(QWidget):
         textPosY = 0.15
         textPoint = drawPoint + self.convertToDrawWorld(textPosY, textPosY)
         painter.drawText(textPoint, str(robot_id))
+
+    
+    def drawCoordinateText(self, painter):
+        mouse = self._current_mouse_pos
+        mouse = self.convertToRealWorld(mouse.x(), mouse.y())
+
+        text = "(" + str(round(mouse.x(),2)) + ", " + str(round(mouse.y(),2)) + ")"
+        draw_pos = self.convertToDrawWorld(mouse.x(), mouse.y())
+
+        painter.setPen(Qt.black)
+        painter.drawText(draw_pos, text)
+
+
+
