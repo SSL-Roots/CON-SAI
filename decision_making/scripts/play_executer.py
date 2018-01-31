@@ -58,7 +58,7 @@ class PlayExecuter(object):
             self._play_past_time = rospy.get_time()
             self._play_termination = False
 
-            rospy.loginfo('play reset')
+            rospy.logdebug('play reset')
 
 
     def _execute_play(self):
@@ -67,7 +67,7 @@ class PlayExecuter(object):
             role.behavior.set_status(status)
 
         text = "execute : " + self._play.name
-        rospy.loginfo(text)
+        rospy.logdebug(text)
 
 
     def _evaluate_play(self):

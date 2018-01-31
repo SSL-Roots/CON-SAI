@@ -381,8 +381,6 @@ class VisionReceiver:
                 circular_arc.thickness = arc.thickness / 1000.0
                 field_size.field_arcs.append(circular_arc)
 
-                rospy.loginfo(circular_arc)
-
             self._geometry_field_size_publisher.publish(field_size)
 
 

@@ -121,8 +121,8 @@ class WorldModel(object):
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
-        rospy.loginfo('Referee: ' + WorldModel._current_refbox_command)
-        rospy.loginfo('Situation: ' + WorldModel._current_situation)
+        rospy.logdebug('Referee: ' + WorldModel._current_refbox_command)
+        rospy.logdebug('Situation: ' + WorldModel._current_situation)
 
         WorldModel._update_enemy_assignments()
         WorldModel._update_threat_assignments()
