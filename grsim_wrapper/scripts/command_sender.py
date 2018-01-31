@@ -27,6 +27,12 @@ class Sender:
 
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
+        # Replacement
+        self.team_side = rospy.get_param('team_side', 'left')
+        self.REVERSE = 1.0
+        if self.team_side == 'right':
+            self.REVERSE = -1.0
+
         # make subscribers
         self.subscribers = []
         for i in xrange(12):
@@ -101,10 +107,10 @@ class Sender:
         packet = grSim_Packet_pb2.grSim_Packet()
 
         replace_ball = packet.replacement.ball
-        replace_ball.x = data.pos_x
-        replace_ball.y = data.pos_y
-        replace_ball.vx = data.vel_x
-        replace_ball.vy = data.vel_y
+        replace_ball.x = self.REVERSE * data.pos_x
+        replace_ball.y = self.REVERSE * data.pos_y
+        replace_ball.vx = self.REVERSE * data.vel_x
+        replace_ball.vy = self.REVERSE * data.vel_y
 
         message = packet.SerializeToString()
         self.sock.sendto(message,(self.host, self.port))
