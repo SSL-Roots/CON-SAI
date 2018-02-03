@@ -312,6 +312,8 @@ class PaintWidget(QWidget):
             self.drawPosReplacement(painter)
         elif self._is_ballvel_replacement:
             self.drawVelReplacement(painter)
+        elif self._is_robotangle_replacement:
+            self.drawAngleReplacement(painter)
         else:
             self.drawCoordinateText(painter)
 
@@ -400,6 +402,11 @@ class PaintWidget(QWidget):
                 self._replace_id = robot_id
                 self._replace_is_yellow = is_yellow
                 self._replace_func = self._replaceRobotPos
+            elif result == 'vel_angle':
+                self._is_robotangle_replacement = True
+                self._replace_id = robot_id
+                self._replace_is_yellow = is_yellow
+                self._replace_func = self._replaceRobotAngle
             else:
                 is_clicked = False
 
@@ -464,6 +471,24 @@ class PaintWidget(QWidget):
         self._is_ballpos_replacement = False
 
 
+    def _replaceBallVel(self, mouse_pos):
+        ballPos = self.ballOdom.pose.pose.position
+        ballPoint = QPointF(ballPos.x, ballPos.y)
+        currentPos = self.convertToRealWorld(
+                mouse_pos.x(), mouse_pos.y())
+
+        velocity = self._calcuReplaceVelocity(ballPoint, currentPos)
+
+        replace = ReplaceBall()
+        replace.pos_x = ballPoint.x()
+        replace.pos_y = ballPoint.y()
+        replace.vel_x = velocity.x()
+        replace.vel_y = velocity.y()
+        self._pub_replace_ball.publish(replace)
+
+        self._is_ballvel_replacement = False
+
+
     def _replaceRobotPos(self, mouse_pos):
         real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
 
@@ -488,22 +513,27 @@ class PaintWidget(QWidget):
         self._is_robotpos_replacement = False
 
 
-    def _replaceBallVel(self, mouse_pos):
-        ballPos = self.ballOdom.pose.pose.position
-        ballPoint = QPointF(ballPos.x, ballPos.y)
-        currentPos = self.convertToRealWorld(
-                mouse_pos.x(), mouse_pos.y())
+    def _replaceRobotAngle(self, mouse_pos):
+        real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
 
-        velocity = self._calcuReplaceVelocity(ballPoint, currentPos)
+        robot_pos = QPointF()
+        if self._replace_is_yellow:
+            robot_pos.setX(self.enemyOdoms[self._replace_id].pose.pose.position.x)
+            robot_pos.setY(self.enemyOdoms[self._replace_id].pose.pose.position.y)
+        else:
+            robot_pos.setX(self.friendOdoms[self._replace_id].pose.pose.position.x)
+            robot_pos.setY(self.friendOdoms[self._replace_id].pose.pose.position.y)
 
-        replace = ReplaceBall()
-        replace.pos_x = ballPoint.x()
-        replace.pos_y = ballPoint.y()
-        replace.vel_x = velocity.x()
-        replace.vel_y = velocity.y()
-        self._pub_replace_ball.publish(replace)
+        replace = ReplaceRobot()
+        replace.robot_id = self._replace_id
+        replace.is_yellow = self._replace_is_yellow
+        replace.pos_x = robot_pos.x()
+        replace.pos_y = robot_pos.y()
+        replace.dir = math.degrees(self._to_angle(robot_pos, real_pos))
+        replace.turn_on = True
+        self._pub_replace_robot.publish(replace)
 
-        self._is_ballvel_replacement = False
+        self._is_robotangle_replacement = False
 
 
     def _calcuReplaceVelocity(self, from_pos, to_pos):
@@ -751,9 +781,41 @@ class PaintWidget(QWidget):
         painter.setPen(Qt.black)
         painter.drawText(currentPoint, text)
 
+    
+    def drawAngleReplacement(self, painter):
+        robot_pos = QPointF()
+        if self._replace_is_yellow:
+            robot_pos.setX(self.enemyOdoms[self._replace_id].pose.pose.position.x)
+            robot_pos.setY(self.enemyOdoms[self._replace_id].pose.pose.position.y)
+        else:
+            robot_pos.setX(self.friendOdoms[self._replace_id].pose.pose.position.x)
+            robot_pos.setY(self.friendOdoms[self._replace_id].pose.pose.position.y)
+
+        currentPos = self.convertToRealWorld(
+                self._current_mouse_pos.x(), self._current_mouse_pos.y())
+
+        angle = math.degrees(self._to_angle(robot_pos, currentPos))
+
+        robotPoint = self.convertToDrawWorld(robot_pos.x(), robot_pos.y())
+        currentPoint = self.convertToDrawWorld(currentPos.x(), currentPos.y())
+
+        painter.setPen(QPen(Qt.blue,2))
+        painter.drawLine(robotPoint, currentPoint)
+
+        text = "[" + str(round(angle,2)) + "]"
+
+        painter.setPen(Qt.black)
+        painter.drawText(currentPoint, text)
+
 
     def _to_euler(self, orientation):
         # euler_from_quaternion does not support geometry_msgs:Quaternion
         euler = tf.transformations.euler_from_quaternion(
                 (orientation.x, orientation.y, orientation.z, orientation.w))
         return euler
+
+
+    def _to_angle(self, from_pos, to_pos):
+        diff_pos = to_pos - from_pos
+
+        return math.atan2(diff_pos.y(), diff_pos.x())
