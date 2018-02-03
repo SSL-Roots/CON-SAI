@@ -30,8 +30,10 @@ class Sender:
         # Replacement
         self.team_side = rospy.get_param('team_side', 'left')
         self.REVERSE = 1.0
+        self.REVERSE_ANGLE = 0.0
         if self.team_side == 'right':
             self.REVERSE = -1.0
+            self.REVERSE_ANGLE = -180
 
         # make subscribers
         self.subscribers = []
@@ -111,9 +113,9 @@ class Sender:
         replace_robot = packet.replacement.robots.add()
         replace_robot.id = data.robot_id
         replace_robot.yellowteam = data.is_yellow
-        replace_robot.x = data.pos_x
-        replace_robot.y = data.pos_y
-        replace_robot.dir = data.dir
+        replace_robot.x = self.REVERSE * data.pos_x
+        replace_robot.y = self.REVERSE * data.pos_y
+        replace_robot.dir = self.REVERSE_ANGLE + data.dir
         replace_robot.turnon = data.turn_on
 
         message = packet.SerializeToString()
