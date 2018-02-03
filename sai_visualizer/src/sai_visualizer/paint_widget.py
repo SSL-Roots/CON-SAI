@@ -86,7 +86,7 @@ class PaintWidget(QWidget):
         self.targetPosDrawColor = QColor(102, 0, 255, 100)
 
         # Replace
-        self._CLICK_POS_THRESHOLD = 0.1
+        self._CLICK_POS_THRESHOLD = 0.2
         self._CLICK_VEL_ANGLE_THRESHOLD = self._CLICK_POS_THRESHOLD + 0.2
         self._VEL_GAIN = 3.0
         self._VEL_MAX = 8.0
@@ -103,6 +103,8 @@ class PaintWidget(QWidget):
         self._is_ballvel_replacement = False
         self._is_robotpos_replacement = False
         self._is_robotangle_replacement = False
+        self._replace_id = 0
+        self._replace_is_yellow = False
 
 
         # Configs
@@ -172,6 +174,8 @@ class PaintWidget(QWidget):
         # Publishers
         self._pub_replace_ball = rospy.Publisher(
                 'replacement_ball', ReplaceBall, queue_size=10)
+        self._pub_replace_robot = rospy.Publisher(
+                'replacement_robot', ReplaceRobot, queue_size=10)
 
 
     def callbackGeometry(self, msg):
@@ -389,7 +393,15 @@ class PaintWidget(QWidget):
             self._is_ballvel_replacement = True
             self._replace_func = self._replaceBallVel
         else:
-            is_clicked = False
+            result, robot_id, is_yellow = self._isRobotClicked(real_pos)
+
+            if result == 'pos':
+                self._is_robotpos_replacement = True
+                self._replace_id = robot_id
+                self._replace_is_yellow = is_yellow
+                self._replace_func = self._replaceRobotPos
+            else:
+                is_clicked = False
 
         return is_clicked
 
@@ -400,6 +412,34 @@ class PaintWidget(QWidget):
         ball_pos = QPointF(posX, posY)
 
         return self._isClicked(real_pos, ball_pos)
+
+
+    def _isRobotClicked(self, real_pos):
+        is_clicked = False
+        replace_id = 0
+        is_yellow = False
+
+        for robot_id in self.friendsIDArray.data:
+            posX = self.friendOdoms[robot_id].pose.pose.position.x
+            posY = self.friendOdoms[robot_id].pose.pose.position.y
+            robot_pos = QPointF(posX, posY)
+
+            is_clicked = self._isClicked(real_pos, robot_pos)
+            if is_clicked:
+                is_yellow = False
+                return is_clicked, robot_id, is_yellow
+
+        for robot_id in self.enemyIDArray.data:
+            posX = self.enemyOdoms[robot_id].pose.pose.position.x
+            posY = self.enemyOdoms[robot_id].pose.pose.position.y
+            robot_pos = QPointF(posX, posY)
+
+            is_clicked = self._isClicked(real_pos, robot_pos)
+            if is_clicked:
+                is_yellow = True
+                return is_clicked, robot_id, is_yellow
+
+        return is_clicked, replace_id, is_yellow
 
 
     def _isClicked(self, real_pos1, real_pos2):
@@ -422,6 +462,30 @@ class PaintWidget(QWidget):
         self._pub_replace_ball.publish(replace)
 
         self._is_ballpos_replacement = False
+
+
+    def _replaceRobotPos(self, mouse_pos):
+        real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
+
+        # euler <- (roll, pitch, yaw)
+        euler = None
+        if self._replace_is_yellow:
+            orientation = self.enemyOdoms[self._replace_id].pose.pose.orientation
+            euler = self._to_euler(orientation)
+        else:
+            orientation = self.friendOdoms[self._replace_id].pose.pose.orientation
+            euler = self._to_euler(orientation)
+
+        replace = ReplaceRobot()
+        replace.robot_id = self._replace_id
+        replace.is_yellow = self._replace_is_yellow
+        replace.pos_x = real_pos.x()
+        replace.pos_y = real_pos.y()
+        replace.dir = math.degrees(euler[2])
+        replace.turn_on = True
+        self._pub_replace_robot.publish(replace)
+
+        self._is_robotpos_replacement = False
 
 
     def _replaceBallVel(self, mouse_pos):
@@ -551,9 +615,7 @@ class PaintWidget(QWidget):
 
         # draw robot angle on its body
         orientation = odom.pose.pose.orientation
-        # euler_from_quaternion does not support geometry_msgs:Quaternion
-        euler = tf.transformations.euler_from_quaternion(
-                (orientation.x, orientation.y, orientation.z, orientation.w))
+        euler = self._to_euler(orientation)
         # euler <- (roll, pitch, yaw)
         linePosX = self.geometry.ROBOT_RADIUS * math.cos(euler[2])
         linePosY = self.geometry.ROBOT_RADIUS * math.sin(euler[2])
@@ -690,3 +752,8 @@ class PaintWidget(QWidget):
         painter.drawText(currentPoint, text)
 
 
+    def _to_euler(self, orientation):
+        # euler_from_quaternion does not support geometry_msgs:Quaternion
+        euler = tf.transformations.euler_from_quaternion(
+                (orientation.x, orientation.y, orientation.z, orientation.w))
+        return euler

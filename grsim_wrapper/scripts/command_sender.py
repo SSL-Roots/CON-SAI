@@ -49,22 +49,11 @@ class Sender:
                     "replacement_ball",
                     ReplaceBall,
                     self.send_ball_replacement))
-
-        for i in xrange(12):
-            topic_b = "replacement_blue_" + str(i)
-            topic_y = "replacement_yellow_" + str(i)
-
-            self.subscribers.append(
-                    rospy.Subscriber(
-                        topic_b,
-                        ReplaceRobot,
-                        self.send_robot_replacement))
-
-            self.subscribers.append(
-                    rospy.Subscriber(
-                        topic_y,
-                        ReplaceRobot,
-                        self.send_robot_replacement))
+        self.subscribers.append(
+                rospy.Subscriber(
+                    "replacement_robot",
+                    ReplaceRobot,
+                    self.send_robot_replacement))
 
 
     def sendCommands(self,data,id):
