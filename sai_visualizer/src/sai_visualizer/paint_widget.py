@@ -90,11 +90,9 @@ class PaintWidget(QWidget):
         self._CLICK_VEL_ANGLE_THRESHOLD = self._CLICK_POS_THRESHOLD + 0.2
         self._VEL_GAIN = 3.0
         self._VEL_MAX = 8.0
-        self._replace_ball = ReplaceBall()
-        self._replace_pos = QPointF()
-        self._replace_vel = QPointF()
-        self._replace_angle = 0.0
         self._replace_func = None
+        self._replace_id = 0
+        self._replace_is_yellow = False
 
         # Status
         self._should_rotate_world = False
@@ -103,9 +101,6 @@ class PaintWidget(QWidget):
         self._is_ballvel_replacement = False
         self._is_robotpos_replacement = False
         self._is_robotangle_replacement = False
-        self._replace_id = 0
-        self._replace_is_yellow = False
-
 
         # Configs
         # This function enables mouse tracking without pressing mouse button
@@ -310,6 +305,7 @@ class PaintWidget(QWidget):
 
         if self._is_ballpos_replacement or self._is_robotpos_replacement:
             self.drawPosReplacement(painter)
+            self.drawCoordinateText(painter)
         elif self._is_ballvel_replacement:
             self.drawVelReplacement(painter)
         elif self._is_robotangle_replacement:
@@ -763,14 +759,14 @@ class PaintWidget(QWidget):
 
     
     def drawVelReplacement(self, painter):
-        ballPos = self.ballOdom.pose.pose.position
-        ballPoint = QPointF(ballPos.x, ballPos.y)
+        ball_odom = self.ballOdom.pose.pose.position
+        ball_pos = QPointF(ball_odom.x, ball_odom.y)
         currentPos = self.convertToRealWorld(
                 self._current_mouse_pos.x(), self._current_mouse_pos.y())
 
-        velocity = self._calcuReplaceVelocity(ballPoint, currentPos)
+        velocity = self._calcuReplaceVelocity(ball_pos, currentPos)
 
-        ballPoint = self.convertToDrawWorld(ballPoint.x(), ballPoint.y())
+        ballPoint = self.convertToDrawWorld(ball_pos.x(), ball_pos.y())
         currentPoint = self.convertToDrawWorld(currentPos.x(), currentPos.y())
 
         painter.setPen(QPen(Qt.blue,2))
