@@ -84,6 +84,7 @@ class PaintWidget(QWidget):
             self.friendDrawColor = Qt.yellow
             self.enemyDrawColor = Qt.cyan
         self.targetPosDrawColor = QColor(102, 0, 255, 100)
+        self.avoidingPointDrawColor = QColor(255, 0, 0, 100)
 
         # Replace
         self._CLICK_POS_THRESHOLD = 0.2
@@ -724,7 +725,7 @@ class PaintWidget(QWidget):
         size = self.geometry.ROBOT_RADIUS * self.scaleOnField
 
         painter.setPen(Qt.black)
-        painter.setBrush(Qt.red)
+        painter.setBrush(self.avoidingPointDrawColor)
         painter.drawEllipse(drawPoint, size, size)
 
         # draw robot_id on its head
