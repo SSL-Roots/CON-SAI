@@ -416,6 +416,9 @@ class Coordinate(object):
             trans = tool.Trans(ball_pose, angle_velocity)
 
             role_pose = WorldModel.get_pose(self._my_role)
+            if role_pose is None:
+                return False
+
             tr_pose = trans.transform(role_pose)
 
             fabs_y = math.fabs(tr_pose.y)
