@@ -49,6 +49,7 @@ class Controller{
         double mPrevRotation;
         double mAccRotation;
         double mMaxRotation;
+        double mDecRotationGain;
         double mRotationDirec;
         double mCentrifugalLimit;
 
@@ -75,6 +76,7 @@ Controller::Controller()
     mPrevRotation = 0.0;
     mAccRotation = 0.01;
     mMaxRotation = 2.0;
+    mDecRotationGain = 0.2;
     mRotationDirec = 1.0;
     mCentrifugalLimit = 0.01;
 }
@@ -119,6 +121,7 @@ void Controller::callbackReconfigure(trapezoidal_control::parameterConfig &confi
 
     mAccRotation = config.accRotation;
     mMaxRotation = config.maxRotation;
+    mDecRotationGain = config.decRotationGain;
     mCentrifugalLimit = config.centrifugalLimit;
 }
 
@@ -226,8 +229,10 @@ geometry_msgs::Vector3 Controller::trapezoidalAngularControl(){
     }else{
         // 2:同方向なら通常制御
         // 一つ前の制御角速度とロボット角速度の大きさをもとに制動角を求める
+        double realSpeed = std::fabs(realYaw);
         double brakingYaw;
-        brakingYaw = 0.5 * (mPrevRotation/mAccRotation) * mPeriod_ * mPrevRotation;
+        brakingYaw = 0.5 * (mPrevRotation/mAccRotation) * mPeriod_ * mPrevRotation
+            + mDecRotationGain * realSpeed;
         
         // 1:回転角が制動角以上であれば加速する
         double targetRotation = mPrevRotation;
