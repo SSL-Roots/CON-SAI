@@ -87,13 +87,14 @@ class PaintWidget(QWidget):
         self.avoidingPointDrawColor = QColor(255, 0, 0, 100)
 
         # Replace
-        self._CLICK_POS_THRESHOLD = 0.2
-        self._CLICK_VEL_ANGLE_THRESHOLD = self._CLICK_POS_THRESHOLD + 0.2
+        self._CLICK_POS_THRESHOLD = 0.1
+        self._CLICK_VEL_ANGLE_THRESHOLD = self._CLICK_POS_THRESHOLD + 0.1
         self._VEL_GAIN = 3.0
         self._VEL_MAX = 8.0
         self._replace_func = None
         self._replace_id = 0
         self._replace_is_yellow = False
+        self._replace_is_friend = False
 
         # Status
         self._should_rotate_world = False
@@ -392,17 +393,15 @@ class PaintWidget(QWidget):
             self._is_ballvel_replacement = True
             self._replace_func = self._replaceBallVel
         else:
-            result, robot_id, is_yellow = self._isRobotClicked(real_pos)
+            result, robot_id, is_friend = self._isRobotClicked(real_pos)
+            self._replace_id = robot_id
+            self._replace_is_friend = is_friend
 
             if result == 'pos':
                 self._is_robotpos_replacement = True
-                self._replace_id = robot_id
-                self._replace_is_yellow = is_yellow
                 self._replace_func = self._replaceRobotPos
             elif result == 'vel_angle':
                 self._is_robotangle_replacement = True
-                self._replace_id = robot_id
-                self._replace_is_yellow = is_yellow
                 self._replace_func = self._replaceRobotAngle
             else:
                 is_clicked = False
@@ -421,7 +420,7 @@ class PaintWidget(QWidget):
     def _isRobotClicked(self, real_pos):
         is_clicked = False
         replace_id = 0
-        is_yellow = False
+        is_friend = False
 
         for robot_id in self.friendsIDArray.data:
             posX = self.friendOdoms[robot_id].pose.pose.position.x
@@ -430,8 +429,8 @@ class PaintWidget(QWidget):
 
             is_clicked = self._isClicked(real_pos, robot_pos)
             if is_clicked:
-                is_yellow = False
-                return is_clicked, robot_id, is_yellow
+                is_friend = True
+                return is_clicked, robot_id, is_friend
 
         for robot_id in self.enemyIDArray.data:
             posX = self.enemyOdoms[robot_id].pose.pose.position.x
@@ -440,10 +439,10 @@ class PaintWidget(QWidget):
 
             is_clicked = self._isClicked(real_pos, robot_pos)
             if is_clicked:
-                is_yellow = True
-                return is_clicked, robot_id, is_yellow
+                is_friend = False
+                return is_clicked, robot_id, is_friend
 
-        return is_clicked, replace_id, is_yellow
+        return is_clicked, replace_id, is_friend
 
 
     def _isClicked(self, real_pos1, real_pos2):
@@ -490,17 +489,22 @@ class PaintWidget(QWidget):
         real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
 
         # euler <- (roll, pitch, yaw)
-        euler = None
-        if self._replace_is_yellow:
-            orientation = self.enemyOdoms[self._replace_id].pose.pose.orientation
-            euler = self._to_euler(orientation)
-        else:
+        orientation = None
+        if self._replace_is_friend:
             orientation = self.friendOdoms[self._replace_id].pose.pose.orientation
-            euler = self._to_euler(orientation)
+        else:
+            orientation = self.enemyOdoms[self._replace_id].pose.pose.orientation
+        euler = self._to_euler(orientation)
 
+        is_yellow = True
+        if self._replace_is_friend and self.friend_color == 'blue':
+            is_yellow = False
+        elif not self._replace_is_friend and self.friend_color == 'yellow':
+            is_yellow = False
+            
         replace = ReplaceRobot()
         replace.robot_id = self._replace_id
-        replace.is_yellow = self._replace_is_yellow
+        replace.is_yellow = is_yellow
         replace.pos_x = real_pos.x()
         replace.pos_y = real_pos.y()
         replace.dir = math.degrees(euler[2])
@@ -514,16 +518,22 @@ class PaintWidget(QWidget):
         real_pos = self.convertToRealWorld(mouse_pos.x(), mouse_pos.y())
 
         robot_pos = QPointF()
-        if self._replace_is_yellow:
-            robot_pos.setX(self.enemyOdoms[self._replace_id].pose.pose.position.x)
-            robot_pos.setY(self.enemyOdoms[self._replace_id].pose.pose.position.y)
-        else:
+        if self._replace_is_friend:
             robot_pos.setX(self.friendOdoms[self._replace_id].pose.pose.position.x)
             robot_pos.setY(self.friendOdoms[self._replace_id].pose.pose.position.y)
+        else:
+            robot_pos.setX(self.enemyOdoms[self._replace_id].pose.pose.position.x)
+            robot_pos.setY(self.enemyOdoms[self._replace_id].pose.pose.position.y)
+
+        is_yellow = True
+        if self._replace_is_friend and self.friend_color == 'blue':
+            is_yellow = False
+        elif not self._replace_is_friend and self.friend_color == 'yellow':
+            is_yellow = False
 
         replace = ReplaceRobot()
         replace.robot_id = self._replace_id
-        replace.is_yellow = self._replace_is_yellow
+        replace.is_yellow = is_yellow
         replace.pos_x = robot_pos.x()
         replace.pos_y = robot_pos.y()
         replace.dir = math.degrees(self._to_angle(robot_pos, real_pos))
@@ -781,12 +791,12 @@ class PaintWidget(QWidget):
     
     def drawAngleReplacement(self, painter):
         robot_pos = QPointF()
-        if self._replace_is_yellow:
-            robot_pos.setX(self.enemyOdoms[self._replace_id].pose.pose.position.x)
-            robot_pos.setY(self.enemyOdoms[self._replace_id].pose.pose.position.y)
-        else:
+        if self._replace_is_friend:
             robot_pos.setX(self.friendOdoms[self._replace_id].pose.pose.position.x)
             robot_pos.setY(self.friendOdoms[self._replace_id].pose.pose.position.y)
+        else:
+            robot_pos.setX(self.enemyOdoms[self._replace_id].pose.pose.position.x)
+            robot_pos.setY(self.enemyOdoms[self._replace_id].pose.pose.position.y)
 
         currentPos = self.convertToRealWorld(
                 self._current_mouse_pos.x(), self._current_mouse_pos.y())
