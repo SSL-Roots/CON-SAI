@@ -3,6 +3,7 @@
 
 import rospy
 import tf
+import re
 from collections import OrderedDict, defaultdict
 
 from nav_msgs.msg import Odometry
@@ -259,23 +260,23 @@ class WorldModel(object):
     def get_pose(cls, name):
         pose = None
 
-        if name == 'Ball':
+        if re.match('Ball', name):
             ball_pose = WorldModel._ball_odom.pose.pose.position
             pose = Pose(ball_pose.x, ball_pose.y, 0)
 
-        elif name[:4] == 'Role':
+        elif re.match('Role', name):
             robot_id = WorldModel.assignments[name]
             pose = WorldModel.get_friend_pose(robot_id)
 
-        elif name[:5] == 'Enemy':
+        elif re.match('Enemy', name):
             robot_id = WorldModel.enemy_assignments[name]
             pose = WorldModel.get_enemy_pose(robot_id)
 
-        elif name[:6] == 'Threat':
+        elif re.match('Threat', name):
             robot_id = WorldModel._threat_assignments[name]
             pose = WorldModel.get_enemy_pose(robot_id)
 
-        elif name[:5] == 'CONST':
+        elif re.match('CONST', name):
             pose = constants.poses[name]
 
         return pose
@@ -285,19 +286,19 @@ class WorldModel(object):
     def get_velocity(cls, name):
         velocity = None
 
-        if name == 'Ball':
+        if re.match('Ball', name):
             linear = WorldModel._ball_odom.twist.twist.linear
             velocity = Velocity(linear.x, linear.y, 0)
 
-        elif name[:4] == 'Role':
+        elif re.match('Role', name):
             robot_id = WorldModel.assignments[name]
             velocity = WorldModel.get_friend_velocity(robot_id)
 
-        elif name[:5] == 'Enemy':
+        elif re.match('Enemy', name):
             robot_id = WorldModel.enemy_assignments[name]
             velocity = WorldModel.get_enemy_velocity(robot_id)
 
-        elif name[:6] == 'Threat':
+        elif re.match('Threat', name):
             robot_id = WorldModel._threat_assignments[name]
             velocity = WorldModel.get_enemy_velocity(robot_id)
 
