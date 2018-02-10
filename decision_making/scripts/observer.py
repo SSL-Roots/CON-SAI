@@ -18,6 +18,8 @@ class Observer(object):
         self._ball_initial_pose = Pose()
         self._moving_speed_threshold = 1.0
         self._moving_speed_hysteresis = 0.3
+        self._is_on_threshold_x = 0.5
+        self._is_on_threshold_y = 2.0
 
         self._ball_is_in_field = False
         self._ball_is_moved = False
@@ -106,5 +108,22 @@ class Observer(object):
             self._ball_is_moving = False
 
         return self._ball_is_moving
+
+
+    def is_on_trajectory(self, my_pose, target_pose, target_velocity):
+        angle = tool.getAngleFromCenter(target_velocity)
+
+        trans = tool.Trans(target_pose, angle)
+
+        my_trans_pose = trans.transform(my_pose)
+
+        dist_to_trajectory = math.fabs(my_trans_pose.y)
+
+        if my_trans_pose.x > self._is_on_threshold_x and \
+            dist_to_trajectory < self._is_on_threshold_y:
+                
+            return True, dist_to_trajectory
+        else:
+            return False, 1000
 
 
