@@ -41,10 +41,12 @@ if  __name__ == '__main__':
     pub_blue_info = rospy.Publisher('~blue_info', RefereeTeamInfo, queue_size = 10)
     pub_yellow_info = rospy.Publisher('~yellow_info', RefereeTeamInfo, queue_size = 10)
 
+    r = rospy.Rate(60)
     while not   rospy.is_shutdown():
         buf    = sock.recv(1024)
 
         if buf == None:
+            r.sleep()
             continue
 
         protobuf.ParseFromString(buf)
