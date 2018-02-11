@@ -24,6 +24,9 @@ namespace GlobalInfo {
     std::vector<int> friendIDs;
     std::vector<int> enemyIDs;
     geometry_msgs::Point ballPoint;
+    geometry_msgs::Point friendDefencePoint;
+    geometry_msgs::Point enemyUpperDefencePoint;
+    geometry_msgs::Point enemyLowerDefencePoint;
 
     // Obstacle Avoidance Config
     struct ObstacleAvoidanceConfig{
@@ -31,6 +34,8 @@ namespace GlobalInfo {
         double avoidRange = 0.5;
         double startDetectionPos = 0.0;
         double avoidHysteresis = 0.18;
+        double detectDefenceRange = 0.6;
+        double avoidDefenceRange = 0.6;
     };
 
     ObstacleAvoidanceConfig OAConfig;
@@ -117,9 +122,12 @@ class ObstacleAvoidingPointGenerator{
         };
 
         OAParameter detectObstacle(const Transformation &trans, 
-                const geometry_msgs::Point &point, const OAParameter &parameter);
+                const geometry_msgs::Point &point, const OAParameter &parameter,
+                double detectRange = GlobalInfo::OAConfig.detectRange,
+                double avoidRange = GlobalInfo::OAConfig.avoidRange);
         OAParameter detectObstacleOverlap(const Transformation &trans,
-                const geometry_msgs::Point &point, const OAParameter &parameter);
+                const geometry_msgs::Point &point, const OAParameter &parameter,
+                double avoidRange = GlobalInfo::OAConfig.avoidRange);
 };
 
 
@@ -136,6 +144,7 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
     Transformation trans(startPos, angleToGoal);
     Complex trGoalPos = trans.transform(goalPos);
 
+    bool avoidDefence = true;
 
     // 自分に最も近い障害物の発見し、その回避位置を生成
     OAParameter parameter;
@@ -157,6 +166,15 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
         parameter = detectObstacle(trans, GlobalInfo::ballPoint, parameter);
     }
     
+    // ディフェンスエリア回避は任意
+    if(avoidDefence){
+        parameter = detectObstacle(trans, GlobalInfo::enemyUpperDefencePoint,
+                parameter, GlobalInfo::OAConfig.detectDefenceRange,
+                GlobalInfo::OAConfig.avoidDefenceRange);
+        parameter = detectObstacle(trans, GlobalInfo::enemyLowerDefencePoint,
+                parameter, GlobalInfo::OAConfig.detectDefenceRange,
+                GlobalInfo::OAConfig.avoidDefenceRange);
+    }
 
     // 横並びロボット回避位置を生成
     // 障害物がなければ計算省略
@@ -179,6 +197,14 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
             // ボール回避は任意
             if(mAIStatus.avoidBall){
                 parameter = detectObstacleOverlap(trans, GlobalInfo::ballPoint, parameter);
+            }
+
+            // ディフェンスエリア回避は任意
+            if(avoidDefence){
+                parameter = detectObstacleOverlap(trans, GlobalInfo::enemyUpperDefencePoint,
+                        parameter, GlobalInfo::OAConfig.avoidDefenceRange);
+                parameter = detectObstacleOverlap(trans, GlobalInfo::enemyLowerDefencePoint,
+                        parameter, GlobalInfo::OAConfig.avoidDefenceRange);
             }
 
             // 回避位置がほとんど更新されなかったらループを抜ける
@@ -222,7 +248,8 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
 
 ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::detectObstacle(
         const Transformation &trans,
-        const geometry_msgs::Point &point, const OAParameter &parameter){
+        const geometry_msgs::Point &point, const OAParameter &parameter,
+        double detectRange, double avoidRange){
 
     OAParameter output = parameter;
 
@@ -234,11 +261,11 @@ ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::dete
     // parameterのtrAvoidRealを障害物のrealで上書きしていく
     if(trObstPos.real() > GlobalInfo::OAConfig.startDetectionPos
             && trObstPos.real() < parameter.trAvoidReal
-            && fabs(trObstPos.imag()) < GlobalInfo::OAConfig.detectRange){
+            && fabs(trObstPos.imag()) < detectRange){
 
         // 避けれる上下位置を計算
-        double upperImag = trObstPos.imag() + GlobalInfo::OAConfig.avoidRange;
-        double lowerImag = trObstPos.imag() - GlobalInfo::OAConfig.avoidRange;
+        double upperImag = trObstPos.imag() + avoidRange;
+        double lowerImag = trObstPos.imag() - avoidRange;
 
         output.trAvoidReal = trObstPos.real();
         output.trAvoidUpperImag = upperImag;
@@ -252,7 +279,8 @@ ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::dete
 
 ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::detectObstacleOverlap(
         const Transformation &trans,
-        const geometry_msgs::Point &point, const OAParameter &parameter){
+        const geometry_msgs::Point &point, const OAParameter &parameter,
+        double avoidRange){
 
     OAParameter output = parameter;
 
@@ -262,8 +290,8 @@ ObstacleAvoidingPointGenerator::OAParameter ObstacleAvoidingPointGenerator::dete
     // 回避範囲(upper <-> lower)の重なりを見つけ、最端の回避位置を生成する
     if(trObstPos.real() > GlobalInfo::OAConfig.startDetectionPos
             && trObstPos.real() < parameter.trGoalPosReal){
-        double upperImag = trObstPos.imag() + GlobalInfo::OAConfig.avoidRange;
-        double lowerImag = trObstPos.imag() - GlobalInfo::OAConfig.avoidRange;
+        double upperImag = trObstPos.imag() + avoidRange;
+        double lowerImag = trObstPos.imag() - avoidRange;
 
         if(upperImag > parameter.trAvoidLowerImag 
                 && upperImag < parameter.trAvoidUpperImag 
@@ -296,10 +324,11 @@ int main(int argc, char **argv){
 
     std::vector<ObstacleAvoidingPointGenerator> generator(12);
 
-    // // 起動時のnamespaceを取得
-    // std::string ai_name = "/";
-    // nh.getParam("ai_name", ai_name);
-
+    // GlobalInfo初期化
+    GlobalInfo::enemyUpperDefencePoint.x = 4.0;
+    GlobalInfo::enemyUpperDefencePoint.y = 0.5;
+    GlobalInfo::enemyLowerDefencePoint.x = 4.0;
+    GlobalInfo::enemyLowerDefencePoint.y = -0.5;
 
     // Subscriberを作成
     ros::Subscriber subFriendIDs = nh.subscribe("existing_friends_id", 100,
