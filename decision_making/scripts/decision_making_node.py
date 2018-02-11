@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import rospy
-import  tf
+import tf
+import math
+import constants
 
 rospy.init_node('decision_maker')
 
@@ -21,6 +23,7 @@ from std_msgs.msg import String
 from nav_msgs.msg import Odometry
 from consai_msgs.msg import AIStatus
 from consai_msgs.msg import RefereeTeamInfo
+from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
 
 
 def publish():
@@ -90,6 +93,16 @@ def callback_test_name(msg):
     WorldModel.set_test_name(msg.data)
 
 
+def callback_geometry(msg):
+    constants.set_field(msg.field_length, msg.field_width)
+
+    for line in msg.field_lines:
+        if line.name == 'RightPenaltyStretch':
+            p_x = math.fabs(line.p1_x)
+            p_y = math.fabs(line.p1_y)
+            constants.set_penalty(p_x, p_y)
+
+
 def main():
     r   = rospy.Rate(30)
 
@@ -121,6 +134,7 @@ if __name__ == '__main__':
     subs_friend_odom = []
     subs_enemy_odom = []
     sub_test_name = rospy.Subscriber('test_name', String, callback_test_name)
+    sub_geometry = rospy.Subscriber('geometry_field_size', GeometryFieldSize, callback_geometry)
 
     for robot_id in xrange(12):
         id_str = str(robot_id)
