@@ -24,7 +24,8 @@ namespace GlobalInfo {
     std::vector<int> friendIDs;
     std::vector<int> enemyIDs;
     geometry_msgs::Point ballPoint;
-    geometry_msgs::Point friendDefencePoint;
+    geometry_msgs::Point friendUpperDefencePoint;
+    geometry_msgs::Point friendLowerDefencePoint;
     geometry_msgs::Point enemyUpperDefencePoint;
     geometry_msgs::Point enemyLowerDefencePoint;
 
@@ -71,6 +72,18 @@ namespace GlobalInfo {
         OAConfig.avoidRange = config.avoidRange;
         OAConfig.startDetectionPos = config.startDetectionPos;
         OAConfig.avoidHysteresis = config.avoidHysteresis;
+    }
+
+    void initDefencePoint(){
+        GlobalInfo::friendUpperDefencePoint.x = -4.0;
+        GlobalInfo::friendUpperDefencePoint.y = 0.5;
+        GlobalInfo::friendLowerDefencePoint.x = -4.0;
+        GlobalInfo::friendLowerDefencePoint.y = -0.5;
+
+        GlobalInfo::enemyUpperDefencePoint.x = 4.0;
+        GlobalInfo::enemyUpperDefencePoint.y = 0.5;
+        GlobalInfo::enemyLowerDefencePoint.x = 4.0;
+        GlobalInfo::enemyLowerDefencePoint.y = -0.5;
     }
 }
 
@@ -144,8 +157,6 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
     Transformation trans(startPos, angleToGoal);
     Complex trGoalPos = trans.transform(goalPos);
 
-    bool avoidDefence = true;
-
     // 自分に最も近い障害物の発見し、その回避位置を生成
     OAParameter parameter;
     parameter.trAvoidReal = trGoalPos.real();
@@ -167,7 +178,13 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
     }
     
     // ディフェンスエリア回避は任意
-    if(avoidDefence){
+    if(mAIStatus.avoidDefenceArea){
+        parameter = detectObstacle(trans, GlobalInfo::friendUpperDefencePoint,
+                parameter, GlobalInfo::OAConfig.detectDefenceRange,
+                GlobalInfo::OAConfig.avoidDefenceRange);
+        parameter = detectObstacle(trans, GlobalInfo::friendLowerDefencePoint,
+                parameter, GlobalInfo::OAConfig.detectDefenceRange,
+                GlobalInfo::OAConfig.avoidDefenceRange);
         parameter = detectObstacle(trans, GlobalInfo::enemyUpperDefencePoint,
                 parameter, GlobalInfo::OAConfig.detectDefenceRange,
                 GlobalInfo::OAConfig.avoidDefenceRange);
@@ -200,7 +217,11 @@ void ObstacleAvoidingPointGenerator::updateAvoidingPoint(){
             }
 
             // ディフェンスエリア回避は任意
-            if(avoidDefence){
+            if(mAIStatus.avoidDefenceArea){
+                parameter = detectObstacleOverlap(trans, GlobalInfo::friendUpperDefencePoint,
+                        parameter, GlobalInfo::OAConfig.avoidDefenceRange);
+                parameter = detectObstacleOverlap(trans, GlobalInfo::friendLowerDefencePoint,
+                        parameter, GlobalInfo::OAConfig.avoidDefenceRange);
                 parameter = detectObstacleOverlap(trans, GlobalInfo::enemyUpperDefencePoint,
                         parameter, GlobalInfo::OAConfig.avoidDefenceRange);
                 parameter = detectObstacleOverlap(trans, GlobalInfo::enemyLowerDefencePoint,
@@ -324,11 +345,8 @@ int main(int argc, char **argv){
 
     std::vector<ObstacleAvoidingPointGenerator> generator(12);
 
-    // GlobalInfo初期化
-    GlobalInfo::enemyUpperDefencePoint.x = 4.0;
-    GlobalInfo::enemyUpperDefencePoint.y = 0.5;
-    GlobalInfo::enemyLowerDefencePoint.x = 4.0;
-    GlobalInfo::enemyLowerDefencePoint.y = -0.5;
+    // DefenceAreaを初期化
+    GlobalInfo::initDefencePoint();
 
     // Subscriberを作成
     ros::Subscriber subFriendIDs = nh.subscribe("existing_friends_id", 100,

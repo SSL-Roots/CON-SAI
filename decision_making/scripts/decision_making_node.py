@@ -50,6 +50,7 @@ def publish():
             status = AIStatus()
             # TODO(Asit) use navigation_enable instead avoidBall.
             status.avoidBall = command.navigation_enable
+            status.avoidDefenceArea = command.avoid_defence_area
             status.do_chip = command.chip_enable
             status.dribble_power = command.dribble_power
             pubs_ai_status[robot_id].publish(status)
