@@ -1,7 +1,13 @@
 from geometry_msgs.msg import Point
 
-FieldHalfX = 4.5
-FieldHalfY = 3.0
+FieldX = 9.0
+FieldY = 6.0
+
+PenaltyX = 3.3
+PenaltyY = 1.2
+
+FieldHalfX = FieldX * 0.5
+FieldHalfY = FieldY * 0.5
 
 DefenceHalfStreach = 0.25
 DefenceLength = 1.0

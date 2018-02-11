@@ -58,42 +58,46 @@ class Observer(object):
         
 
     def ball_is_in_defence_area(self, pose, our_side=False):
-        target_upper = Pose()
-        target_lower = Pose()
         is_in_defence = False
 
         if our_side:
-            target_upper = constants.poses['CONST_OUR_GOAL_UPPER']
-            target_lower = constants.poses['CONST_OUR_GOAL_LOWER']
-            is_in_defence = self._ball_is_in_our_defence
-        else:
-            target_upper = constants.poses['CONST_THEIR_GOAL_UPPER']
-            target_lower = constants.poses['CONST_THEIR_GOAL_LOWER']
-            is_in_defence = self._ball_is_in_their_defence
-
-
-        if is_in_defence:
-            threshold = constants.DefenceLength + self._hysteresis
-
-            if tool.getSize(pose, target_upper) > threshold and \
-                    tool.getSize(pose, target_lower) > threshold:
-                is_in_defence = False
-
-        else:
-            threshold = constants.DefenceLength - self._hysteresis
-
-            if tool.getSize(pose, target_upper) < threshold or \
-                    tool.getSize(pose, target_lower) < threshold:
-                is_in_defence = True
-
-
-        if our_side:
+            is_in_defence = self._is_in_our_defence(pose, self._ball_is_in_our_defence)
             self._ball_is_in_our_defence = is_in_defence
         else:
+            is_in_defence = self._is_in_their_defence(pose, self._ball_is_in_their_defence)
             self._ball_is_in_their_defence = is_in_defence
 
-
         return is_in_defence
+
+    
+    def _is_in_our_defence(self, pose, is_in_defence):
+        target_x = pose.x
+        target_y = math.fabs(pose.y)
+        if is_in_defence:
+            target_x -= self._hysteresis
+            target_y -= self._hysteresis
+
+        if target_y < constants.PenaltyY and \
+            target_x < -constants.PenaltyX:
+
+            return True
+
+        return False
+
+
+    def _is_in_their_defence(self, pose, is_in_defence):
+        target_x = pose.x
+        target_y = math.fabs(pose.y)
+        if is_in_defence:
+            target_x += self._hysteresis
+            target_y -= self._hysteresis
+
+        if target_y < constants.PenaltyY and \
+            target_x > constants.PenaltyX:
+
+            return True
+
+        return False
 
 
     def ball_is_moving(self, velocity):
