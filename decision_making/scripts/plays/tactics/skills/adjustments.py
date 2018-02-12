@@ -32,6 +32,16 @@ class NoNavigation(Task):
         return TaskStatus.RUNNING
 
 
+class NoBallAvoidance(Task):
+    def __init__(self, name, my_role):
+        super(NoBallAvoidance, self).__init__(name)
+
+        self._my_role = my_role
+
+    def run(self):
+        WorldModel.commands[self._my_role].avoid_ball = False
+
+
 class NoDefenceAreaAvoidance(Task):
     def __init__(self, name, my_role):
         super(NoDefenceAreaAvoidance, self).__init__(name)

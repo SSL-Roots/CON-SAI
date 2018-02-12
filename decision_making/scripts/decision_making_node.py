@@ -48,8 +48,7 @@ def publish():
             pubs_kick_velocity[robot_id].publish(Float32(command.kick_power))
 
             status = AIStatus()
-            # TODO(Asit) use navigation_enable instead avoidBall.
-            status.avoidBall = command.navigation_enable
+            status.avoidBall = command.avoid_ball
             status.avoidDefenceArea = command.avoid_defence_area
             status.do_chip = command.chip_enable
             status.dribble_power = command.dribble_power

@@ -4,7 +4,7 @@ from pi_trees_lib.task_setup import *
 
 from skills.dynamic_drive import DynamicDrive
 from skills.observations import BallKicked
-from skills.adjustments import WithKick, NoNavigation
+from skills.adjustments import WithKick, NoBallAvoidance
 
 sys.path.append(os.pardir)
 from coordinate import Coordinate
@@ -24,7 +24,7 @@ class TacticSetplayShoot(Sequence):
         coord_2.set_interpose(base='Ball', target='CONST_THEIR_GOAL', to_dist = 0.0)
         SHOOT.add_child(DynamicDrive('drive_to_ball', my_role, coord_2))
         SHOOT.add_child(WithKick('WithKick', my_role))
-        SHOOT.add_child(NoNavigation('NoNavigation', my_role))
+        SHOOT.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
         SHOOT.add_child(BallKicked('BallKicked'))
 
         self.add_child(SHOOT)
