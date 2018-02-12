@@ -32,6 +32,18 @@ class NoNavigation(Task):
         return TaskStatus.RUNNING
 
 
+class NoDefenceAreaAvoidance(Task):
+    def __init__(self, name, my_role):
+        super(NoDefenceAreaAvoidance, self).__init__(name)
+
+        self._my_role = my_role
+
+    def run(self):
+        WorldModel.commands[self._my_role].avoid_defence_area = False
+
+        return TaskStatus.RUNNING
+
+
 class WithChip(Task):
     def __init__(self, name, my_role, kick_power=6.0):
         super(WithChip, self).__init__(name)
