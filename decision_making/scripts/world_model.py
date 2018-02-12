@@ -245,7 +245,8 @@ class WorldModel(object):
 
     @classmethod
     def set_refbox_command(cls, data):
-        if WorldModel._raw_refbox_command != data:
+        if WorldModel._raw_refbox_command != data and \
+                data in WorldModel._refbox_dict:
             WorldModel._refbox_command_changed = True
             WorldModel._raw_refbox_command = data
 
