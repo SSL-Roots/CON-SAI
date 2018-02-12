@@ -6,3 +6,7 @@ class Role(object):
         self.my_role = my_role
         self.behavior = Sequence(my_role) # my_role is like a "Role_0"
         self.loop_enable = False
+
+    
+    def clear_behavior(self):
+        self.behavior = Sequence(self.my_role)

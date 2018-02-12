@@ -9,8 +9,8 @@ from consai_msgs.msg import Pose
 import constants
 
 class PlayStop(Play):
-    def __init__(self):
-        super(PlayStop, self).__init__('PlayStop')
+    def __init__(self, name='PlayStop'):
+        super(PlayStop, self).__init__(name)
 
         self.applicable = "STOP"
         self.done_aborted = "STOP"
