@@ -4,12 +4,13 @@ from play_base import Play
 from tactics.tactic_keep import TacticKeep
 from tactics.tactic_intersection import TacticIntersection
 from tactics.tactic_interpose import TacticInterpose
+from tactics.tactic_goalie import TacticGoalie
 from consai_msgs.msg import Pose
 import constants
 
 class PlayStop(Play):
-    def __init__(self):
-        super(PlayStop, self).__init__('PlayStop')
+    def __init__(self, name='PlayStop'):
+        super(PlayStop, self).__init__(name)
 
         self.applicable = "STOP"
         self.done_aborted = "STOP"
@@ -17,7 +18,7 @@ class PlayStop(Play):
         keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticKeep('TacticKeep', self.roles[0].my_role, keep_x = keep_x,
+                TacticGoalie('TacticGoalie', self.roles[0].my_role, keep_x=keep_x,
                     range_high = constants.GoalHalfSize,
                     range_low = -constants.GoalHalfSize)
                 )

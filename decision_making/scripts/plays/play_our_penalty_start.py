@@ -1,7 +1,7 @@
 
 from play_base import Play
 
-from tactics.tactic_keep import TacticKeep
+from tactics.tactic_goalie import TacticGoalie
 from tactics.tactic_setplay_shoot import TacticSetplayShoot
 from tactics.tactic_position import TacticPosition
 from consai_msgs.msg import Pose
@@ -18,7 +18,7 @@ class PlayOurPenaltyStart(Play):
         keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticKeep('TacticKeep', self.roles[0].my_role, keep_x = keep_x,
+                TacticGoalie('TacticGoalie', self.roles[0].my_role, keep_x=keep_x,
                     range_high = constants.GoalHalfSize,
                     range_low = -constants.GoalHalfSize)
                 )
