@@ -249,9 +249,8 @@ class VisionReceiver:
     def __init__(self):
 
         # This class receives vision data and publish it
-        self._ROBOT_NUM = 6
-        self._robot_list = [0, 1, 2, 3, 4, 5]
-        self._enemy_list = [0, 1, 2, 3, 4, 5]
+        self._robot_list = rospy.get_param('~robots_id_list', [0, 1, 2, 3, 4, 5])
+        self._enemy_list = rospy.get_param('~enemies_id_list', [0, 1, 2, 3, 4, 5])
 
         self._our_color = rospy.get_param('friend_color', 'yellow').upper()
         self._our_side = rospy.get_param('team_side', 'right').upper()
