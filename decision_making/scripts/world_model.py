@@ -112,7 +112,6 @@ class WorldModel(object):
     _refbox_dict = _refbox_dict_blue
 
     _observer = Observer()
-    _ball_kicked_speed = 1.0
 
     _ball_closest_frined_role = None
     _ball_closest_enemy_role = None
@@ -305,25 +304,6 @@ class WorldModel(object):
         return velocity
 
     
-    @classmethod
-    def ball_kicked(cls):
-        kicked = False
-
-        velocity = WorldModel.get_velocity('Ball')
-
-        if tool.getSizeFromCenter(velocity) > WorldModel._ball_kicked_speed:
-            kicked = True
-
-        return kicked
-
-
-    @classmethod
-    def ball_is_moving(cls):
-        velocity = WorldModel.get_velocity('Ball')
-
-        return WorldModel._observer.ball_is_moving(velocity)
-
-
     @classmethod
     def get_friend_pose(cls, robot_id):
 

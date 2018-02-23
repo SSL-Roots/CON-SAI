@@ -13,7 +13,8 @@ class BallKicked(Task):
 
     
     def run(self):
-        if WorldModel.ball_kicked():
+        ball_velocity = WorldModel.get_velocity('Ball')
+        if WorldModel._observer.ball_has_kicked(ball_velocity):
             return TaskStatus.SUCCESS
 
         return TaskStatus.RUNNING
