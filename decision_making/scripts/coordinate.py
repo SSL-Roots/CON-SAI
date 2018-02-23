@@ -411,7 +411,7 @@ class Coordinate(object):
         ball_vel = WorldModel.get_velocity('Ball')
         result = False
 
-        if WorldModel.ball_is_moving():
+        if WorldModel._observer.ball_is_moving(WorldModel.get_velocity('Ball')):
             angle_velocity = tool.getAngleFromCenter(ball_vel)
             trans = tool.Trans(ball_pose, angle_velocity)
 

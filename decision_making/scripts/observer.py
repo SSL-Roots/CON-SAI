@@ -24,7 +24,10 @@ class Observer(object):
         self._ball_is_in_our_defence = False
         self._ball_is_in_their_defence = False
         self._ball_is_moving = False
+        self._ball_kicked_speed = 1.0
 
+    def ball_has_kicked(self, velocity):
+        return tool.getSizeFromCenter(velocity) > self._ball_kicked_speed
 
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
