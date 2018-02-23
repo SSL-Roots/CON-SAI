@@ -15,11 +15,9 @@ class DynamicDrive(Task):
         self._always_running = always_running
 
     def run(self):
-
-        if self._coordinate.update() == False:
+        pose = self._coordinate.get_pose()
+        if pose is None:
             return TaskStatus.FAILURE
-
-        pose = self._coordinate.pose
 
         WorldModel.commands[self._my_role].set_target_pose(pose.x, pose.y, pose.theta, 'map')
 

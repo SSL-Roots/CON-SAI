@@ -14,10 +14,10 @@ import rospy
 class Coordinate(object):
     # Coordinateクラスは、フィールド状況をもとに移動目標位置、目標角度を生成する
     # Coordinateクラスには、移動目標の生成方法をsetしなければならない
-    # Coordinateクラスのposeが生成された移動目標である
+    # Coordinateクラスのget_pose()にて現在の移動目標が取得できる
 
     def __init__(self):
-        self.pose = Pose() # pos_x, pos_y, thta
+        self._pose = Pose() # pos_x, pos_y, thta
 
         self._base = None # string data
         self._target = None # string data
@@ -59,13 +59,25 @@ class Coordinate(object):
         self._can_receive_hysteresis = 0.3
         self._receiving = False
 
+    @property
+    def pose(self):
+        return self.get_pose()
+
+    @pose.setter
+    def pose(self, pose):
+        self.set_pose(pose.x, pose.y, pose.theta)
+
+    def get_pose(self):
+        ret = self.update()
+        if ret:
+            return self._pose
+        else:
+            return None
 
     def update(self):
-        result = False
-        if self._update_func:
-            result = self._update_func()
-
-        return result
+        if callable(self._update_func):
+            return self._update_func()
+        return False
 
 
     def set_pose(self, x=0.0, y=0.0, theta=0.0):
@@ -224,11 +236,11 @@ class Coordinate(object):
         angle_to_target = tool.getAngle(base_pose, target_pose)
         
         interposed_pose = Pose(0, 0, 0)
-        if not self._to_dist is None:
+        if self._to_dist is not None:
             trans = tool.Trans(base_pose, angle_to_target)
             tr_interposed_pose = Pose(self._to_dist, 0.0, 0)
             interposed_pose = trans.invertedTransform(tr_interposed_pose)
-        elif not self._from_dist is None:
+        elif self._from_dist is not None:
             angle_to_base = tool.getAngle(target_pose, base_pose)
             trans = tool.Trans(target_pose, angle_to_base)
             tr_interposed_pose = Pose(self._from_dist, 0.0, 0)
@@ -258,11 +270,11 @@ class Coordinate(object):
         tr_role_pose = trans.transform(role_pose)
 
         # tr_role_poseのloser_side判定にヒステリシスをもたせる
-        if self._role_is_lower_side == True and \
+        if self._role_is_lower_side is True and \
                 tr_role_pose.y > self._role_pose_hystersis:
             self._role_is_lower_side = False
 
-        elif self._role_is_lower_side == False and \
+        elif self._role_is_lower_side is False and \
                 tr_role_pose.y < - self._role_pose_hystersis:
             self._role_is_lower_side = True
 
@@ -423,11 +435,11 @@ class Coordinate(object):
 
             fabs_y = math.fabs(tr_pose.y)
 
-            if self._receiving == False and \
+            if self._receiving is False and \
                     fabs_y < self._can_receive_dist - self._can_receive_hysteresis:
                 self._receiving = True
 
-            elif self._receiving == True and \
+            elif self._receiving is True and \
                     fabs_y > self._can_receive_dist + self._can_receive_hysteresis:
                 self._receiving = False
 
