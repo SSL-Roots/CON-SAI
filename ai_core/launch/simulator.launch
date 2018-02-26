@@ -3,6 +3,8 @@
   <node name="receiver" pkg="grsim_wrapper" type="detection.py">
     <param name="multicast_addr" type="string" value="224.5.23.2" />
     <param name="multicast_port" value="10006" />
+    <rosparam param="robots_id_list">[0, 1, 2, 3, 4, 5]</rosparam>
+    <rosparam param="enemies_id_list">[0, 1, 2, 3, 4, 5]</rosparam>
   </node>
 
   <!-- Run Sender -->
