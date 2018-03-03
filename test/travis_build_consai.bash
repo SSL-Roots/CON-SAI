@@ -3,15 +3,15 @@
 # Install packages
 
 # Google Protobuf ver > 2.6
-sudo apt-get install -y libprotobuf-dev libprotoc-dev protobuf-compiler
+sudo apt-get -y install libprotobuf-dev libprotoc-dev protobuf-compiler
 sudo pip2 install protobuf==2.6.1
 
 # ROS Navigation
-sudo apt-get install -y ros-indigo-navigation
+sudo apt-get -y install ros-indigo-navigation
 
 # pygraphviz
-sudo apt-get install -y graphviz libgraphviz-dev pkg-config
-sudo pip install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
+sudo apt-get -y install graphviz libgraphviz-dev pkg-config
+sudo pip2 install pygraphviz --install-option="--include-path=/usr/include/graphviz" --install-option="--library-path=/usr/lib/graphviz/"
 
 
 # Build CON-SAI
