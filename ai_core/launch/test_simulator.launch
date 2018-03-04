@@ -7,9 +7,9 @@
   <test test-name="test_receiver" pkg="grsim_wrapper" type="test_detection.py" />
 
   <!-- Run Sender -->
-  <!-- <node name="sender" pkg="grsim_wrapper" type="command_sender.py">                             -->
-  <!--   <param name="server_address" type="string" value="127.0.0.1" />                             -->
-  <!--   <param name="server_port" value="20011" />                                                  -->
-  <!-- <remap from="/robot_0/robot_commands" to="/ssl_joy/ssl_joystick/robot_commands" /> -->
-  <!-- </node>                                                                                       -->
+  <node name="sender" pkg="grsim_wrapper" type="command_sender.py" required="true" >
+    <param name="server_address" type="string" value="127.0.0.1" />
+    <param name="server_port" value="20011" />
+  </node>
+  <test test-name="test_sender" pkg="grsim_wrapper" type="test_command_sender.py" />
 </launch>
