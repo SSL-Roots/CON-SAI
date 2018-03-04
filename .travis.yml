@@ -8,4 +8,4 @@ before_script:
   - source ~/catkin_ws/devel/setup.bash
 
 script:
-  - rostest ai_core test.launch
+  - rostest ai_core test_simulator.launch
