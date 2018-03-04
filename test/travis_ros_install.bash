@@ -9,9 +9,7 @@ wget http://packages.ros.org/ros.key -O - | sudo apt-key add -
 
 sudo apt-get update 
 
-#sudo apt-get -y install ros-indigo-ros-base
-# sudo apt-get -y install ros-indigo-desktop-full
-sudo apt-get -y install ros-indigo-desktop
+sudo apt-get -y install ros-indigo-desktop-full
 
 sudo rosdep init
 rosdep update
