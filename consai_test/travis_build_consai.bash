@@ -15,7 +15,7 @@ sudo pip2 install pygraphviz --install-option="--include-path=/usr/include/graph
 
 
 # Build CON-SAI
-git clone https://github.com/SSL-Roots/CON-SAI ~/catkin_ws/src/CON-SAI
+rsync -av ./ ~/catkin_ws/src/CON-SAI
 
 cd ~/catkin_ws/src/CON-SAI
 git submodule init
