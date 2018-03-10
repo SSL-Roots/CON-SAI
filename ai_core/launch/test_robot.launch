@@ -17,7 +17,8 @@
     <node name="ai_controller" pkg="ai_controller" type="ai_controller.py" required="true" />
     <test test-name="test_ai_controller" pkg="ai_controller" type="test_ai_controller.py" />
 
-    <!-- <node name="velocity_transformer" pkg="velocity_transformer" type="velocity_transformer.py" /> -->
+    <node name="velocity_transformer" pkg="velocity_transformer" type="velocity_transformer.py" required="true" />
+    <test test-name="test_velocity_transformer" pkg="velocity_transformer" type="test_velocity_transformer.py" />
 
   </group>
 
