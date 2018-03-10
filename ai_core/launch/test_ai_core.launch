@@ -36,7 +36,8 @@
     <node name="decision_maker" pkg="decision_making" type="decision_making_node.py" required="true" />
     <test test-name="test_decision_making" pkg="decision_making" type="test_decision_making.py" />
 
-    <!-- <node name="avoiding_point_generator" pkg="avoiding_point_generator" type="avoiding_point_generator_node" /> -->
+    <node name="avoiding_point_generator" pkg="avoiding_point_generator" type="avoiding_point_generator_node" required="true" />
+    <test test-name="test_avoiding_point_generator" pkg="avoiding_point_generator" type="test_avoiding_point_generator.py" />
 
     <!-- launch "launch manager" -->
     <!-- <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" /> -->
