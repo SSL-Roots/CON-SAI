@@ -11,11 +11,12 @@
     </node>
     <test test-name="test_world_observer" pkg="world_observer" type="test_world_observer.py" />
 
-    <!-- <node pkg="tf" type="static_transform_publisher" name="friend_$(arg number)_odom" args="0 0 0 0 0 0 1 map friend_$(arg number)/odom 100" /> -->
     <node name="trapezoidal_control" pkg="trapezoidal_control" type="trapezoidal_control_node" required="true" />
     <test test-name="test_trapezoidal_control" pkg="trapezoidal_control" type="test_trapezoidal_control.py" />
 
-    <!-- <node name="ai_controller" pkg="ai_controller" type="ai_controller.py" />                      -->
+    <node name="ai_controller" pkg="ai_controller" type="ai_controller.py" required="true" />
+    <test test-name="test_ai_controller" pkg="ai_controller" type="test_ai_controller.py" />
+
     <!-- <node name="velocity_transformer" pkg="velocity_transformer" type="velocity_transformer.py" /> -->
 
   </group>
