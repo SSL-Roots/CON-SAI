@@ -40,7 +40,8 @@
     <test test-name="test_avoiding_point_generator" pkg="avoiding_point_generator" type="test_avoiding_point_generator.py" />
 
     <!-- launch "launch manager" -->
-    <!-- <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" /> -->
+    <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" required="true" />
+    <test test-name="test_launch_manager" pkg="launch_manager" type="test_launch_manager.py" />
 
     <!-- <include file="$(find ssl_joystick_operation)/launch/ssl_joystick_operation.launch" /> -->
 
