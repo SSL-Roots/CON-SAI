@@ -1,24 +1,36 @@
-#include    <ros/ros.h>
-#include    <ros/console.h>
-#include    <serial.h>
-#include    "serializer/serializer.hpp"
-#include    <iostream>
-#include    <string>
-#include  <unistd.h>
-#include    <consai_msgs/robot_commands.h>
+#include <ros/ros.h>
+#include <ros/console.h>
+#include <serial.h>
+#include "serializer/serializer.hpp"
+#include <iostream>
+#include <string>
+#include <unistd.h>
+#include <consai_msgs/robot_commands.h>
 
 class Sender
 {
 public:
     Sender()
-        : mBaudrate_(57600),mPort_("/dev/ttyUSB0"){
+        : mBaudrate_(57600),mPort_("/dev/ttyUSB0"),mSerialOpend(false){
+
+        try{
+            mSerial_ = new serial::Serial(mPort_,mBaudrate_,serial::Timeout::simpleTimeout(1000));
+            mSerialOpend = true;
+        } catch (std::exception &error){
+            ROS_ERROR(" %s", error.what());
+        }
     }
+
     ~Sender(){}
+
+    bool portOpend(){
+        return mSerialOpend;
+    }
 
     void setID(const int id){
         mID_ = id;
-        mSerial_ = new serial::Serial(mPort_,mBaudrate_,serial::Timeout::simpleTimeout(1000));
     }
+
     void callback(const consai_msgs::robot_commandsConstPtr& msg){
 
         RootsSerializer serializer;
@@ -37,6 +49,7 @@ public:
 
         mSerial_->write(data);
     }
+
     
 private:
     const int mBaudrate_;
@@ -44,7 +57,9 @@ private:
 
     int mID_;
     serial::Serial *mSerial_;
+    bool mSerialOpend;
 };
+
 
 int main(int argc, char **argv) {
     int robot_num = 12;
@@ -56,6 +71,10 @@ int main(int argc, char **argv) {
     ros::Subscriber subscribers[robot_num];
 
     for(int i=0;i<12;i++){
+        if (!senders[i].portOpend()){
+            ros::shutdown();
+        }
+
         std::stringstream topicStream;
         topicStream << "robot_" << i << "/robot_commands";
         std::string topicName = topicStream.str();
