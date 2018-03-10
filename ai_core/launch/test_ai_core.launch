@@ -33,7 +33,8 @@
     <!-- </node>                                                                -->
 
     <!-- launch Decision maker -->
-    <!-- <node name="decision_maker" pkg="decision_making" type="decision_making_node.py" /> -->
+    <node name="decision_maker" pkg="decision_making" type="decision_making_node.py" required="true" />
+    <test test-name="test_decision_making" pkg="decision_making" type="test_decision_making.py" />
 
     <!-- <node name="avoiding_point_generator" pkg="avoiding_point_generator" type="avoiding_point_generator_node" /> -->
 
