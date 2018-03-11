@@ -1,0 +1,13 @@
+sudo: required
+dist: trusty
+
+before_script:
+  - bash -xve ./test/travis_ros_install.bash
+  - source ~/catkin_ws/devel/setup.bash
+  - bash -xve ./test/travis_build_consai.bash
+  - source ~/catkin_ws/devel/setup.bash
+
+script:
+  - rostest ai_core test_simulator.launch
+  - rostest ai_core test_robot.launch ai_name:="/" number:=0
+  - rostest ai_core test_ai_core.launch

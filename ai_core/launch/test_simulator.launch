@@ -1,0 +1,15 @@
+<launch>
+  <!-- Run Vision -->
+  <node name="receiver" pkg="grsim_wrapper" type="detection.py" required="true" >
+    <param name="multicast_addr" type="string" value="224.5.23.2" />
+    <param name="multicast_port" value="10006" />
+  </node>
+  <test test-name="test_receiver" pkg="grsim_wrapper" type="test_detection.py" />
+
+  <!-- Run Sender -->
+  <node name="sender" pkg="grsim_wrapper" type="command_sender.py" required="true" >
+    <param name="server_address" type="string" value="127.0.0.1" />
+    <param name="server_port" value="20011" />
+  </node>
+  <test test-name="test_sender" pkg="grsim_wrapper" type="test_command_sender.py" />
+</launch>

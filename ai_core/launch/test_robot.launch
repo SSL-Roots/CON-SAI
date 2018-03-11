@@ -1,0 +1,25 @@
+<launch>
+  <arg name="ai_name" default="/" />
+
+  <arg name="number" />
+  <group ns="robot_$(arg number)">
+    <param name="ai_name" type="string" value="$(arg ai_name)" />
+
+    <node name="observer" pkg="world_observer" type="world_observer" required="true">
+      <param name="observe_target" type="string" value="Friend" />
+      <param name="observe_target_id" type="int" value="$(arg number)" />
+    </node>
+    <test test-name="test_world_observer" pkg="world_observer" type="test_world_observer.py" />
+
+    <node name="trapezoidal_control" pkg="trapezoidal_control" type="trapezoidal_control_node" required="true" />
+    <test test-name="test_trapezoidal_control" pkg="trapezoidal_control" type="test_trapezoidal_control.py" />
+
+    <node name="ai_controller" pkg="ai_controller" type="ai_controller.py" required="true" />
+    <test test-name="test_ai_controller" pkg="ai_controller" type="test_ai_controller.py" />
+
+    <node name="velocity_transformer" pkg="velocity_transformer" type="velocity_transformer.py" required="true" />
+    <test test-name="test_velocity_transformer" pkg="velocity_transformer" type="test_velocity_transformer.py" />
+
+  </group>
+
+</launch>
