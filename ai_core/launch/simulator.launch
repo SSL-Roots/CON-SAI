@@ -1,12 +1,12 @@
 <launch>
   <!-- Run Vision -->
-  <node name="receiver" pkg="grsim_wrapper" type="detection.py">
+  <node name="receiver" pkg="grsim_wrapper" type="detection.py" required="true">
     <param name="multicast_addr" type="string" value="224.5.23.2" />
     <param name="multicast_port" value="10006" />
   </node>
 
   <!-- Run Sender -->
-  <node name="sender" pkg="grsim_wrapper" type="command_sender.py">
+  <node name="sender" pkg="grsim_wrapper" type="command_sender.py" required="true">
     <param name="server_address" type="string" value="127.0.0.1" />
     <param name="server_port" value="20011" />
     <!-- <remap from="/robot_0/robot_commands" to="/ssl_joy/ssl_joystick/robot_commands" /> -->
