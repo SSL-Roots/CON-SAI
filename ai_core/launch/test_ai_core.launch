@@ -1,0 +1,55 @@
+<launch>
+  <arg name="ai_name" default="/" />
+  <arg name="color" default="blue" />
+  <arg name="side" default="left" />
+
+  <group ns="$(arg ai_name)">
+    <param name="ai_name" type="string" value="$(arg ai_name)" />
+    <param name="friend_color" type="string" value="$(arg color)" />
+    <param name="team_side" type="string" value="$(arg side)" />
+
+    <rosparam command="load" file="$(find ai_core)/param/our_team.yaml" />
+
+    <!-- <include file="$(find ai_core)/launch/simulator.launch" /> -->
+    <!-- <include file="$(find ai_core)/launch/real.launch" /> -->
+
+    <!-- Run Refbox -->
+    <node name="refbox" pkg="ssl_refbox_wrapper" type="ssl_refbox_wrapper_node.py" required="true" >
+      <param name="multicast_addr" value="224.5.23.1" />
+      <param name="multicast_port" value="10003" />
+    </node>
+    <test test-name="test_ssl_refbox_wrapper" pkg="ssl_refbox_wrapper" type="test_ssl_refbox_wrapper.py" />
+
+    <!-- Run the map server -->
+    <node pkg="tf" type="static_transform_publisher" name="enemy_goal_left" args="4.5 0.5 0 0 0 0 1 map enemy_goal_left 100" />
+    <node pkg="tf" type="static_transform_publisher" name="enemy_goal_center" args="4.5 0 0 0 0 0 1 map enemy_goal_center 100" />
+    <node pkg="tf" type="static_transform_publisher" name="enemy_goal_right" args="4.5 -0.5 0 0 0 0 1 map enemy_goal_right 100" />
+    <node pkg="tf" type="static_transform_publisher" name="friend_goal_left" args="-4.5 0.5 0 0 0 0 1 map friend_goal_left 100" />
+    <node pkg="tf" type="static_transform_publisher" name="friend_goal_center" args="-4.5 0 0 0 0 0 1 map friend_goal_center 100" />
+    <node pkg="tf" type="static_transform_publisher" name="friend_goal_right" args="-4.5 -0.5 0 0 0 0 1 map friend_goal_right 100" />
+
+    <!-- <node name="ball_observer" pkg="world_observer" type="world_observer"> -->
+    <!--   <param name="observe_target" type="string" value="Ball" />           -->
+    <!-- </node>                                                                -->
+
+    <!-- launch Decision maker -->
+    <node name="decision_maker" pkg="decision_making" type="decision_making_node.py" required="true" />
+    <test test-name="test_decision_making" pkg="decision_making" type="test_decision_making.py" />
+
+    <node name="avoiding_point_generator" pkg="avoiding_point_generator" type="avoiding_point_generator_node" required="true" />
+    <test test-name="test_avoiding_point_generator" pkg="avoiding_point_generator" type="test_avoiding_point_generator.py" />
+
+    <!-- launch "launch manager" -->
+    <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" required="true" />
+    <test test-name="test_launch_manager" pkg="launch_manager" type="test_launch_manager.py" />
+
+    <!-- <include file="$(find ssl_joystick_operation)/launch/ssl_joystick_operation.launch" /> -->
+
+    <!-- Visualizer -->
+    <!-- <node name="sai_visualizer" pkg="sai_visualizer" type="sai_visualizer" /> -->
+    <!-- <node name="rviz" pkg="rviz" type="rviz" /> -->
+    <!-- <node name="rqt_console" pkg="rqt_console" type="rqt_console" /> -->
+    <!-- <node name="plot" pkg="rqt_plot" type="rqt_plot" /> -->
+  </group>
+
+</launch>

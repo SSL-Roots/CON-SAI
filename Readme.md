@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/SSL-Roots/CON-SAI.svg?branch=master)](https://travis-ci.org/SSL-Roots/CON-SAI)
+
 # CON-SAI
 CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 初めて参加する人でも開発できるサッカーAIです。
@@ -134,6 +136,10 @@ grSimを使ったシミュレータ上でのロボット操作方法、
 
 [チュートリアル](doc/Tutorial.md)
 
+
+## Documents
+
+- [CON-SAIのROSパッケージ概要](./doc/Packages/Main.md)
 
 ## Author
 
