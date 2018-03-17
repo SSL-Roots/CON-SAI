@@ -3,6 +3,7 @@
 
 import rospy
 import tf
+import re
 from collections import OrderedDict, defaultdict
 
 from nav_msgs.msg import Odometry
@@ -260,23 +261,23 @@ class WorldModel(object):
     def get_pose(cls, name):
         pose = None
 
-        if name == 'Ball':
+        if re.match('Ball', name):
             ball_pose = WorldModel._ball_odom.pose.pose.position
             pose = Pose(ball_pose.x, ball_pose.y, 0)
 
-        elif name[:4] == 'Role':
+        elif re.match('Role', name):
             robot_id = WorldModel.assignments[name]
             pose = WorldModel.get_friend_pose(robot_id)
 
-        elif name[:5] == 'Enemy':
+        elif re.match('Enemy', name):
             robot_id = WorldModel.enemy_assignments[name]
             pose = WorldModel.get_enemy_pose(robot_id)
 
-        elif name[:6] == 'Threat':
+        elif re.match('Threat', name):
             robot_id = WorldModel._threat_assignments[name]
             pose = WorldModel.get_enemy_pose(robot_id)
 
-        elif name[:5] == 'CONST':
+        elif re.match('CONST', name):
             pose = constants.poses[name]
 
         return pose
@@ -286,19 +287,19 @@ class WorldModel(object):
     def get_velocity(cls, name):
         velocity = None
 
-        if name == 'Ball':
+        if re.match('Ball', name):
             linear = WorldModel._ball_odom.twist.twist.linear
             velocity = Velocity(linear.x, linear.y, 0)
 
-        elif name[:4] == 'Role':
+        elif re.match('Role', name):
             robot_id = WorldModel.assignments[name]
             velocity = WorldModel.get_friend_velocity(robot_id)
 
-        elif name[:5] == 'Enemy':
+        elif re.match('Enemy', name):
             robot_id = WorldModel.enemy_assignments[name]
             velocity = WorldModel.get_enemy_velocity(robot_id)
 
-        elif name[:6] == 'Threat':
+        elif re.match('Threat', name):
             robot_id = WorldModel._threat_assignments[name]
             velocity = WorldModel.get_enemy_velocity(robot_id)
 
@@ -491,10 +492,15 @@ class WorldModel(object):
 
     @classmethod
     def _update_closest_role(cls, is_friend_role=True):
+        # ボールに一番いroleをclosest_roleにセットする
+        # ボールが動いている場合は、その軌道上にいるロボットがclosest_roleにする
+
         thresh_dist = 1000
         hysteresis = 0.2
 
         ball_pose = WorldModel.get_pose('Ball')
+        ball_vel = WorldModel.get_velocity('Ball')
+        ball_is_moving = WorldModel._observer.ball_is_moving(ball_vel)
         closest_role = None
 
         prev_closest_role = None
@@ -514,15 +520,33 @@ class WorldModel(object):
             if pose is None:
                 continue
 
-            dist_to_ball = tool.getSize(pose, ball_pose)
+            if ball_is_moving:
+                # ボールが動いてたら、ボール軌道に一番近いroleを抽出する
 
-            # ヒステリシスをもたせる
-            if role == prev_closest_role:
-                dist_to_ball -= hysteresis
+                # ロボットがボール軌道上にいるかチェック
+                is_on_trajectory, dist = WorldModel._observer.is_on_trajectory(
+                        pose, ball_pose, ball_vel)
 
-            if dist_to_ball < thresh_dist:
-                thresh_dist = dist_to_ball
-                closest_role = role
+                if is_on_trajectory:
+                    # ヒステリシスをもたせる
+                    if role == prev_closest_role:
+                        dist -= hysteresis
+
+                    if dist < thresh_dist:
+                        thresh_dist = dist
+                        closest_role = role
+
+            else:
+                # ボールが止まっていたら、ボールに一番近いroleを抽出する
+                dist_to_ball = tool.getSize(pose, ball_pose)
+
+                # ヒステリシスをもたせる
+                if role == prev_closest_role:
+                    dist_to_ball -= hysteresis
+
+                if dist_to_ball < thresh_dist:
+                    thresh_dist = dist_to_ball
+                    closest_role = role
 
 
         if is_friend_role:
