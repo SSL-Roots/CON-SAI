@@ -24,6 +24,7 @@ class Observer
 {
     public:
         Observer(ros::NodeHandle& nh, std::string poses_source) :
+            mPosesSource(poses_source),
             sub_vision(nh.subscribe(poses_source, 1000, &Observer::visionCallBack, this)),
             observation_refreshed(false){}
 
@@ -35,7 +36,7 @@ class Observer
                 observation_refreshed = false;
             } else {
                 odom = estimator->estimate();
-                ROS_DEBUG("No Observation received!");
+                ROS_DEBUG("No Observation received! %s", mPosesSource.c_str());
             }
 
             publish(odom);
@@ -48,6 +49,7 @@ class Observer
         geometry_msgs::PoseArray last_observation;
         geometry_msgs::Accel accel_;
         bool observation_refreshed;
+        std::string mPosesSource;
 
         virtual void publish(nav_msgs::Odometry odom) = 0;
         virtual void visionCallBackProcess(consai_msgs::VisionObservations msg) = 0;
