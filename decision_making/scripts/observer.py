@@ -71,32 +71,54 @@ class Observer(object):
 
     
     def _is_in_our_defence(self, pose, is_in_defence):
-        target_x = pose.x
-        target_y = math.fabs(pose.y)
+        # for RoboRensyu
+        our_goal = Pose(-constants.FieldHalfX, 0, 0)
+
+        goal_to_pose = tool.getSize(our_goal, pose)
+
         if is_in_defence:
-            target_x -= self._hysteresis
-            target_y -= self._hysteresis
+            goal_to_pose += self._hysteresis
 
-        if target_y < constants.PenaltyY and \
-            target_x < -constants.PenaltyX:
-
+        if goal_to_pose < 1.2:
             return True
+
+        # target_x = pose.x
+        # target_y = math.fabs(pose.y)
+        # if is_in_defence:
+        #     target_x -= self._hysteresis
+        #     target_y -= self._hysteresis
+        #
+        # if target_y < constants.PenaltyY and \
+        #     target_x < -constants.PenaltyX:
+        #
+        #     return True
 
         return False
 
 
     def _is_in_their_defence(self, pose, is_in_defence):
-        target_x = pose.x
-        target_y = math.fabs(pose.y)
+        # for RoboRensyu
+        their_goal = Pose(constants.FieldHalfX, 0, 0)
+
+        goal_to_pose = tool.getSize(their_goal, pose)
+
         if is_in_defence:
-            target_x += self._hysteresis
-            target_y -= self._hysteresis
+            goal_to_pose += self._hysteresis
 
-        if target_y < constants.PenaltyY and \
-            target_x > constants.PenaltyX:
-
+        if goal_to_pose < 1.2:
             return True
 
+        # target_x = pose.x
+        # target_y = math.fabs(pose.y)
+        # if is_in_defence:
+        #     target_x += self._hysteresis
+        #     target_y -= self._hysteresis
+        #
+        # if target_y < constants.PenaltyY and \
+        #     target_x > constants.PenaltyX:
+        #
+        #     return True
+        #
         return False
 
 
