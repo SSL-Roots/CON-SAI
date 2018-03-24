@@ -1,8 +1,9 @@
 
-from test0 import Test0, Test1
+import test0
 
 class TestBook(object):
 
     book = []
-    book.append(Test0())
-    book.append(Test1())
+    book.append(test0.Test0())
+    book.append(test0.Test1())
+    book.append(test0.Test2())
