@@ -23,13 +23,9 @@ class Test0(Play):
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticHalt('TacticHalt', self.roles[0].my_role))
+                TacticInplayShoot('TacticInplayShoot', self.roles[0].my_role))
 
-        self.roles[1].loop_enable = True
-        self.roles[1].behavior.add_child(
-                TacticInplayShoot('TacticInplayShoot', self.roles[1].my_role))
-
-        for i in range(2,6):
+        for i in range(1,6):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
@@ -46,17 +42,13 @@ class Test1(Play):
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticHalt('TacticHalt', self.roles[0].my_role))
-
-        self.roles[1].loop_enable = True
-        self.roles[1].behavior.add_child(
-                TacticPosition('TacticPosition1', self.roles[1].my_role,
+                TacticPosition('TacticPosition1', self.roles[0].my_role,
                     -1.5, 2.0, math.pi * 0.5))
-        self.roles[1].behavior.add_child(
-                TacticPosition('TacticPosition2', self.roles[1].my_role, 
+        self.roles[0].behavior.add_child(
+                TacticPosition('TacticPosition2', self.roles[0].my_role, 
                     -1.5, -2.0, math.pi * 0.5))
 
-        for i in range(2,6):
+        for i in range(1,6):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
@@ -72,3 +64,8 @@ class Test2(Play):
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
                 TacticCommand('TacticCommand', self.roles[0].my_role))
+
+        for i in range(1,6):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticHalt("TacticHalt", self.roles[i].my_role))
