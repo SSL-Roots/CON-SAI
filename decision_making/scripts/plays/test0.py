@@ -7,6 +7,7 @@ from tactics.tactic_halt import TacticHalt
 from tactics.tactic_inplay_shoot import TacticInplayShoot
 from tactics.tactic_position import TacticPosition
 from tactics.tactic_velocity import TacticVelocity
+from tactics.tactic_command import TacticCommand
 
 import math
 
@@ -50,10 +51,10 @@ class Test1(Play):
         self.roles[1].loop_enable = True
         self.roles[1].behavior.add_child(
                 TacticPosition('TacticPosition1', self.roles[1].my_role,
-                    0.0, 2.0, math.pi * 0.5))
+                    -1.5, 2.0, math.pi * 0.5))
         self.roles[1].behavior.add_child(
                 TacticPosition('TacticPosition2', self.roles[1].my_role, 
-                    0.0, -2.0, math.pi * 0.5))
+                    -1.5, -2.0, math.pi * 0.5))
 
         for i in range(2,6):
             self.roles[i].loop_enable = True
@@ -70,5 +71,4 @@ class Test2(Play):
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticVelocity('TacticVelocity', self.roles[0].my_role,
-                    0.5, 0.5, 0.5))
+                TacticCommand('TacticCommand', self.roles[0].my_role))

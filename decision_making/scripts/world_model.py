@@ -379,6 +379,9 @@ class WorldModel(object):
 
         return Velocity(linear.x, linear.y, angular.z)
 
+    @classmethod
+    def get_test_ai_command(cls):
+        return WorldModel._test_ai_command
 
     @classmethod
     def _update_enemy_assignments(cls):
