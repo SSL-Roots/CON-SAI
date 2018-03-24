@@ -6,7 +6,7 @@ from play_base import Play
 from tactics.tactic_halt import TacticHalt
 from tactics.tactic_inplay_shoot import TacticInplayShoot
 from tactics.tactic_position import TacticPosition
-from tactics.tactic_command import TacticCommand
+from tactics.tactic_velocity import TacticVelocity
 
 import math
 
@@ -70,5 +70,5 @@ class Test2(Play):
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticCommand('TacticCommand', self.roles[0].my_role,
+                TacticVelocity('TacticVelocity', self.roles[0].my_role,
                     0.5, 0.5, 0.5))

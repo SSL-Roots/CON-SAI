@@ -8,9 +8,9 @@ sys.path.append(os.pardir)
 from world_model import WorldModel
 
 
-class SendCommand(Task):
+class SendVelocity(Task):
     def __init__(self, name, my_role, vel_x, vel_y, vel_yaw):
-        super(SendCommand, self).__init__(name)
+        super(SendVelocity, self).__init__(name)
         self.my_role = my_role
 
         self._vel_x = vel_x
