@@ -24,6 +24,7 @@ from nav_msgs.msg import Odometry
 from consai_msgs.msg import AIStatus
 from consai_msgs.msg import RefereeTeamInfo
 from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
+from consai_msgs.msg import TestAICommand
 
 
 def publish():
@@ -103,6 +104,10 @@ def callback_geometry(msg):
             constants.set_penalty(p_x, p_y)
 
 
+def callback_test_ai_command(msg):
+    WorldModel.set_test_ai_command(msg)
+
+
 def main():
     r   = rospy.Rate(30)
 
@@ -135,6 +140,7 @@ if __name__ == '__main__':
     subs_enemy_odom = []
     sub_test_name = rospy.Subscriber('test_name', String, callback_test_name)
     sub_geometry = rospy.Subscriber('geometry_field_size', GeometryFieldSize, callback_geometry)
+    sub_test_ai_command = rospy.Subscriber('test_ai_command', TestAICommand, callback_test_ai_command)
 
     for robot_id in xrange(12):
         id_str = str(robot_id)

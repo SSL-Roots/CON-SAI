@@ -26,6 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
    FieldLineSegment.msg
    FieldCircularArc.msg
    GeometryFieldSize.msg
+   TestAICommand.msg
  )
 
  generate_messages(

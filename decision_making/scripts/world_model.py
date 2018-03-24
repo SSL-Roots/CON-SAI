@@ -10,6 +10,7 @@ from nav_msgs.msg import Odometry
 from consai_msgs.msg import Pose
 from consai_msgs.msg import Pose as Velocity
 from consai_msgs.msg import RefereeTeamInfo
+from consai_msgs.msg import TestAICommand
 
 import tool
 import constants
@@ -118,6 +119,7 @@ class WorldModel(object):
     _ball_closest_frined_role = None
     _ball_closest_enemy_role = None
 
+    _test_ai_command = TestAICommand()
 
     @classmethod
     def update_world(cls):
@@ -256,6 +258,9 @@ class WorldModel(object):
     def set_test_name(cls, data):
         WorldModel._current_test = data
 
+    @classmethod
+    def set_test_ai_command(cls, msg):
+        WorldModel._test_ai_command = msg
 
     @classmethod
     def get_pose(cls, name):
