@@ -38,8 +38,22 @@ public:
         float   vel_norm  = hypot(msg->vel_surge, msg->vel_sway),
             vel_theta = atan2(msg->vel_sway, msg->vel_surge) + M_PI/2,
             omega     = msg->omega,
-            kick_power= (msg->kick_speed_x > 0.0) ? 15 : 0,
-            dribble_power   = (msg->dribble_power > 0.0) ? 15 : 0;
+            // kick_power= (msg->kick_speed_x > 0.0) ? 15 : 0,
+            // dribble_power   = (msg->dribble_power > 0.0) ? 15 : 0;
+            kick_power = msg->kick_speed_x,
+            dribble_power = msg->dribble_power;
+
+        if(kick_power >= 15.0){
+            kick_power = 15;
+        }else if(kick_power < 0){
+            kick_power = 0;
+        }
+
+        if(dribble_power >= 15.0){
+            dribble_power = 15;
+        }else if(dribble_power < 0){
+            dribble_power = 0;
+        }
         RobotCommand::KickType  kick_type = (msg->kick_speed_z > 0.0) ? RobotCommand::CHIP : RobotCommand::STRAIGHT;
 
         RobotCommand cmd(mID_, vel_norm, vel_theta, omega, dribble_power, kick_power, kick_type);
