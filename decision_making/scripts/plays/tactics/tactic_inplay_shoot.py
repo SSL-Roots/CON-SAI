@@ -26,7 +26,7 @@ class _Shoot(Sequence):
         super(_Shoot, self).__init__(name)
 
         coord = Coordinate()
-        coord.set_approach_to_shoot(my_role, target='CONST_OUR_GOAL')
+        coord.set_approach_to_shoot(my_role, target='CONST_THEIR_GOAL')
 
         DRIVE = ParallelOne('DRIVE')
         DRIVE.add_child(DynamicDrive('drive_to_ball', my_role, coord))
