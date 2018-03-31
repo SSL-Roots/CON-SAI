@@ -21,5 +21,6 @@
   <run_depend>rospy</run_depend>
   <run_depend>std_msgs</run_depend>
   <run_depend>tf</run_depend>
+  <test_depend>rosunit</test_depend>
 
 </package>

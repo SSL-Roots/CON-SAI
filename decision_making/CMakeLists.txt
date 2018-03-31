@@ -15,3 +15,5 @@ catkin_package()
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+
+catkin_add_nosetests(scripts/tests/test_world_model.py)
