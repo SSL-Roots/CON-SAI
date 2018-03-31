@@ -1,13 +1,13 @@
 sudo: required
 dist: trusty
-
+notifications:
+  slack:
+    secure: DYce/F8Gv5pUClFc8XqEa8BmcC+QXknylBcJ4ZXQhHEhnCO8Q9djgRVpLC3vzGlFjzeNpGWyScR9ZwuLDceI5apKSc+p2qqrtuzePfalAlKZJMPYgSRK6dko0aoX8kfPGChUXsduq7Kfn7z1/cX04g1qAYUuvdtr1xO6NvElhtj7rRmjjo25FDHcoRplOXcC2sa3p/hacf3rjriuaZXhDCEcPRfN7rQS3Dvd7pqPDrrCyJzOpyVI2Uv5CL75ycKt3HoQAcDfdfARRVHnM/LTPU23Lw3EXbJ4PcQgeVrfAykLFf+7iaF6Nljb7wrak4bm3mjnC1v8GeH6wgYRexWFvZsAqB8V3zDm+sJ5RDdNaJPV3zdZZX7a9YZn80518frpQTg7e1Dwv03rn8H45+05ZSzMoBjn4pzC60tpncghyDK1Qyz9gihPgjEt9Bc8vWsIaCtu2AxRhLydHKYWZf0XNIG3KuigEzpZm3jrzomQxDWCzv2SS995d75XNKIfMdHvMqNNeXjuM1rIDgWClk95wxd2h9GOeZ1n+/SqANWUp17s6YlsnBdgO8Ssuwa8WjUJSTt/9zBxE1msAYroe7wwbBwlQRFQKvjYQWo3WowC5DERQeGzLxEt6Fq+MbAM0aKu6pRe2utmv0tz/+yCu7NTS2ry14pZy70jZt71dAO1J60=
 before_install:
-  - bash -xve ./test/travis_ros_install.bash
-  - source ~/catkin_ws/devel/setup.bash
-
+- bash -xve ./test/travis_ros_install.bash
+- source ~/catkin_ws/devel/setup.bash
 install:
-  - bash -xve ./test/travis_build_consai.bash
-  - source ~/catkin_ws/devel/setup.bash
-
+- bash -xve ./test/travis_build_consai.bash
+- source ~/catkin_ws/devel/setup.bash
 script:
-  - bash -xve ./test/travis_script.bash
+- bash -xve ./test/travis_script.bash
