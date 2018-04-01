@@ -2,5 +2,11 @@
 
 cd ~/catkin_ws
 
-catkin_make run_tests    # Always returns 0
-catkin_test_results # Output previous test results
+# Code level tests
+catkin_make run_tests # Always returns 0
+catkin_test_results   # Output previous test results
+
+# Node level tests
+rostest ai_core test_ai_core.test
+rostest ai_core test_simulator.test
+rostest ai_core test_robot.test ai_name:="/" number:=0
