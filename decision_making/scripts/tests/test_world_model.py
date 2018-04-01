@@ -46,7 +46,7 @@ class TestWorldModel(unittest.TestCase):
 
 
     def test_set_friend_goalie_id(self):
-        robot_id = 2
+        robot_id = 0
 
         WorldModel.set_friend_goalie_id(robot_id)
         actual = WorldModel._friend_goalie_id
@@ -114,8 +114,6 @@ class TestWorldModel(unittest.TestCase):
 
 
     def test_update_assignments(self):
-        # Initialize goalie id
-        WorldModel._friend_goalie_id = 0
         test_assignments = OrderedDict()
 
         # Test blank id_list
@@ -214,6 +212,26 @@ class TestWorldModel(unittest.TestCase):
         test_assignments['Role_5'] = None
         WorldModel.update_assignments()
         self.assertEqual(test_assignments, WorldModel.assignments, "5:Exchanges Role")
+
+
+    def test_set_get_role_odom(self):
+        # Initialize id_list
+        id_list = [0, 1, 2]
+        WorldModel.set_existing_friends_id(id_list)
+        WorldModel.update_assignments()
+
+        WorldModel.set_friend_odom(self.test_odom, 0)
+
+        actual = WorldModel.get_pose('Role_0')
+        # actual = WorldModel.get_friend_pose(1)
+        self.assertAlmostEqual(self.test_odom.pose.pose.position.x, actual.x)
+        self.assertAlmostEqual(self.test_odom.pose.pose.position.y, actual.y)
+
+        actual = WorldModel.get_velocity('Role_0')
+        # actual = WorldModel.get_friend_velocity(1)
+        self.assertAlmostEqual(self.test_odom.twist.twist.linear.x, actual.x)
+        self.assertAlmostEqual(self.test_odom.twist.twist.linear.y, actual.y)
+
 
 
 if __name__ == "__main__":
