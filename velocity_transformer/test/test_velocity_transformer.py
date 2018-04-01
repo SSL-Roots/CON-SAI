@@ -12,6 +12,6 @@ class VelocityTransformerTest(unittest.TestCase):
         self.assertIn('/robot_0/velocity_transformer', nodes, 'node does not exist')
 
 if __name__ == '__main__':
-    time.sleep(3) # テスト対象のノードが立ち上がるのを待つ
+    time.sleep(1) # テスト対象のノードが立ち上がるのを待つ
     rospy.init_node('test_velocity_transformer')
     rostest.rosrun('velocity_transformer', 'test_velocity_transformer', VelocityTransformerTest)
