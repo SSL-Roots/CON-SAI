@@ -1,6 +1,6 @@
 #!/bin/bash -xve
 
-cs ~/catkin_ws
+cd ~/catkin_ws
 catkin_make run_tests
 
 rostest ai_core test_simulator.launch
