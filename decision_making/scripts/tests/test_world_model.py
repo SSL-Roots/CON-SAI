@@ -204,7 +204,7 @@ class TestWorldModel(unittest.TestCase):
 
         id_list = [0, 1, 3, 11]
         WorldModel.set_existing_friends_id(id_list)
-        test_assignments['Role_0'] = 1
+        test_assignments['Role_0'] = 0
         test_assignments['Role_1'] = 3
         test_assignments['Role_2'] = 11
         test_assignments['Role_3'] = 1
