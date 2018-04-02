@@ -21,6 +21,8 @@ class TestWorldModel(unittest.TestCase):
         self.test_odom.twist.twist.linear.x = 3.0
         self.test_odom.twist.twist.linear.y = 4.0
 
+        self.init_odom = Odometry()
+
 
     def test_set_friend_color(self):
         blue_dict = WorldModel._refbox_dict_blue
@@ -63,7 +65,7 @@ class TestWorldModel(unittest.TestCase):
         actual = WorldModel._enemy_goalie_id
         self.assertEqual(test_info.goalie, actual)
         
-        test_info.goalie = 3
+        test_info.goalie = 0
         WorldModel.set_friend_color('yellow')
         WorldModel.set_blue_info(test_info)
         actual = WorldModel._enemy_goalie_id
@@ -223,14 +225,174 @@ class TestWorldModel(unittest.TestCase):
         WorldModel.set_friend_odom(self.test_odom, 0)
 
         actual = WorldModel.get_pose('Role_0')
-        # actual = WorldModel.get_friend_pose(1)
         self.assertAlmostEqual(self.test_odom.pose.pose.position.x, actual.x)
         self.assertAlmostEqual(self.test_odom.pose.pose.position.y, actual.y)
 
         actual = WorldModel.get_velocity('Role_0')
-        # actual = WorldModel.get_friend_velocity(1)
         self.assertAlmostEqual(self.test_odom.twist.twist.linear.x, actual.x)
         self.assertAlmostEqual(self.test_odom.twist.twist.linear.y, actual.y)
+
+
+    def test_enemy_assignments(self):
+        test_assignments = OrderedDict()
+
+        # Test blank id_list
+        id_list = []
+        WorldModel.set_existing_enemies_id(id_list)
+        for i in range(6):
+            key = 'Enemy_' + str(i)
+            test_assignments[key] = None
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Blank id_list")
+
+        # Test ordered id_list
+        id_list = [0, 1, 2, 3, 4, 5]
+        WorldModel.set_existing_enemies_id(id_list)
+        for i in range(6):
+            key = 'Enemy_' + str(i)
+            test_assignments[key] = i
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Ordered id_list")
+
+        # Test other ID
+        id_list = [0, 6, 7, 8, 9, 10]
+        WorldModel.set_existing_enemies_id(id_list)
+        for i in range(6):
+            key = 'Enemy_' + str(i)
+            test_assignments[key] = id_list[i]
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Other ID")
+
+        # Test blank goalie ID
+        id_list = [11, 6, 7, 8, 9, 10]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = None
+        for i in range(1,6):
+            key = 'Enemy_' + str(i)
+            test_assignments[key] = id_list[i]
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Blank goalie ID")
+
+        # Test exitsts goalie ID only
+        id_list = [0]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = 0
+        for i in range(1,6):
+            key = 'Enemy_' + str(i)
+            test_assignments[key] = None
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Goalie ID Only")
+
+        # Test exchanges Role
+        id_list = [0, 1, 2, 3]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = 0
+        test_assignments['Enemy_1'] = 1
+        test_assignments['Enemy_2'] = 2
+        test_assignments['Enemy_3'] = 3
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "1:Exchanges Role")
+
+        id_list = [0, 2, 3]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = 0
+        test_assignments['Enemy_1'] = 3
+        test_assignments['Enemy_2'] = 2
+        test_assignments['Enemy_3'] = None
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "2:Exchanges Role")
+
+        id_list = [0, 1, 2, 3]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = 0
+        test_assignments['Enemy_1'] = 3
+        test_assignments['Enemy_2'] = 2
+        test_assignments['Enemy_3'] = 1
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "3:Exchanges Role")
+
+        id_list = [0, 1, 2, 3, 10, 11]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = 0
+        test_assignments['Enemy_1'] = 3
+        test_assignments['Enemy_2'] = 2
+        test_assignments['Enemy_3'] = 1
+        test_assignments['Enemy_4'] = 10
+        test_assignments['Enemy_5'] = 11
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "4:Exchanges Role")
+
+        id_list = [0, 1, 3, 11]
+        WorldModel.set_existing_enemies_id(id_list)
+        test_assignments['Enemy_0'] = 0
+        test_assignments['Enemy_1'] = 3
+        test_assignments['Enemy_2'] = 11
+        test_assignments['Enemy_3'] = 1
+        test_assignments['Enemy_4'] = None
+        test_assignments['Enemy_5'] = None
+        WorldModel._update_enemy_assignments()
+        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "5:Exchanges Role")
+
+
+    def test_set_get_enemy_odom(self):
+        # Initialize id_list
+        id_list = [0, 1, 2]
+        WorldModel.set_existing_enemies_id(id_list)
+        WorldModel._update_enemy_assignments()
+
+        WorldModel.set_enemy_odom(self.test_odom, 0)
+
+        actual = WorldModel.get_pose('Enemy_0')
+        self.assertAlmostEqual(self.test_odom.pose.pose.position.x, actual.x)
+        self.assertAlmostEqual(self.test_odom.pose.pose.position.y, actual.y)
+
+        actual = WorldModel.get_velocity('Enemy_0')
+        self.assertAlmostEqual(self.test_odom.twist.twist.linear.x, actual.x)
+        self.assertAlmostEqual(self.test_odom.twist.twist.linear.y, actual.y)
+
+
+    def test_ball_kicked(self):
+        ball_odom = self.test_odom
+        WorldModel.set_ball_odom(ball_odom)
+
+        expected = True
+        actual = WorldModel.ball_kicked()
+        self.assertEqual(expected, actual)
+
+        ball_odom.twist.twist.linear.x = 0
+        ball_odom.twist.twist.linear.y = 0
+        WorldModel.set_ball_odom(ball_odom)
+
+        expected = False
+        actual = WorldModel.ball_kicked()
+        self.assertEqual(expected, actual)
+
+
+    def test_ball_is_moving(self):
+        ball_odom = self.test_odom
+        WorldModel.set_ball_odom(ball_odom)
+
+        expected = True
+        actual = WorldModel.ball_is_moving()
+        self.assertEqual(expected, actual)
+
+        ball_odom.twist.twist.linear.x = 0
+        ball_odom.twist.twist.linear.y = 0
+        WorldModel.set_ball_odom(ball_odom)
+
+        expected = False
+        actual = WorldModel.ball_is_moving()
+        self.assertEqual(expected, actual)
+
+
+    # def test_update_situation(self):
+        # Initialize information
+        # WorldModel.set_friend_color('blue')
+        # WorldModel.set_ball_odom(self.init_odom)
+        #
+        # WorldModel.set_refbox_command(SSL_Referee.HALT)
+        #
+        # self.assertEqual(True,True)
 
 
 
