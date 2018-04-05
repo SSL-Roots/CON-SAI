@@ -385,15 +385,83 @@ class TestWorldModel(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 
-    # def test_update_situation(self):
+    def test_update_situation(self):
         # Initialize information
-        # WorldModel.set_friend_color('blue')
-        # WorldModel.set_ball_odom(self.init_odom)
-        #
-        # WorldModel.set_refbox_command(SSL_Referee.HALT)
-        #
-        # self.assertEqual(True,True)
+        WorldModel.set_friend_color('blue')
+        WorldModel.set_ball_odom(self.init_odom)
+        
+        self._test_situation(SSL_Referee.HALT, 'HALT')
 
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.FORCE_START, 'FORCE_START')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.PREPARE_KICKOFF_BLUE, 'OUR_PRE_KICKOFF')
+        self._test_situation(SSL_Referee.NORMAL_START, 'OUR_KICKOFF_START')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.PREPARE_PENALTY_BLUE, 'OUR_PRE_PENALTY')
+        self._test_situation(SSL_Referee.NORMAL_START, 'OUR_PENALTY_START')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.DIRECT_FREE_BLUE, 'OUR_DIRECT')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.INDIRECT_FREE_BLUE, 'OUR_INDIRECT')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.TIMEOUT_BLUE, 'OUR_TIMEOUT')
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.PREPARE_KICKOFF_YELLOW, 'THEIR_PRE_KICKOFF')
+        self._test_situation(SSL_Referee.NORMAL_START, 'THEIR_KICKOFF_START')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.PREPARE_PENALTY_YELLOW, 'THEIR_PRE_PENALTY')
+        self._test_situation(SSL_Referee.NORMAL_START, 'THEIR_PENALTY_START')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.DIRECT_FREE_YELLOW, 'THEIR_DIRECT')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.INDIRECT_FREE_YELLOW, 'THEIR_INDIRECT')
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.TIMEOUT_YELLOW, 'THEIR_TIMEOUT')
+
+
+    def _test_situation(self, refbox_command, expected):
+        WorldModel.set_refbox_command(refbox_command)
+        WorldModel._update_situation()
+        actual = WorldModel._current_situation
+        self.assertEqual(actual, expected, "Wrong situation :" + expected)
 
 
 if __name__ == "__main__":
