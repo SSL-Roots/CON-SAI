@@ -14,6 +14,7 @@ from consai_msgs.msg import TestAICommand
 
 import tool
 import constants
+import assignor
 from proto.referee_pb2 import SSL_Referee
 from command import Command
 from observer import Observer
@@ -133,56 +134,24 @@ class WorldModel(object):
     
     @classmethod
     def update_assignments(cls, assignment_type=None):
-        # IDが存在しないRoleをNoneにする
-        IDs = WorldModel._existing_friends_id[:]
-        
-        for role, robot_id in WorldModel.assignments.items():
-            if not robot_id in IDs:
-                WorldModel.assignments[role] = None
+        closest_role = None
+        WorldModel.assignments = assignor.update_assignments(
+                WorldModel.assignments,
+                WorldModel._existing_friends_id,
+                'Role_',
+                WorldModel._friend_goalie_id,
+                assignment_type,
+                closest_role)
 
-        # IDsからすでにRoleが登録されてるIDを取り除く
-        for robot_id in WorldModel.assignments.values():
-            if robot_id in IDs:
-                IDs.remove(robot_id)
 
-        # Role_0にGoalie_IDを登録する
-        if WorldModel._friend_goalie_id in IDs:
-            IDs.remove(WorldModel._friend_goalie_id)
-            WorldModel.assignments['Role_0'] = WorldModel._friend_goalie_id
-        
-        # 残ったIDを順番にRoleに登録する
-        for role, robot_id in WorldModel.assignments.items():
-            if IDs and role != 'Role_0' and robot_id is None:
-                WorldModel.assignments[role] = IDs.pop(0)
-        
-        # IDが登録されてないRoleは末尾から詰める
-        target_i = 1
-        replace_i = 5
-        while replace_i - target_i > 0:
-            while replace_i > 2:
-                if WorldModel.assignments['Role_' + str(replace_i)] is not None:
-                    break
-                replace_i -= 1
-
-            target_role = 'Role_' + str(target_i)
-            if WorldModel.assignments[target_role] is None:
-                replace_role = 'Role_' + str(replace_i)
-                replace_ID = WorldModel.assignments[replace_role]
-                WorldModel.assignments[target_role] = replace_ID
-                WorldModel.assignments[replace_role] = None
-
-            target_i += 1
-
-        # Ball holder のRoleとRole_1を入れ替える
-        # Ball holderがRole_0だったら何もしない
-        if assignment_type == 'CLOSEST_BALL':
-            closest_role = WorldModel._update_closest_role(True)
-            if closest_role and closest_role != 'Role_0':
-                old_id = WorldModel.assignments['Role_1']
-                WorldModel.assignments['Role_1'] = WorldModel.assignments[closest_role]
-                WorldModel.assignments[closest_role] = old_id
-                # closest_role をRole_1にもどす
-                WorldModel._ball_closest_frined_role = 'Role_1'
+    @classmethod
+    def _update_enemy_assignments(cls):
+        closest_role = None
+        WorldModel.enemy_assignments = assignor.update_assignments(
+                WorldModel.enemy_assignments,
+                WorldModel._existing_enemies_id,
+                'Enemy_',
+                WorldModel._enemy_goalie_id)
 
     
     @classmethod
@@ -382,48 +351,6 @@ class WorldModel(object):
     @classmethod
     def get_test_ai_command(cls):
         return WorldModel._test_ai_command
-
-    @classmethod
-    def _update_enemy_assignments(cls):
-        # IDが存在しないRoleをNoneにする
-        IDs = WorldModel._existing_enemies_id[:]
-        
-        for role, robot_id in WorldModel.enemy_assignments.items():
-            if not robot_id in IDs:
-                WorldModel.enemy_assignments[role] = None
-
-        # IDsからすでにRoleが登録されてるIDを取り除く
-        for robot_id in WorldModel.enemy_assignments.values():
-            if robot_id in IDs:
-                IDs.remove(robot_id)
-
-        # Role_0にGoalie_IDを登録する
-        if WorldModel._enemy_goalie_id in IDs:
-            IDs.remove(WorldModel._enemy_goalie_id)
-            WorldModel.enemy_assignments['Enemy_0'] = WorldModel._enemy_goalie_id
-        
-        # 残ったIDを順番にRoleに登録する
-        for role, robot_id in WorldModel.enemy_assignments.items():
-            if IDs and role != 'Enemy_0' and robot_id is None:
-                WorldModel.enemy_assignments[role] = IDs.pop(0)
-        
-        # IDが登録されてないRoleは末尾から詰める
-        target_i = 1
-        replace_i = 5
-        while replace_i - target_i > 0:
-            while replace_i > 2:
-                if WorldModel.enemy_assignments['Enemy_' + str(replace_i)] is not None:
-                    break
-                replace_i -= 1
-
-            target_role = 'Enemy_' + str(target_i)
-            if WorldModel.enemy_assignments[target_role] is None:
-                replace_role = 'Enemy_' + str(replace_i)
-                replace_ID = WorldModel.enemy_assignments[replace_role]
-                WorldModel.enemy_assignments[target_role] = replace_ID
-                WorldModel.enemy_assignments[replace_role] = None
-
-            target_i += 1
 
 
     @classmethod
