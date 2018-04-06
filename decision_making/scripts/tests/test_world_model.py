@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 from scripts.world_model import WorldModel
 from scripts.world_model import SSL_Referee
+import scripts.constants as constants
 
 from consai_msgs.msg import RefereeTeamInfo
 from nav_msgs.msg import Odometry
@@ -15,13 +16,25 @@ from nav_msgs.msg import Odometry
 class TestWorldModel(unittest.TestCase):
 
     def setUp(self):
-        self.test_odom = Odometry()
-        self.test_odom.pose.pose.position.x = 1.0
+        self.init_odom = Odometry() # All parameters are zero
+
+        self.test_odom = Odometry() 
+        self.test_odom.pose.pose.position.x = 1.0 # Inside of field
         self.test_odom.pose.pose.position.y = 2.0
-        self.test_odom.twist.twist.linear.x = 3.0
+        self.test_odom.twist.twist.linear.x = 3.0 # Moving
         self.test_odom.twist.twist.linear.y = 4.0
 
-        self.init_odom = Odometry()
+        self.outside_odom = Odometry()
+        self.outside_odom.pose.pose.position.x = 100 # Outside of field
+        self.outside_odom.pose.pose.position.y = 100
+
+        # Our defence area
+        self.ourside_odom = Odometry()
+        self.ourside_odom.pose.pose.position.x = -(constants.FieldHalfX - 0.3)
+
+        # Their defence area
+        self.theirside_odom = Odometry()
+        self.theirside_odom.pose.pose.position.x = (constants.FieldHalfX - 0.3)
 
 
     def test_set_friend_color(self):
@@ -386,8 +399,44 @@ class TestWorldModel(unittest.TestCase):
 
 
     def test_update_situation(self):
+        self._test_update_situation_color('blue')
+        self._test_update_situation_color('yellow')
+
+    def _test_update_situation_color(self, color):
+        PRE_KICKOFF_BLUE = 'OUR_PRE_KICKOFF'
+        KICKOFF_START_BLUE = 'OUR_KICKOFF_START'
+        PRE_PENALTY_BLUE = 'OUR_PRE_PENALTY'
+        PENALTY_START_BLUE = 'OUR_PENALTY_START'
+        DIRECT_BLUE = 'OUR_DIRECT'
+        INDIRECT_BLUE = 'OUR_INDIRECT'
+        TIMEOUT_BLUE = 'OUR_TIMEOUT'
+        PRE_KICKOFF_YELLOW = 'THEIR_PRE_KICKOFF'
+        KICKOFF_START_YELLOW = 'THEIR_KICKOFF_START'
+        PRE_PENALTY_YELLOW = 'THEIR_PRE_PENALTY'
+        PENALTY_START_YELLOW = 'THEIR_PENALTY_START'
+        DIRECT_YELLOW = 'THEIR_DIRECT'
+        INDIRECT_YELLOW = 'THEIR_INDIRECT'
+        TIMEOUT_YELLOW = 'THEIR_TIMEOUT'
+
+        if color == 'yellow':
+            PRE_KICKOFF_BLUE = 'THEIR_PRE_KICKOFF'
+            KICKOFF_START_BLUE = 'THEIR_KICKOFF_START'
+            PRE_PENALTY_BLUE = 'THEIR_PRE_PENALTY'
+            PENALTY_START_BLUE = 'THEIR_PENALTY_START'
+            DIRECT_BLUE = 'THEIR_DIRECT'
+            INDIRECT_BLUE = 'THEIR_INDIRECT'
+            TIMEOUT_BLUE = 'THEIR_TIMEOUT'
+            PRE_KICKOFF_YELLOW = 'OUR_PRE_KICKOFF'
+            KICKOFF_START_YELLOW = 'OUR_KICKOFF_START'
+            PRE_PENALTY_YELLOW = 'OUR_PRE_PENALTY'
+            PENALTY_START_YELLOW = 'OUR_PENALTY_START'
+            DIRECT_YELLOW = 'OUR_DIRECT'
+            INDIRECT_YELLOW = 'OUR_INDIRECT'
+            TIMEOUT_YELLOW = 'OUR_TIMEOUT'
+
+
         # Initialize information
-        WorldModel.set_friend_color('blue')
+        WorldModel.set_friend_color(color)
         WorldModel.set_ball_odom(self.init_odom)
         
         self._test_situation(SSL_Referee.HALT, 'HALT')
@@ -399,63 +448,73 @@ class TestWorldModel(unittest.TestCase):
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.PREPARE_KICKOFF_BLUE, 'OUR_PRE_KICKOFF')
-        self._test_situation(SSL_Referee.NORMAL_START, 'OUR_KICKOFF_START')
+        self._test_situation(SSL_Referee.PREPARE_KICKOFF_BLUE, PRE_KICKOFF_BLUE) 
+        self._test_situation(SSL_Referee.NORMAL_START, KICKOFF_START_BLUE)
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
         self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.PREPARE_PENALTY_BLUE, 'OUR_PRE_PENALTY')
-        self._test_situation(SSL_Referee.NORMAL_START, 'OUR_PENALTY_START')
+        self._test_situation(SSL_Referee.PREPARE_PENALTY_BLUE, PRE_PENALTY_BLUE)
+        self._test_situation(SSL_Referee.NORMAL_START, PENALTY_START_BLUE)
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
         self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.DIRECT_FREE_BLUE, 'OUR_DIRECT')
+        self._test_situation(SSL_Referee.DIRECT_FREE_BLUE, DIRECT_BLUE)
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.DIRECT_FREE_BLUE, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.INDIRECT_FREE_BLUE, INDIRECT_BLUE)
+        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
+        self._test_situation(SSL_Referee.INDIRECT_FREE_BLUE, 'IN_PLAY')
+        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.TIMEOUT_BLUE, TIMEOUT_BLUE)
+
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        self._test_situation(SSL_Referee.PREPARE_KICKOFF_YELLOW, PRE_KICKOFF_YELLOW)
+        self._test_situation(SSL_Referee.NORMAL_START, KICKOFF_START_YELLOW)
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
         self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.INDIRECT_FREE_BLUE, 'OUR_INDIRECT')
+        self._test_situation(SSL_Referee.PREPARE_PENALTY_YELLOW, PRE_PENALTY_YELLOW)
+        self._test_situation(SSL_Referee.NORMAL_START, PENALTY_START_YELLOW)
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
         self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.TIMEOUT_BLUE, 'OUR_TIMEOUT')
-
-        self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.PREPARE_KICKOFF_YELLOW, 'THEIR_PRE_KICKOFF')
-        self._test_situation(SSL_Referee.NORMAL_START, 'THEIR_KICKOFF_START')
+        self._test_situation(SSL_Referee.DIRECT_FREE_YELLOW, DIRECT_YELLOW)
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
-        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        self._test_situation(SSL_Referee.DIRECT_FREE_YELLOW, 'IN_PLAY')
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.PREPARE_PENALTY_YELLOW, 'THEIR_PRE_PENALTY')
-        self._test_situation(SSL_Referee.NORMAL_START, 'THEIR_PENALTY_START')
+        self._test_situation(SSL_Referee.INDIRECT_FREE_YELLOW, INDIRECT_YELLOW)
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
-        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
+        self._test_situation(SSL_Referee.INDIRECT_FREE_YELLOW, 'IN_PLAY')
         WorldModel.set_ball_odom(self.init_odom) # Stop Ball
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.DIRECT_FREE_YELLOW, 'THEIR_DIRECT')
-        WorldModel.set_ball_odom(self.test_odom) # Moving Ball
-        self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
-        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
+        self._test_situation(SSL_Referee.TIMEOUT_YELLOW, TIMEOUT_YELLOW)
 
         self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.INDIRECT_FREE_YELLOW, 'THEIR_INDIRECT')
+        self._test_situation(SSL_Referee.FORCE_START, 'FORCE_START')
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
         self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
-        WorldModel.set_ball_odom(self.init_odom) # Stop Ball
-
-        self._test_situation(SSL_Referee.STOP, 'STOP')
-        self._test_situation(SSL_Referee.TIMEOUT_YELLOW, 'THEIR_TIMEOUT')
-
+        WorldModel.set_ball_odom(self.outside_odom) # Ball out of field
+        self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_OUTSIDE')
+        WorldModel.set_ball_odom(self.ourside_odom) # Ball in our defence_area
+        self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_OUR_DEFENCE')
+        WorldModel.set_ball_odom(self.theirside_odom) # Ball in their defence_area
+        self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_THEIR_DEFENCE')
 
     def _test_situation(self, refbox_command, expected):
         WorldModel.set_refbox_command(refbox_command)
