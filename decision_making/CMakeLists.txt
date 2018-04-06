@@ -17,3 +17,4 @@ include_directories(
 )
 
 catkin_add_nosetests(scripts/tests/test_world_model.py)
+catkin_add_nosetests(scripts/tests/test_observer.py)
