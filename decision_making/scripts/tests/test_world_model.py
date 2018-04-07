@@ -515,6 +515,17 @@ class TestWorldModel(unittest.TestCase):
         self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_OUR_DEFENCE')
         WorldModel.set_ball_odom(self.theirside_odom) # Ball in their defence_area
         self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_THEIR_DEFENCE')
+        WorldModel.set_ball_odom(self.init_odom) # Initialize Ball odom
+
+        
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+        WorldModel.set_test_name("TEST0")
+        self._test_situation(SSL_Referee.STOP, 'TEST0')
+        self._test_situation(SSL_Referee.HALT, 'HALT')
+        self._test_situation(SSL_Referee.STOP, 'TEST0')
+        WorldModel.set_test_name("") # Initialize TEST situation
+        self._test_situation(SSL_Referee.STOP, 'STOP')
+
 
     def _test_situation(self, refbox_command, expected):
         WorldModel.set_refbox_command(refbox_command)
@@ -585,4 +596,3 @@ class TestWorldModel(unittest.TestCase):
 
 if __name__ == "__main__":
     import rosunit
-    rosunit.unitrun('decision_making', 'test_world_model', TestWorldModel)
