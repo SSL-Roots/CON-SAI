@@ -20,6 +20,39 @@ from command import Command
 from observer import Observer
 
 
+class State(object):
+    def __init__(self):
+        self._pose = Pose()
+        self._velocity = Velocity()
+        self._is_enabled = False
+
+    def set_pose(self, pose):
+        self._pose = pose
+
+    def set_velocity(self, velocity):
+        self._velocity = velocity
+
+    def set_all(self, pose, velocity):
+        self._pose = pose
+        self._velocity = velocity
+        self._is_enabled = True
+
+    def enable(self):
+        self._is_enabled = True
+
+    def desable(self):
+        self._is_enabled = False
+
+    def get_pose(self):
+        return self._pose
+
+    def get_velocity(self):
+        return self._velocity
+
+    def is_enabled(self):
+        return self._is_enabled
+
+
 class WorldModel(object):
     _s = ['HALT', 'STOP', 'FORCE_START',
             'OUR_PRE_KICKOFF', 'OUR_KICKOFF_START',
@@ -52,12 +85,16 @@ class WorldModel(object):
     enemy_assignments = OrderedDict()
     _threat_assignments = OrderedDict()
 
+    _object_states = dict()
+    _object_states['Ball'] = State()
     for i in range(6):
         key = 'Role_' + str(i)
         assignments[key] = None
+        _object_states[key] = State()
 
         key = 'Enemy_' + str(i)
         enemy_assignments[key] = None
+        _object_states[key] = State()
 
         key = 'Threat_' + str(i)
         _threat_assignments[key] = None
@@ -130,6 +167,7 @@ class WorldModel(object):
 
         WorldModel._update_enemy_assignments()
         WorldModel._update_threat_assignments()
+        WorldModel._update_object_states()
 
     
     @classmethod
@@ -354,6 +392,11 @@ class WorldModel(object):
 
 
     @classmethod
+    def get_object_states(cls):
+        return WorldModel._object_states
+
+
+    @classmethod
     def _update_situation(cls):
         if WorldModel._refbox_command_changed:
             WorldModel._refbox_command_changed = False
@@ -500,3 +543,28 @@ class WorldModel(object):
             closest_id = WorldModel.enemy_assignments[closest_role]
             WorldModel._threat_assignments['Threat_0'] = closest_id
 
+
+    @classmethod
+    def _update_object_states(cls):
+        key = 'Ball'
+        pose = WorldModel.get_pose(key)
+        velocity = WorldModel.get_velocity(key)
+        WorldModel._object_states[key].set_all(pose, velocity)
+
+        WorldModel._set_states(WorldModel.assignments)
+        WorldModel._set_states(WorldModel.enemy_assignments)
+
+    @classmethod
+    def _set_states(cls, assignments):
+        for role, robot_id in assignments.items():
+            if robot_id is None:
+                WorldModel._object_states[role].desable()
+                continue
+                
+            pose = WorldModel.get_pose(role)
+            velocity = WorldModel.get_velocity(role)
+            WorldModel._object_states[role].set_all(pose, velocity)
+
+    @classmethod
+    def can_receive(cls, role):
+        return WorldModel._observer.can_receive(role, WorldModel._object_states)

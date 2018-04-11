@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 #encoding: utf8
 
-import sys
+import sys, os
 import unittest
 from collections import OrderedDict
 
-from scripts.world_model import WorldModel
-from scripts.world_model import SSL_Referee
-import scripts.constants as constants
+pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(pardir)
+
+from world_model import WorldModel
+from world_model import SSL_Referee
+import constants
 
 from consai_msgs.msg import RefereeTeamInfo
 from nav_msgs.msg import Odometry
@@ -594,5 +597,49 @@ class TestWorldModel(unittest.TestCase):
         self.assertEqual(expected, actual)
 
 
+    def test_update_object_states(self):
+        # Initialize
+        WorldModel.set_ball_odom(self.test_odom)
+
+        id_list = [0, 1, 2, 3, 4, 5]
+        WorldModel.set_existing_friends_id(id_list)
+        WorldModel.set_existing_enemies_id(id_list)
+        for i in range(6):
+            WorldModel.set_friend_odom(self.test_odom, i)
+            WorldModel.set_enemy_odom(self.test_odom, i)
+        WorldModel.update_assignments()
+        WorldModel._update_enemy_assignments()
+
+
+        WorldModel._update_object_states()
+
+        states = WorldModel.get_object_states()
+
+        expected = self.test_odom.pose.pose.position.x
+        actual = states['Ball'].get_pose().x
+        self.assertAlmostEqual(expected, actual)
+
+        actual = states['Role_2'].get_pose().x
+        self.assertAlmostEqual(expected, actual)
+
+    def test_can_receive(self):
+        # Initialize
+        WorldModel.set_ball_odom(self.test_odom)
+
+        id_list = [0, 1, 2, 3, 4, 5]
+        WorldModel.set_existing_friends_id(id_list)
+        WorldModel.set_existing_enemies_id(id_list)
+        for i in range(6):
+            WorldModel.set_friend_odom(self.test_odom, i)
+            WorldModel.set_enemy_odom(self.test_odom, i)
+        WorldModel.update_assignments()
+        WorldModel._update_enemy_assignments()
+
+        expected = False
+        actual = WorldModel.can_receive('Role_0')
+        self.assertEqual(expected, actual)
+
+
 if __name__ == "__main__":
     import rosunit
+    rosunit.unitrun('decision_making', 'test_world_model', TestWorldModel)

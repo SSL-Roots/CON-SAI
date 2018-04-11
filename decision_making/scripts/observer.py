@@ -27,6 +27,13 @@ class Observer(object):
         self._ball_is_in_their_defence = False
         self._ball_is_moving = False
 
+        # receive_ball
+        self._can_receive_dist = 1.0 # unit:meter
+        self._can_receive_hysteresis = 0.3
+        self._receiving = dict()
+        for i in range(6):
+            self._receiving['Role_' + str(i)] = False
+
 
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
@@ -71,54 +78,32 @@ class Observer(object):
 
     
     def _is_in_our_defence(self, pose, is_in_defence):
-        # for RoboRensyu
-        our_goal = Pose(-constants.FieldHalfX, 0, 0)
-
-        goal_to_pose = tool.getSize(our_goal, pose)
-
+        target_x = pose.x
+        target_y = math.fabs(pose.y)
         if is_in_defence:
-            goal_to_pose += self._hysteresis
-
-        if goal_to_pose < 1.2:
+            target_x -= self._hysteresis
+            target_y -= self._hysteresis
+        
+        if target_y < constants.PenaltyY and \
+            target_x < -constants.PenaltyX:
+        
             return True
-
-        # target_x = pose.x
-        # target_y = math.fabs(pose.y)
-        # if is_in_defence:
-        #     target_x -= self._hysteresis
-        #     target_y -= self._hysteresis
-        #
-        # if target_y < constants.PenaltyY and \
-        #     target_x < -constants.PenaltyX:
-        #
-        #     return True
 
         return False
 
 
     def _is_in_their_defence(self, pose, is_in_defence):
-        # for RoboRensyu
-        their_goal = Pose(constants.FieldHalfX, 0, 0)
-
-        goal_to_pose = tool.getSize(their_goal, pose)
-
+        target_x = pose.x
+        target_y = math.fabs(pose.y)
         if is_in_defence:
-            goal_to_pose += self._hysteresis
-
-        if goal_to_pose < 1.2:
+            target_x += self._hysteresis
+            target_y -= self._hysteresis
+        
+        if target_y < constants.PenaltyY and \
+            target_x > constants.PenaltyX:
+        
             return True
-
-        # target_x = pose.x
-        # target_y = math.fabs(pose.y)
-        # if is_in_defence:
-        #     target_x += self._hysteresis
-        #     target_y -= self._hysteresis
-        #
-        # if target_y < constants.PenaltyY and \
-        #     target_x > constants.PenaltyX:
-        #
-        #     return True
-        #
+        
         return False
 
 
@@ -150,6 +135,64 @@ class Observer(object):
                 
             return True, dist_to_trajectory
         else:
-            return False, 1000
+            return False, dist_to_trajectory
 
+
+    def are_no_obstacles(self, start_pose, target_pose, object_states, 
+            start_dist = 0.01, check_width = 0.1):
+        no_obstacles = True
+
+        angle_to_target = tool.getAngle(start_pose, target_pose)
+        trans = tool.Trans(start_pose, angle_to_target)
+        for key, state in object_states.items():
+            if state.is_enabled is False:
+                continue
+
+            pose = state.get_pose()
+            tr_pose = trans.transform(pose)
+
+            if math.fabs(tr_pose.y) < check_width and \
+                    tr_pose.x > start_dist:
+
+                no_obstacles = False
+                break
+
+        return no_obstacles
+
+    def can_receive(self, role, object_states):
+        result = False
+
+        ball_pose = object_states['Ball'].get_pose()
+        ball_vel = object_states['Ball'].get_velocity()
+
+        if object_states[role].is_enabled() is False:
+            self._receiving[role] = False
+            return False
+
+        if self.ball_is_moving(ball_vel):
+            angle_velocity = tool.getAngleFromCenter(ball_vel)
+            trans = tool.Trans(ball_pose, angle_velocity)
+
+            role_pose = object_states[role].get_pose()
+
+            tr_pose = trans.transform(role_pose)
+
+            if tr_pose.x < 0:
+                # role is on backside of ball
+                self._receiving[role] = False
+                return False
+
+            fabs_y = math.fabs(tr_pose.y)
+
+            if self._receiving[role] == False and \
+                    fabs_y < self._can_receive_dist - self._can_receive_hysteresis:
+                self._receiving[role] = True
+
+            elif self._receiving[role] == True and \
+                    fabs_y > self._can_receive_dist + self._can_receive_hysteresis:
+                self._receiving[role] = False
+
+            result = self._receiving[role]
+
+        return result
 
