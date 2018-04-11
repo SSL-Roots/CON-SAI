@@ -17,6 +17,11 @@ class TestTool(unittest.TestCase):
 
     def setUp(self):
         pass
+    
+    def _assertAlmostEqualPose(self, pose1, pose2):
+        self.assertAlmostEqual(pose1.x, pose2.x)
+        self.assertAlmostEqual(pose1.y, pose2.y)
+        self.assertAlmostEqual(pose1.theta, pose2.theta)
 
     def test_yaw_from_quaternion(self):
         test_quaternion = Quaternion()
@@ -57,7 +62,8 @@ class TestTool(unittest.TestCase):
         expected.y = 2
 
         actual = tool.pointFromTranslation(test_translation)
-        self.assertAlmostEqual(expected, actual)
+        self.assertAlmostEqual(expected.x, actual.x)
+        self.assertAlmostEqual(expected.y, actual.y)
 
     def test_normalize(self):
         self._test_normalize(0, 0)
@@ -155,7 +161,7 @@ class TestTool(unittest.TestCase):
         expected.y = -1
 
         actual = tool.getConjugate(test_pose)
-        self.assertAlmostEqual(expected, actual)
+        self._assertAlmostEqualPose(expected, actual)
 
     def test_get_intersection(self):
         pose1 = Pose(4, 3, 0)
@@ -165,23 +171,70 @@ class TestTool(unittest.TestCase):
         expected = Pose(1, 0, 0)
 
         actual = tool.get_intersection(pose1, pose2, pose3, pose4)
-        self.assertAlmostEqual(expected, actual)
+        self._assertAlmostEqualPose(expected, actual)
 
-        # not overlap lines
+        # not across lines
         pose1 = Pose(2, 3, 0)
         pose2 = Pose(1, 2, 0)
         expected = Pose(0, 1, 0)
         actual = tool.get_intersection(pose1, pose2, pose3, pose4)
-        self.assertAlmostEqual(expected, actual)
+        self._assertAlmostEqualPose(expected, actual)
 
         # parallel lines
         pose1 = Pose(1, 2, 0)
         pose2 = Pose(2, 1, 0)
         expected = None
         actual = tool.get_intersection(pose1, pose2, pose3, pose4)
-        self.assertAlmostEqual(expected, actual)
+        self.assertEqual(expected, actual)
 
+    def test_limit(self):
+        test_value = 1
+        test_high = 2
+        test_low = -3
 
+        expected = 1
+        actual = tool.limit(test_value, test_high, test_low)
+        self.assertEqual(expected, actual)
+
+        test_value = 3
+        expected = test_high
+        actual = tool.limit(test_value, test_high, test_low)
+        self.assertEqual(expected, actual)
+
+        test_value = -10
+        expected = test_low
+        actual = tool.limit(test_value, test_high, test_low)
+        self.assertEqual(expected, actual)
+
+    def test_trans(self):
+        from_pose = Pose(1, 1, 0)
+        to_pose = Pose(1, 2, 0)
+        angle = tool.getAngle(from_pose, to_pose)
+
+        trans = tool.Trans(from_pose, angle)
+
+        self._test_transform(trans, from_pose, Pose(0, 0, 0))
+        self._test_transform(trans, to_pose, Pose(1, 0, 0))
+        self._test_transform(trans, Pose(1, -2, 0), Pose(-3, 0, 0))
+
+        self._test_transform_angle(trans, math.radians(0), math.radians(-90))
+        self._test_transform_angle(trans, math.radians(90), math.radians(0))
+        self._test_transform_angle(trans, math.radians(180), math.radians(90))
+        self._test_transform_angle(trans, math.radians(-90), math.radians(-180))
+
+    def _test_transform(self, trans, pose, expected):
+        trPose = trans.transform(pose)
+        self._assertAlmostEqualPose(expected, trPose)
+
+        invPose = trans.invertedTransform(trPose)
+        self._assertAlmostEqualPose(pose, invPose)
+
+    def _test_transform_angle(self, trans, angle, expected):
+        trAngle = trans.transformAngle(angle)
+        self.assertAlmostEqual(expected, trAngle)
+
+        invAngle = trans.invertedTransformAngle(trAngle)
+        self.assertAlmostEqual(angle, invAngle)
 
 if __name__ == "__main__":
     import rosunit
