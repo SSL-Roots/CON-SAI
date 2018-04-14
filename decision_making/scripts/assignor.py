@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-def update_assignments(assignments, id_list, key,
+def update_assignments(assignments, target_id_list, key,
         goalie_id, assignment_type=None, closest_role=None):
     # IDが存在しないRoleをNoneにする
+    id_list = target_id_list[:] # Deep copy
     for role, robot_id in assignments.items():
         if not robot_id in id_list:
             assignments[role] = None
