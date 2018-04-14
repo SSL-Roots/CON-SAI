@@ -17,3 +17,17 @@ class BallKicked(Task):
             return TaskStatus.SUCCESS
 
         return TaskStatus.RUNNING
+
+class CanReceive(Task):
+    def __init__(self, name, my_role):
+        super(CanReceive, self).__init__(name)
+
+        self._my_role = my_role
+
+    
+    def run(self):
+        if WorldModel.can_receive(self._my_role):
+            return TaskStatus.SUCCESS
+        
+        return TaskStatus.FAILURE
+
