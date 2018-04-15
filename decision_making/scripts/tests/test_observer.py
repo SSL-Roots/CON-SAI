@@ -178,6 +178,31 @@ class TestObserver(unittest.TestCase):
         actual = self.observer.can_shoot(target, object_states)
         self.assertEqual(expected, actual)
 
+    def test_can_pass(self):
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+        object_states['Role_1'] = State()
+        object_states['Enemy_0'] = State()
+
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        object_states['Role_0'].set_all(Pose(1,0,0), Velocity(0,0,0))
+        object_states['Role_1'].set_all(Pose(-2,0,0), Velocity(0,0,0))
+        object_states['Enemy_0'].set_all(Pose(-1,0,0), Velocity(0,0,0))
+
+        expected_result = False
+        expected_role  = None
+        result, target_role = self.observer.can_pass('Role_0', object_states)
+        self.assertEqual(expected_result, result)
+        self.assertEqual(expected_role, target_role)
+
+        object_states['Role_1'].set_all(Pose(-2,2,0), Velocity(0,0,0))
+        expected_result = True
+        expected_role  = 'Role_1'
+        result, target_role = self.observer.can_pass('Role_0', object_states)
+        self.assertEqual(expected_result, result)
+        self.assertEqual(expected_role, target_role)
+
 if __name__ == "__main__":
     import rosunit
     rosunit.unitrun('decision_making', 'test_observer', TestObserver)

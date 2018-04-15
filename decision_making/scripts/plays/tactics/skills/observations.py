@@ -42,3 +42,15 @@ class CanShoot(Task):
             return TaskStatus.SUCCESS
 
         return TaskStatus.FAILURE
+
+class CanPass(Task):
+    def __init__(self, name, my_role):
+        super(CanPass, self).__init__(name)
+
+        self._my_role = my_role
+
+    def run(self):
+        if WorldModel.can_pass(self._my_role):
+            return TaskStatus.SUCCESS
+
+        return TaskStatus.FAILURE

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import math
+import re
 
 from consai_msgs.msg import Pose
 from consai_msgs.msg import Pose as Velocity
@@ -148,6 +149,7 @@ class Observer(object):
 
         angle_to_target = tool.getAngle(start_pose, target_pose)
         trans = tool.Trans(start_pose, angle_to_target)
+        trTarget = trans.transform(target_pose)
         for key, state in object_states.items():
             if state.is_enabled is False:
                 continue
@@ -156,7 +158,7 @@ class Observer(object):
             tr_pose = trans.transform(pose)
 
             if math.fabs(tr_pose.y) < check_width and \
-                    tr_pose.x > start_dist:
+                    tr_pose.x > start_dist and tr_pose.x < trTarget.x:
 
                 no_obstacles = False
                 break
@@ -226,4 +228,28 @@ class Observer(object):
 
         self._shooting = result
         return result
+
+    def can_pass(self, role, object_states):
+        result = False
+        target_role = None
+
+        ball_pose = object_states['Ball'].get_pose()
+
+        for key in object_states.keys():
+            if not re.match('Role', key) or key == role:
+                continue
+
+            state = object_states[key]
+            if state.is_enabled() is False:
+                continue
+
+            pose = state.get_pose()
+
+            if self.are_no_obstacles(ball_pose, pose, object_states):
+                result = True
+                target_role = key
+                break
+
+        return result, target_role
+        
 
