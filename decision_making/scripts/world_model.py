@@ -159,6 +159,8 @@ class WorldModel(object):
 
     _test_ai_command = TestAICommand()
 
+    _current_shoot_target = constants.poses['CONST_THEIR_GOAL']
+
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
@@ -291,6 +293,9 @@ class WorldModel(object):
 
         elif re.match('CONST', name):
             pose = constants.poses[name]
+        
+        elif re.match('Shoot', name):
+            pose = WorldModel._current_shoot_target
 
         return pose
 
@@ -568,3 +573,11 @@ class WorldModel(object):
     @classmethod
     def can_receive(cls, role):
         return WorldModel._observer.can_receive(role, WorldModel._object_states)
+
+    @classmethod
+    def can_shoot(cls):
+        target = WorldModel.get_pose('CONST_THEIR_GOAL')
+
+        WorldModel._current_shoot_target = target
+
+        return WorldModel._observer.can_shoot(target, WorldModel._object_states)

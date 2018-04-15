@@ -31,3 +31,14 @@ class CanReceive(Task):
         
         return TaskStatus.FAILURE
 
+class CanShoot(Task):
+    def __init__(self, name, my_role):
+        super(CanShoot, self).__init__(name)
+
+        self._my_role = my_role
+
+    def run(self):
+        if WorldModel.can_shoot():
+            return TaskStatus.SUCCESS
+
+        return TaskStatus.FAILURE

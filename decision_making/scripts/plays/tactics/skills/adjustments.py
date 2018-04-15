@@ -17,7 +17,7 @@ class WithKick(Task):
     def run(self):
         WorldModel.commands[self._my_role].set_kick(self._kick_power)
 
-        return TaskStatus.RUNNING
+        return TaskStatus.SUCCESS
 
 
 class NoNavigation(Task):
@@ -40,6 +40,8 @@ class NoBallAvoidance(Task):
 
     def run(self):
         WorldModel.commands[self._my_role].avoid_ball = False
+
+        return TaskStatus.SUCCESS
 
 
 class NoDefenceAreaAvoidance(Task):

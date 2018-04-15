@@ -122,42 +122,61 @@ class TestObserver(unittest.TestCase):
         test_pose = Pose(0, 0, 0)
         test_vel = Velocity(2, 0, 0)
         object_states['Ball'].set_all(test_pose, test_vel)
-
-        expected = False
-        actual = self.observer.can_receive('Role_0', object_states)
-        self.assertEqual(expected, actual, "Why does Role_0 exist?")
+        self._test_can_receive('Role_0', object_states, False)
 
         test_pose = Pose(-1, 0, 0)
         test_vel = Velocity(0, 0, 0)
         object_states['Role_0'].set_all(test_pose, test_vel)
-
-        expected = False
-        actual = self.observer.can_receive('Role_0', object_states)
-        self.assertEqual(expected, actual, "Why can Role_0 receive ball?")
+        self._test_can_receive('Role_0', object_states, False)
         
         test_pose = Pose(0, 3, 0)
         test_vel = Velocity(0, 0, 0)
         object_states['Role_0'].set_all(test_pose, test_vel)
+        self._test_can_receive('Role_0', object_states, False)
 
-        expected = False
-        actual = self.observer.can_receive('Role_0', object_states)
-        self.assertEqual(expected, actual, "Why can Role_0 receive ball?")
-        
         test_pose = Pose(0, 0, 0)
         test_vel = Velocity(0, 0, 0)
         object_states['Role_0'].set_all(test_pose, test_vel)
-
-        expected = True
-        actual = self.observer.can_receive('Role_0', object_states)
-        self.assertEqual(expected, actual, "Why can not Role_0 receive ball?")
+        self._test_can_receive('Role_0', object_states, True)
 
         test_pose = Pose(2, 0, 0)
         test_vel = Velocity(0, 0, 0)
         object_states['Role_0'].set_all(test_pose, test_vel)
+        self._test_can_receive('Role_0', object_states, True)
 
+    def _test_can_receive(self, role, object_states, expected):
+        actual = self.observer.can_receive(role, object_states)
+        self.assertEqual(expected, actual)
+
+    def test_can_shoot(self):
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+        object_states['Enemy_0'] = State()
+
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
+
+        target = Pose(4.5, 0, 0)
         expected = True
-        actual = self.observer.can_receive('Role_0', object_states)
-        self.assertEqual(expected, actual, "Why can not Role_0 receive ball?")
+        actual = self.observer.can_shoot(target, object_states)
+        self.assertEqual(expected, actual)
+        
+        object_states['Role_0'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        object_states['Enemy_0'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        expected = True
+        actual = self.observer.can_shoot(target, object_states)
+        self.assertEqual(expected, actual)
+
+        object_states['Role_0'].set_pose(Pose(0,1,0))
+        object_states['Enemy_0'].set_pose(Pose(0,-1,0))
+        expected = True
+        actual = self.observer.can_shoot(target, object_states)
+        self.assertEqual(expected, actual)
+
+        object_states['Enemy_0'].set_pose(Pose(1,0.05,0))
+        expected = False
+        actual = self.observer.can_shoot(target, object_states)
+        self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
     import rosunit

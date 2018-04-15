@@ -34,6 +34,10 @@ class Observer(object):
         for i in range(6):
             self._receiving['Role_' + str(i)] = False
 
+        # can_shoot
+        self._can_shoot_width = 0.1 # unit:meter
+        self._can_shoot_hysteresis = 0.03
+        self._shooting = False
 
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
@@ -194,5 +198,32 @@ class Observer(object):
 
             result = self._receiving[role]
 
+        return result
+
+    def can_shoot(self, target_pose, object_states):
+        result = True
+
+        ball_pose = object_states['Ball'].get_pose()
+        angle_to_target = tool.getAngle(ball_pose, target_pose)
+        trans = tool.Trans(ball_pose, angle_to_target)
+
+        can_shoot_width = self._can_shoot_width
+        if self._shooting:
+            can_shoot_width -= self._can_shoot_hysteresis
+
+        for key in object_states.keys():
+            state = object_states[key]
+
+            if state.is_enabled() is False:
+                continue
+
+            pose = state.get_pose()
+            trPose = trans.transform(pose)
+
+            if trPose.x > 0 and math.fabs(trPose.y) < can_shoot_width:
+                result = False
+                break
+
+        self._shooting = result
         return result
 
