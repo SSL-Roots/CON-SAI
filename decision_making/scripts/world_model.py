@@ -175,7 +175,17 @@ class WorldModel(object):
     
     @classmethod
     def update_assignments(cls, assignment_type=None):
-        closest_role = None
+        ball_pose = WorldModel.get_pose('Ball')
+
+        WorldModel._ball_closest_frined_role = WorldModel._observer.closest_role(
+                ball_pose, WorldModel._object_states, 
+                True, WorldModel._ball_closest_frined_role)
+
+        # Exclude goalie role
+        closest_role = WorldModel._ball_closest_frined_role
+        if closest_role == 'Role_0':
+            closest_role = None
+
         WorldModel.assignments = assignor.update_assignments(
                 WorldModel.assignments,
                 WorldModel._existing_friends_id,

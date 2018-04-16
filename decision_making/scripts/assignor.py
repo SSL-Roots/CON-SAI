@@ -42,14 +42,11 @@ def update_assignments(assignments, target_id_list, key,
 
         target_i += 1
 
-    # TODO : add closest_ball assignments
-    # Ball holder のRoleとRole_1を入れ替える
-    # Ball holderがRole_0だったら何もしない
-    # if assignment_type == 'CLOSEST_BALL':
-    #     if closest_role and closest_role != 'Role_0':
-    #         old_id = assignments['Role_1']
-    #         assignments['Role_1'] = assignments[closest_role]
-    #         assignments[closest_role] = old_id
+    if assignment_type == 'CLOSEST_BALL':
+        if closest_role:
+            old_id = assignments['Role_1']
+            assignments['Role_1'] = assignments[closest_role]
+            assignments[closest_role] = old_id
 
     return assignments
 
