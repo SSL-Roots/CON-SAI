@@ -40,6 +40,10 @@ class Observer(object):
         self._can_shoot_hysteresis = 0.03
         self._shooting = False
 
+        # closest_role
+        self._closest_hysteresis = 0.3 # unit:meter
+        
+
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
         fabs_y = math.fabs(pose.y)
@@ -251,5 +255,34 @@ class Observer(object):
                 break
 
         return result, target_role
-        
+
+    def closest_role(self, target_pose, object_states, is_friend=True, prev_closest=None):
+        thresh_dist = 1000
+        result_role = None
+
+        role_name = 'Role'
+        if not is_friend:
+            role_name = 'Enemy'
+
+        for role in object_states.keys():
+            if not re.match(role_name, role):
+                continue
+
+            state = object_states[role]
+            if state.is_enabled() is False:
+                continue
+
+            pose = state.get_pose()
+
+            dist_to_ball = tool.getSize(pose, target_pose)
+
+            if role == prev_closest:
+                dist_to_ball -= self._closest_hysteresis
+
+            if dist_to_ball < thresh_dist:
+                thresh_dist = dist_to_ball
+                result_role = role
+
+        return result_role
+            
 

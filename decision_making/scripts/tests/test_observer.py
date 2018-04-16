@@ -203,6 +203,38 @@ class TestObserver(unittest.TestCase):
         self.assertEqual(expected_result, result)
         self.assertEqual(expected_role, target_role)
 
+    def test_closest_role(self):
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+        object_states['Role_1'] = State()
+        object_states['Role_2'] = State()
+        object_states['Enemy_0'] = State()
+
+        object_states['Ball'].set_all(Pose(1,0,0), Velocity(0,0,0))
+        object_states['Role_0'].set_all(Pose(1,0,0), Velocity(0,0,0))
+        object_states['Role_1'].set_all(Pose(0,1.2,0), Velocity(0,0,0))
+        object_states['Role_2'].set_all(Pose(-2,0,0), Velocity(0,0,0))
+        object_states['Enemy_0'].set_all(Pose(-1,0,0), Velocity(0,0,0))
+
+        expected = 'Role_0'
+        actual = self.observer.closest_role(Pose(0,0,0), object_states, True)
+        self.assertEqual(expected, actual)
+
+        expected = 'Role_1'
+        actual = self.observer.closest_role(Pose(0,0,0), object_states, True, 'Role_1')
+        self.assertEqual(expected, actual)
+
+        expected = 'Enemy_0'
+        actual = self.observer.closest_role(Pose(0,0,0), object_states, False)
+        self.assertEqual(expected, actual)
+
+        object_states['Enemy_0'].desable()
+        expected = None
+        actual = self.observer.closest_role(Pose(0,0,0), object_states, False)
+        self.assertEqual(expected, actual)
+        
+
 if __name__ == "__main__":
     import rosunit
     rosunit.unitrun('decision_making', 'test_observer', TestObserver)
