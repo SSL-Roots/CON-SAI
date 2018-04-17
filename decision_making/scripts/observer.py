@@ -17,7 +17,7 @@ class Observer(object):
         self._hysteresis = 0.05 # unit:meter
         self._moved_threshold = 0.03 # unit:meter
         self._ball_initial_pose = Pose()
-        self._moving_speed_threshold = 1.0
+        self._moving_speed_threshold = 0.4
         self._moving_speed_hysteresis = 0.3
         self._is_on_threshold_x = 0.5
         self._is_on_threshold_y = 2.0
@@ -256,32 +256,60 @@ class Observer(object):
 
         return result, target_role
 
-    def closest_role(self, target_pose, object_states, is_friend=True, prev_closest=None):
+    def closest_role(self, target_pose, object_states, is_friend=True, 
+            prev_closest=None, target_is_ball=False):
         thresh_dist = 1000
         result_role = None
 
+        ball_is_moving = False
+        ball_vel = object_states['Ball'].get_velocity()
+        if target_is_ball:
+            ball_is_moving = self.ball_is_moving(ball_vel)
+        
         role_name = 'Role'
         if not is_friend:
             role_name = 'Enemy'
 
-        for role in object_states.keys():
-            if not re.match(role_name, role):
-                continue
+        if ball_is_moving:
+            for role in object_states.keys():
+                if not re.match(role_name, role):
+                    continue
 
-            state = object_states[role]
-            if state.is_enabled() is False:
-                continue
+                state = object_states[role]
+                if state.is_enabled() is False:
+                    continue
 
-            pose = state.get_pose()
+                pose = state.get_pose()
 
-            dist_to_ball = tool.getSize(pose, target_pose)
+                on_trajectory, dist = self.is_on_trajectory(pose, target_pose, ball_vel)
 
-            if role == prev_closest:
-                dist_to_ball -= self._closest_hysteresis
+                if on_trajectory:
+                    if role == prev_closest:
+                        dist -= self._closest_hysteresis
 
-            if dist_to_ball < thresh_dist:
-                thresh_dist = dist_to_ball
-                result_role = role
+                    if dist < thresh_dist:
+                        thresh_dist = dist
+                        result_role = role
+
+        else:
+            for role in object_states.keys():
+                if not re.match(role_name, role):
+                    continue
+
+                state = object_states[role]
+                if state.is_enabled() is False:
+                    continue
+
+                pose = state.get_pose()
+
+                dist_to_ball = tool.getSize(pose, target_pose)
+
+                if role == prev_closest:
+                    dist_to_ball -= self._closest_hysteresis
+
+                if dist_to_ball < thresh_dist:
+                    thresh_dist = dist_to_ball
+                    result_role = role
 
         return result_role
             
