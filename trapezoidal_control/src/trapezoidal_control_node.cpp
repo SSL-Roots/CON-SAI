@@ -309,12 +309,16 @@ geometry_msgs::Twist Controller::velocityControl(const geometry_msgs::Twist &tar
         commandRotation += mAccRotation;
         if(commandRotation > mMaxRotation){
             commandRotation = mMaxRotation;
+        }else if(commandRotation > targetRotation){
+            commandRotation = targetRotation;
         }
     }
     if(targetRotation < commandRotation){
         commandRotation -= mAccRotation;
         if(commandRotation < -mMaxRotation){
             commandRotation = -mMaxRotation;
+        }else if(commandRotation < targetRotation){
+            commandRotation = targetRotation;
         }
     }
     mPrevRotation = commandRotation;
