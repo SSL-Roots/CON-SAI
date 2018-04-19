@@ -11,6 +11,7 @@ from pi_trees_lib.pi_trees_lib import TaskStatus
 from world_model import WorldModel
 from plays.tactics.tactic_halt import TacticHalt
 from plays.tactics.tactic_attacker import TacticAttacker
+from plays.tactics.tactic_setplay_shoot import TacticSetplayShoot
 
 class TestTacticsRun(unittest.TestCase):
 
@@ -26,6 +27,13 @@ class TestTacticsRun(unittest.TestCase):
 
     def test_tactic_attacker(self):
         tactic = TacticAttacker("TactickAttacker", "Role_0")
+        expected = TaskStatus.RUNNING
+        actual = tactic.run()
+
+        self.assertEqual(expected, actual)
+
+    def test_tactic_setplay_shoot(self):
+        tactic = TacticSetplayShoot("TacticSetplayShoot", "Role_0")
         expected = TaskStatus.RUNNING
         actual = tactic.run()
 

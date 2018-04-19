@@ -25,6 +25,7 @@ class Receive(MemorylessSequence):
 
 
         self.add_child(CanReceive('CanReceive', my_role))
+        self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
 
         coord = Coordinate()
         coord.set_receive_ball(my_role)

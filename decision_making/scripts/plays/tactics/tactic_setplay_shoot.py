@@ -1,30 +1,48 @@
 
-from pi_trees_ros.pi_trees_ros import *
-from pi_trees_lib.task_setup import *
+from pi_trees_lib.pi_trees_lib import *
 
+from skills.turn_off import TurnOff
 from skills.dynamic_drive import DynamicDrive
-from skills.observations import BallKicked
+from skills.observations import CanShoot, CanPass
 from skills.adjustments import WithKick, NoBallAvoidance
 
+import sys, os
 sys.path.append(os.pardir)
 from coordinate import Coordinate
 
-
-class TacticSetplayShoot(Sequence):
+class TacticSetplayShoot(Selector):
     def __init__(self, name, my_role):
         super(TacticSetplayShoot, self).__init__(name)
 
-        coord_1 = Coordinate()
-        coord_1.set_interpose(base='Ball', target='CONST_THEIR_GOAL', to_dist = -0.3)
-        self.add_child(DynamicDrive('drive_to_ball_back', my_role, coord_1))
+        self.add_child(Shoot('Shoot', my_role))
+        self.add_child(Pass('Pass', my_role))
+        self.add_child(TurnOff('TurnOff', my_role))
 
 
-        SHOOT = ParallelOne('SHOOT')
-        coord_2 = Coordinate()
-        coord_2.set_interpose(base='Ball', target='CONST_THEIR_GOAL', to_dist = 0.0)
-        SHOOT.add_child(DynamicDrive('drive_to_ball', my_role, coord_2))
-        SHOOT.add_child(WithKick('WithKick', my_role))
-        SHOOT.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
-        SHOOT.add_child(BallKicked('BallKicked'))
+class Shoot(MemorylessSequence):
+    def __init__(self, name, my_role):
+        super(Shoot, self).__init__(name)
 
-        self.add_child(SHOOT)
+        self.add_child(CanShoot('CanShoot', my_role))
+        self.add_child(WithKick('WithKick', my_role))
+        self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
+
+        coord = Coordinate()
+        coord.set_approach_to_shoot(my_role, target='ShootTarget')
+
+        self.add_child(DynamicDrive('drive_to_shoot', my_role, coord,
+            always_running = True))
+
+class Pass(MemorylessSequence):
+    def __init__(self, name, my_role):
+        super(Pass, self).__init__(name)
+
+        self.add_child(CanPass('CanPass', my_role))
+        self.add_child(WithKick('WithKick', my_role, kick_power=3.0))
+        self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
+
+        coord = Coordinate()
+        coord.set_approach_to_shoot(my_role, target='PassTarget')
+
+        self.add_child(DynamicDrive('drive_to_pass', my_role, coord,
+            always_running = True))
