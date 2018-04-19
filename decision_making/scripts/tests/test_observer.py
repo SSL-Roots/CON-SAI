@@ -101,18 +101,27 @@ class TestObserver(unittest.TestCase):
         target_pose = Pose(3, 0, 0)
         expected = False
         actual = self.observer.are_no_obstacles(start_pose, target_pose, object_states)
+        self.assertEqual(expected, actual)
 
         object_states['Enemy_0'] = State()
         object_states['Enemy_0'].set_all(Pose(0, 1, 0), Velocity(0, 0, 0))
         target_pose = Pose(0, 2, 0)
         expected = False
         actual = self.observer.are_no_obstacles(start_pose, target_pose, object_states)
+        self.assertEqual(expected, actual)
 
         object_states['Ball_0'] = State()
         object_states['Ball_0'].set_all(Pose(-3, 0, 0), Velocity(0, 0, 0))
         target_pose = Pose(-2, 0, 0)
         expected = True
         actual = self.observer.are_no_obstacles(start_pose, target_pose, object_states)
+        self.assertEqual(expected, actual)
+
+        start_pose = Pose(0, 0, 0)
+        target_pose = Pose(3, 0, 0)
+        expected = True
+        actual = self.observer.are_no_obstacles(start_pose, target_pose, object_states, exclude_key='Role_0')
+        self.assertEqual(expected, actual)
 
     def test_can_receive(self):
         object_states = dict()

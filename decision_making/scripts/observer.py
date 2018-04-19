@@ -148,7 +148,7 @@ class Observer(object):
 
 
     def are_no_obstacles(self, start_pose, target_pose, object_states, 
-            start_dist = 0.01, check_width = 0.1):
+            start_dist = 0.01, check_width = 0.1, exclude_key = None):
         no_obstacles = True
 
         angle_to_target = tool.getAngle(start_pose, target_pose)
@@ -156,6 +156,9 @@ class Observer(object):
         trTarget = trans.transform(target_pose)
         for key, state in object_states.items():
             if state.is_enabled is False:
+                continue
+
+            if key == exclude_key:
                 continue
 
             pose = state.get_pose()
@@ -249,7 +252,7 @@ class Observer(object):
 
             pose = state.get_pose()
 
-            if self.are_no_obstacles(ball_pose, pose, object_states):
+            if self.are_no_obstacles(ball_pose, pose, object_states, exclude_key=role):
                 result = True
                 target_role = key
                 break
