@@ -12,6 +12,9 @@ from world_model import WorldModel
 from plays.tactics.tactic_halt import TacticHalt
 from plays.tactics.tactic_attacker import TacticAttacker
 from plays.tactics.tactic_setplay_shoot import TacticSetplayShoot
+from plays.tactics.tactic_shoot import TacticShoot
+from plays.tactics.tactic_pass import TacticPass
+from plays.tactics.tactic_receive import TacticReceive
 
 class TestTacticsRun(unittest.TestCase):
 
@@ -39,7 +42,26 @@ class TestTacticsRun(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_tactic_shoot(self):
+        tactic = TacticShoot("TacticShoot", "Role_0")
+        expected = TaskStatus.FAILURE
+        actual = tactic.run()
 
+        self.assertEqual(expected, actual)
+
+    def test_tactic_pass(self):
+        tactic = TacticPass("TacticPass", "Role_0")
+        expected = TaskStatus.FAILURE
+        actual = tactic.run()
+
+        self.assertEqual(expected, actual)
+
+    def test_tactic_receive(self):
+        tactic = TacticReceive("TacticReceive", "Role_0")
+        expected = TaskStatus.FAILURE
+        actual = tactic.run()
+
+        self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
     import rosunit
