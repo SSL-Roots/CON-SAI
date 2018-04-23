@@ -32,17 +32,24 @@ class Observer(object):
         self._can_receive_dist = 1.0 # unit:meter
         self._can_receive_hysteresis = 0.3
         self._receiving = dict()
-        for i in range(6):
-            self._receiving['Role_' + str(i)] = False
 
         # can_shoot
         self._can_shoot_width = 0.1 # unit:meter
         self._can_shoot_hysteresis = 0.03
         self._shooting = False
 
+        # can_pass
+        self._can_pass_width = 0.1 # unit:meter
+        self._can_pass_hysteresis = 0.03
+        self._prev_pass_role = dict()
+
         # closest_role
         self._closest_hysteresis = 0.3 # unit:meter
         
+        for i in range(6):
+            role_name = 'Role_' + str(i)
+            self._receiving[role_name] = False
+            self._prev_pass_role[role_name] = None
 
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
@@ -239,13 +246,19 @@ class Observer(object):
             if state.is_enabled() is False:
                 continue
 
+            can_pass_width = self._can_pass_width
+            if key == self._prev_pass_role[key]:
+                can_pass_width -= self._can_pass_hysteresis
+
             pose = state.get_pose()
 
-            if self.are_no_obstacles(ball_pose, pose, object_states, exclude_key=role):
+            if self.are_no_obstacles(ball_pose, pose, object_states, 
+                    check_width=can_pass_width, exclude_key=role):
                 result = True
                 target_role = key
                 break
 
+        self._prev_pass_role[role] = target_role
         return result, target_role
 
     def closest_role(self, target_pose, object_states, is_friend=True, 
@@ -311,7 +324,8 @@ class Observer(object):
         trans = tool.Trans(my_pose, angle_to_target)
         trTheta = trans.transformAngle(my_pose.theta)
 
-        if math.fabs(trTheta) < math.radians(30):
+        if math.fabs(trTheta) < math.radians(15):
             return True
         else:
             return False
+
