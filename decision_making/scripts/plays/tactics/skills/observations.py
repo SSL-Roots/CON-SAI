@@ -2,6 +2,7 @@
 from pi_trees_ros.pi_trees_ros import *
 from pi_trees_lib.task_setup import *
 
+import rospy
 import sys,os
 sys.path.append(os.pardir)
 from world_model import WorldModel
@@ -38,7 +39,7 @@ class CanShoot(Task):
         self._my_role = my_role
 
     def run(self):
-        if WorldModel.can_shoot():
+        if WorldModel.can_shoot(self._my_role):
             return TaskStatus.SUCCESS
 
         return TaskStatus.FAILURE
@@ -54,3 +55,16 @@ class CanPass(Task):
             return TaskStatus.SUCCESS
 
         return TaskStatus.FAILURE
+
+class IsLooking(Task):
+    def __init__(self, name, my_role, target):
+        super(IsLooking, self).__init__(name)
+
+        self._my_role = my_role
+        self._target = target
+
+    def run(self):
+        if WorldModel.is_looking(self._my_role, self._target):
+            return TaskStatus.SUCCESS
+
+        return TaskStatus.RUNNING

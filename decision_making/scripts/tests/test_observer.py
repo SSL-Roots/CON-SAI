@@ -3,6 +3,7 @@
 
 import sys, os
 import unittest
+import math
 
 pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
@@ -110,8 +111,8 @@ class TestObserver(unittest.TestCase):
         actual = self.observer.are_no_obstacles(start_pose, target_pose, object_states)
         self.assertEqual(expected, actual)
 
-        object_states['Ball_0'] = State()
-        object_states['Ball_0'].set_all(Pose(-3, 0, 0), Velocity(0, 0, 0))
+        object_states['Ball'] = State()
+        object_states['Ball'].set_all(Pose(-3, 0, 0), Velocity(0, 0, 0))
         target_pose = Pose(-2, 0, 0)
         expected = True
         actual = self.observer.are_no_obstacles(start_pose, target_pose, object_states)
@@ -167,24 +168,24 @@ class TestObserver(unittest.TestCase):
 
         target = Pose(4.5, 0, 0)
         expected = True
-        actual = self.observer.can_shoot(target, object_states)
+        actual = self.observer.can_shoot('Role_0', target, object_states)
         self.assertEqual(expected, actual)
         
         object_states['Role_0'].set_all(Pose(0,0,0), Velocity(0,0,0))
         object_states['Enemy_0'].set_all(Pose(0,0,0), Velocity(0,0,0))
         expected = True
-        actual = self.observer.can_shoot(target, object_states)
+        actual = self.observer.can_shoot('Role_0', target, object_states)
         self.assertEqual(expected, actual)
 
         object_states['Role_0'].set_pose(Pose(0,1,0))
         object_states['Enemy_0'].set_pose(Pose(0,-1,0))
         expected = True
-        actual = self.observer.can_shoot(target, object_states)
+        actual = self.observer.can_shoot('Role_0', target, object_states)
         self.assertEqual(expected, actual)
 
         object_states['Enemy_0'].set_pose(Pose(1,0.05,0))
         expected = False
-        actual = self.observer.can_shoot(target, object_states)
+        actual = self.observer.can_shoot('Role_0', target, object_states)
         self.assertEqual(expected, actual)
 
     def test_can_pass(self):
@@ -250,6 +251,18 @@ class TestObserver(unittest.TestCase):
         actual = self.observer.closest_role(Pose(0,0,0), object_states, False)
         self.assertEqual(expected, actual)
         
+    def test_is_looking(self):
+        my_pose = Pose(0, 0, math.radians(45))
+        target_pose = Pose(1, 1, 0)
+
+        expected = True
+        actual = self.observer.is_looking(my_pose, target_pose)
+        self.assertEqual(expected, actual)
+
+        my_pose = Pose(0, 0, math.radians(90))
+        expected = False
+        actual = self.observer.is_looking(my_pose, target_pose)
+        self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
     import rosunit

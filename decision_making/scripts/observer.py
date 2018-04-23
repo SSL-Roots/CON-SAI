@@ -155,7 +155,7 @@ class Observer(object):
         trans = tool.Trans(start_pose, angle_to_target)
         trTarget = trans.transform(target_pose)
         for key, state in object_states.items():
-            if state.is_enabled is False:
+            if state.is_enabled() is False:
                 continue
 
             if key == exclude_key:
@@ -209,29 +209,18 @@ class Observer(object):
 
         return result
 
-    def can_shoot(self, target_pose, object_states):
+    def can_shoot(self, role, target_pose, object_states):
         result = True
 
         ball_pose = object_states['Ball'].get_pose()
-        angle_to_target = tool.getAngle(ball_pose, target_pose)
-        trans = tool.Trans(ball_pose, angle_to_target)
 
         can_shoot_width = self._can_shoot_width
         if self._shooting:
             can_shoot_width -= self._can_shoot_hysteresis
 
-        for key in object_states.keys():
-            state = object_states[key]
+        result = self.are_no_obstacles(ball_pose, target_pose, object_states,
+                check_width=can_shoot_width, exclude_key=role)
 
-            if state.is_enabled() is False:
-                continue
-
-            pose = state.get_pose()
-            trPose = trans.transform(pose)
-
-            if trPose.x > 0 and math.fabs(trPose.y) < can_shoot_width:
-                result = False
-                break
 
         self._shooting = result
         return result
@@ -316,4 +305,13 @@ class Observer(object):
 
         return result_role
             
+    def is_looking(self, my_pose, target_pose):
+        angle_to_target = tool.getAngle(my_pose, target_pose)
 
+        trans = tool.Trans(my_pose, angle_to_target)
+        trTheta = trans.transformAngle(my_pose.theta)
+
+        if math.fabs(trTheta) < math.radians(30):
+            return True
+        else:
+            return False

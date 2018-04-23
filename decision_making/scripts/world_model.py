@@ -590,12 +590,12 @@ class WorldModel(object):
         return WorldModel._observer.can_receive(role, WorldModel._object_states)
 
     @classmethod
-    def can_shoot(cls):
+    def can_shoot(cls, role):
         target = WorldModel.get_pose('CONST_THEIR_GOAL')
 
         WorldModel._current_shoot_target = target
 
-        return WorldModel._observer.can_shoot(target, WorldModel._object_states)
+        return WorldModel._observer.can_shoot(role, target, WorldModel._object_states)
 
     @classmethod
     def can_pass(cls, role):
@@ -608,3 +608,9 @@ class WorldModel(object):
 
         return result
 
+    @classmethod
+    def is_looking(cls, role, target):
+        role_pose = WorldModel.get_pose(role)
+        target_pose = WorldModel.get_pose(target)
+
+        return WorldModel._observer.is_looking(role_pose, target_pose)
