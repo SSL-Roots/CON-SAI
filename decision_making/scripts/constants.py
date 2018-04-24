@@ -28,6 +28,8 @@ poses = {
         'CONST_THEIR_PENALTY_MARK' : Point(FieldHalfX - DefenceLength, 0.0, 0)
         }
 
+shoot_targets = ['CONST_THEIR_GOAL', 'CONST_THEIR_GOAL_UPPER', 'CONST_THEIR_GOAL_LOWER']
+
 
 def set_field(length, width):
     global FieldX, FieldY, FieldHalfX, FieldHalfY

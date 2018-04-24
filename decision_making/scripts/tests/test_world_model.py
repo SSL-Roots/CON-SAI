@@ -578,6 +578,42 @@ class TestWorldModel(unittest.TestCase):
         actual = WorldModel.can_receive('Role_0')
         self.assertEqual(expected, actual)
 
+    def test_can_shoot(self):
+        # Initialize
+        WorldModel.set_ball_odom(self.init_odom)
+        id_list = [0]
+        WorldModel.set_existing_friends_id(id_list)
+
+        test_odom = Odometry() 
+        test_odom.pose.pose.position.x = 3.0
+        WorldModel.set_friend_odom(test_odom, 0)
+
+        WorldModel.update_assignments()
+        WorldModel._update_object_states()
+
+        # Test
+        expected = True
+        actual = WorldModel.can_shoot('Role_0')
+        self.assertEqual(expected, actual)
+
+        actual = WorldModel.can_shoot('Role_1')
+        self.assertEqual(expected, actual)
+
+        test_odom.pose.pose.position.x = 0.05
+        WorldModel.set_friend_odom(test_odom, 0)
+        WorldModel._update_object_states()
+
+        expected = False
+        actual = WorldModel.can_shoot('Role_1')
+        self.assertEqual(expected, actual)
+
+        test_odom.pose.pose.position.x = 2.0
+        WorldModel.set_friend_odom(test_odom, 0)
+        WorldModel._update_object_states()
+
+        expected = True
+        actual = WorldModel.can_shoot('Role_1')
+        self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
     import rosunit

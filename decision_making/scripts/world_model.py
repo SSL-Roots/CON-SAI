@@ -159,7 +159,7 @@ class WorldModel(object):
 
     _test_ai_command = TestAICommand()
 
-    _current_shoot_target = constants.poses['CONST_THEIR_GOAL']
+    _prev_shoot_target_name = constants.shoot_targets[0]
     _current_pass_role = None
 
     @classmethod
@@ -309,7 +309,7 @@ class WorldModel(object):
             pose = constants.poses[name]
         
         elif re.match('Shoot', name):
-            pose = WorldModel._current_shoot_target
+            pose = constants.poses[WorldModel._prev_shoot_target_name]
 
         elif re.match('Pass', name):
             robot_id = WorldModel.assignments[WorldModel._current_pass_role]
@@ -531,11 +531,21 @@ class WorldModel(object):
 
     @classmethod
     def can_shoot(cls, role):
-        target = WorldModel.get_pose('CONST_THEIR_GOAL')
 
-        WorldModel._current_shoot_target = target
+        # Check prev shoot target
+        target = WorldModel.get_pose(WorldModel._prev_shoot_target_name)
+        if WorldModel._observer.can_shoot(role, target, WorldModel._object_states):
+            return True
 
-        return WorldModel._observer.can_shoot(role, target, WorldModel._object_states)
+        for target_name in constants.shoot_targets:
+            target = WorldModel.get_pose(target_name)
+
+            if WorldModel._observer.can_shoot(role, target, WorldModel._object_states):
+                WorldModel._prev_shoot_target_name = target_name
+                return True
+
+        return False
+
 
     @classmethod
     def can_pass(cls, role):
