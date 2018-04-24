@@ -6,6 +6,7 @@ from tactics.tactic_intersection import TacticIntersection
 from tactics.tactic_interpose import TacticInterpose
 from tactics.tactic_clear import TacticClear
 from tactics.tactic_position import TacticPosition
+from tactics.tactic_attacker import TacticAttacker
 from consai_msgs.msg import Pose
 import constants
 
@@ -18,7 +19,8 @@ class PlayInPlayOurDefence(Play):
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticClear('TacticClear', self.roles[0].my_role)
+                # TacticClear('TacticClear', self.roles[0].my_role)
+                TacticAttacker('TacticAttacker', self.roles[0].my_role)
                 )
 
         self.roles[1].loop_enable = True
