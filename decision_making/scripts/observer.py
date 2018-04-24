@@ -44,7 +44,7 @@ class Observer(object):
         self._prev_pass_role = dict()
 
         # closest_role
-        self._closest_hysteresis = 0.3 # unit:meter
+        self._closest_hysteresis = 0.2 # unit:meter
         
         for i in range(6):
             role_name = 'Role_' + str(i)

@@ -172,17 +172,18 @@ class WorldModel(object):
         WorldModel._update_threat_assignments()
         WorldModel._update_object_states()
 
+        rospy.loginfo(WorldModel._ball_closest_frined_role)
+
     
     @classmethod
     def update_assignments(cls, assignment_type=None):
         ball_pose = WorldModel.get_pose('Ball')
 
-        WorldModel._ball_closest_frined_role = WorldModel._observer.closest_role(
+        closest_role = WorldModel._observer.closest_role(
                 ball_pose, WorldModel._object_states, 
                 True, WorldModel._ball_closest_frined_role, True)
 
         # Exclude goalie role
-        closest_role = WorldModel._ball_closest_frined_role
         if closest_role == 'Role_0':
             closest_role = None
 
@@ -194,6 +195,8 @@ class WorldModel(object):
                 assignment_type,
                 closest_role)
 
+        # Reassign closest_role to Role_1
+        WorldModel._ball_closest_frined_role = 'Role_1'
 
     @classmethod
     def _update_enemy_assignments(cls):
@@ -487,78 +490,15 @@ class WorldModel(object):
         WorldModel._current_situation = situation
         WorldModel.situations[WorldModel._current_situation] = True
 
-
-    @classmethod
-    def _update_closest_role(cls, is_friend_role=True):
-        # ボールに一番いroleをclosest_roleにセットする
-        # ボールが動いている場合は、その軌道上にいるロボットがclosest_roleにする
-
-        thresh_dist = 1000
-        hysteresis = 0.2
-
-        ball_pose = WorldModel.get_pose('Ball')
-        ball_vel = WorldModel.get_velocity('Ball')
-        ball_is_moving = WorldModel._observer.ball_is_moving(ball_vel)
-        closest_role = None
-
-        prev_closest_role = None
-        role_text = ''
-        
-        if is_friend_role:
-            role_text = 'Role_'
-            prev_closest_role = WorldModel._ball_closest_frined_role
-        else:
-            role_text = 'Enemy_'
-            prev_closest_role = WorldModel._ball_closest_enemy_role
-
-        for i in range(6):
-            role = role_text + str(i)
-            pose = WorldModel.get_pose(role)
-            
-            if pose is None:
-                continue
-
-            if ball_is_moving:
-                # ボールが動いてたら、ボール軌道に一番近いroleを抽出する
-
-                # ロボットがボール軌道上にいるかチェック
-                is_on_trajectory, dist = WorldModel._observer.is_on_trajectory(
-                        pose, ball_pose, ball_vel)
-
-                if is_on_trajectory:
-                    # ヒステリシスをもたせる
-                    if role == prev_closest_role:
-                        dist -= hysteresis
-
-                    if dist < thresh_dist:
-                        thresh_dist = dist
-                        closest_role = role
-
-            else:
-                # ボールが止まっていたら、ボールに一番近いroleを抽出する
-                dist_to_ball = tool.getSize(pose, ball_pose)
-
-                # ヒステリシスをもたせる
-                if role == prev_closest_role:
-                    dist_to_ball -= hysteresis
-
-                if dist_to_ball < thresh_dist:
-                    thresh_dist = dist_to_ball
-                    closest_role = role
-
-
-        if is_friend_role:
-            WorldModel._ball_closest_frined_role = closest_role
-        else:
-            WorldModel._ball_closest_enemy_role = closest_role
-            
-        return closest_role
-
-
     @classmethod
     def _update_threat_assignments(cls):
         # Ballに一番近いEnemyをThreat_0にする
-        closest_role = WorldModel._update_closest_role(False)
+        ball_pose = WorldModel.get_pose('Ball')
+        closest_role = WorldModel._observer.closest_role(
+                ball_pose, WorldModel._object_states, 
+                False, WorldModel._ball_closest_enemy_role, True)
+        WorldModel._ball_closest_enemy_role = closest_role
+
         if closest_role:
             closest_id = WorldModel.enemy_assignments[closest_role]
             WorldModel._threat_assignments['Threat_0'] = closest_id

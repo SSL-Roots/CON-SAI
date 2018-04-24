@@ -81,5 +81,5 @@ class WithDribble(Task):
     def run(self):
         WorldModel.commands[self._my_role].set_dribble(self._dribble_power)
 
-        return TaskStatus.RUNNING
+        return TaskStatus.SUCCESS
 

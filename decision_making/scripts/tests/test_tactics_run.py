@@ -30,7 +30,7 @@ class TestTacticsRun(unittest.TestCase):
 
     def test_tactic_attacker(self):
         tactic = TacticAttacker("TactickAttacker", "Role_0")
-        expected = TaskStatus.RUNNING
+        expected = TaskStatus.FAILURE
         actual = tactic.run()
 
         self.assertEqual(expected, actual)

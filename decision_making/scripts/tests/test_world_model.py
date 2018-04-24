@@ -536,67 +536,6 @@ class TestWorldModel(unittest.TestCase):
         actual = WorldModel._current_situation
         self.assertEqual(actual, expected, "Wrong situation :" + expected)
 
-
-    def test_update_closest_role(self):
-
-        # Initialize
-        id_list = []
-        WorldModel.set_existing_friends_id(id_list)
-        WorldModel.update_assignments()
-
-        id_list = [0, 1, 2, 3, 4, 5]
-        WorldModel.set_existing_friends_id(id_list)
-        for i in range(6):
-            WorldModel.set_friend_odom(self.outside_odom, i)
-        WorldModel.update_assignments()
-
-        # Stop Ball
-        WorldModel.set_ball_odom(self.init_odom) 
-        WorldModel.set_friend_odom(self.init_odom, 3)
-        expected = "Role_3"
-        actual = WorldModel._update_closest_role(True)
-        self.assertEqual(expected, actual)
-    
-        # Moving Ball
-        moving_odom = Odometry()
-        moving_odom.pose.pose.position.x = 1.0
-        moving_odom.twist.twist.linear.x = 2.0
-        WorldModel.set_ball_odom(moving_odom)
-
-        target_odom = Odometry()
-        target_odom.pose.pose.position.x = 3.0
-        WorldModel.set_friend_odom(target_odom, 2)
-        expected = "Role_2"
-        actual = WorldModel._update_closest_role(True)
-        self.assertEqual(expected, actual)
-
-
-        # Enemy
-        id_list = []
-        WorldModel.set_existing_enemies_id(id_list)
-        WorldModel._update_enemy_assignments()
-
-        id_list = [0, 1, 2, 3, 4, 5]
-        WorldModel.set_existing_enemies_id(id_list)
-        for i in range(6):
-            WorldModel.set_enemy_odom(self.outside_odom, i)
-        WorldModel._update_enemy_assignments()
-
-        # Stop Ball
-        WorldModel.set_ball_odom(self.init_odom) 
-        WorldModel.set_enemy_odom(self.init_odom, 3)
-        expected = "Enemy_3"
-        actual = WorldModel._update_closest_role(False)
-        self.assertEqual(expected, actual)
-
-        # Moving Ball
-        WorldModel.set_ball_odom(moving_odom)
-        WorldModel.set_enemy_odom(target_odom, 2)
-        expected = "Enemy_2"
-        actual = WorldModel._update_closest_role(False)
-        self.assertEqual(expected, actual)
-
-
     def test_update_object_states(self):
         # Initialize
         WorldModel.set_ball_odom(self.test_odom)
