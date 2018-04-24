@@ -27,6 +27,7 @@ from geometry_msgs.msg import PoseStamped, TwistStamped
 from geometry_msgs.msg import Point
 from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
 from consai_msgs.msg import ReplaceBall, ReplaceRobot
+from consai_msgs.msg import robot_commands
 
 from geometry import Geometry
 
@@ -140,6 +141,9 @@ class PaintWidget(QWidget):
         self.avoidingPoints = [Point()] * 12
         self.sub_avoidingPoints = []
 
+        self.robot_commands = [robot_commands()] * 12
+        self.sub_robot_commands = []
+
         for i in xrange(12):
             strID = str(i)
             topicFriend = "robot_" + strID + "/odom"
@@ -147,6 +151,7 @@ class PaintWidget(QWidget):
             topicPosition = "robot_" + strID + "/move_base_simple/goal"
             topicVelocity = "robot_" + strID + "/move_base_simple/target_velocity"
             topicAvoidingPoint = "robot_" + strID + "/avoiding_point"
+            topic_robot_commands = "robot_" + strID + "/robot_commands"
 
             self.sub_friendOdoms.append(
                     rospy.Subscriber(topicFriend, Odometry, 
@@ -167,6 +172,10 @@ class PaintWidget(QWidget):
             self.sub_avoidingPoints.append(
                     rospy.Subscriber(topicAvoidingPoint, Point,
                         self.callbackAvoidingPoint, callback_args=i))
+
+            self.sub_robot_commands.append(
+                    rospy.Subscriber(topic_robot_commands, robot_commands,
+                        self.callbackRobotCommands, callback_args=i))
 
         # Publishers
         self._pub_replace_ball = rospy.Publisher(
@@ -216,6 +225,10 @@ class PaintWidget(QWidget):
 
     def callbackAvoidingPoint(self, msg, robot_id):
         self.avoidingPoints[robot_id] = msg
+
+
+    def callbackRobotCommands(self, msg, robot_id):
+        self.robot_commands[robot_id] = msg
 
 
     @mouseevent_wrapper
@@ -628,8 +641,17 @@ class PaintWidget(QWidget):
 
     def drawFriends(self, painter):
         for robot_id in self.friendsIDArray.data:
+
+            robot_color = self.friendDrawColor
+            if self.robot_commands[robot_id].kick_speed_x:
+                # shooting
+                robot_color = Qt.red
+            elif self.robot_commands[robot_id].dribble_power:
+                # dribbling
+                robot_color = Qt.cyan
+
             self.drawRobot(painter, robot_id, 
-                    self.friendOdoms[robot_id], self.friendDrawColor)
+                    self.friendOdoms[robot_id], robot_color)
 
 
     def drawEnemis(self, painter):
