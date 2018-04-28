@@ -2,7 +2,7 @@
 from play_base import Play
 
 from tactics.tactic_goalie import TacticGoalie
-from tactics.tactic_setplay_shoot import TacticSetplayShoot
+from tactics.tactic_attacker import TacticAttacker
 from tactics.tactic_position import TacticPosition
 from consai_msgs.msg import Pose
 import constants
@@ -25,7 +25,7 @@ class PlayOurPenaltyStart(Play):
 
         self.roles[1].loop_enable = True
         self.roles[1].behavior.add_child(
-                TacticSetplayShoot('TacticSetplayShoot', self.roles[1].my_role)
+                TacticAttacker('TacticAttacker', self.roles[1].my_role)
                 )
 
         for i in range(2,6):
