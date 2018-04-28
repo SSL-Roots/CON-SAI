@@ -11,7 +11,7 @@ class TacticSetplayShoot(Selector):
     def __init__(self, name, my_role):
         super(TacticSetplayShoot, self).__init__(name)
 
-        self.add_child(TacticShoot('TacticShoot', my_role))
+        # self.add_child(TacticShoot('TacticShoot', my_role))
         self.add_child(TacticPass('TacticPass', my_role))
         self.add_child(TurnOff('TurnOff', my_role))
 
