@@ -39,6 +39,11 @@ class TestWorldModel(unittest.TestCase):
         self.theirside_odom = Odometry()
         self.theirside_odom.pose.pose.position.x = (constants.FieldHalfX - 0.3)
 
+    def _clear_assignments(self, assignments):
+        for key in assignments.keys():
+            assignments[key] = None
+
+        return assignments
 
     def test_set_friend_color(self):
         blue_dict = WorldModel._refbox_dict_blue
@@ -137,45 +142,36 @@ class TestWorldModel(unittest.TestCase):
         # Test blank id_list
         id_list = []
         WorldModel.set_existing_friends_id(id_list)
-        for i in range(6):
+        for i in range(constants.ROBOT_NUM):
             key = 'Role_' + str(i)
             test_assignments[key] = None
         WorldModel.update_assignments()
         self.assertEqual(test_assignments, WorldModel.assignments, "Blank id_list")
 
         # Test ordered id_list
-        id_list = [0, 1, 2, 3, 4, 5]
+        id_list = [0, 1, 2, 3, 4, 5, 6, 7]
         WorldModel.set_existing_friends_id(id_list)
-        for i in range(6):
+        for i, robot_id in enumerate(id_list):
             key = 'Role_' + str(i)
-            test_assignments[key] = i
+            test_assignments[key] = robot_id
         WorldModel.update_assignments()
         self.assertEqual(test_assignments, WorldModel.assignments, "Ordered id_list")
 
         # Test other ID
-        id_list = [0, 6, 7, 8, 9, 10]
+        id_list = [0, 8, 9, 10, 11]
         WorldModel.set_existing_friends_id(id_list)
-        for i in range(6):
+        test_assignment = self._clear_assignments(test_assignments)
+        for i, robot_id in enumerate(id_list):
             key = 'Role_' + str(i)
-            test_assignments[key] = id_list[i]
+            test_assignments[key] = robot_id
         WorldModel.update_assignments()
         self.assertEqual(test_assignments, WorldModel.assignments, "Other ID")
-
-        # Test blank goalie ID
-        id_list = [11, 6, 7, 8, 9, 10]
-        WorldModel.set_existing_friends_id(id_list)
-        test_assignments['Role_0'] = None
-        for i in range(1,6):
-            key = 'Role_' + str(i)
-            test_assignments[key] = id_list[i]
-        WorldModel.update_assignments()
-        self.assertEqual(test_assignments, WorldModel.assignments, "Blank goalie ID")
 
         # Test exitsts goalie ID only
         id_list = [0]
         WorldModel.set_existing_friends_id(id_list)
         test_assignments['Role_0'] = 0
-        for i in range(1,6):
+        for i in range(1,constants.ROBOT_NUM):
             key = 'Role_' + str(i)
             test_assignments[key] = None
         WorldModel.update_assignments()
@@ -255,45 +251,36 @@ class TestWorldModel(unittest.TestCase):
         # Test blank id_list
         id_list = []
         WorldModel.set_existing_enemies_id(id_list)
-        for i in range(6):
+        for i in range(constants.ROBOT_NUM):
             key = 'Enemy_' + str(i)
             test_assignments[key] = None
         WorldModel._update_enemy_assignments()
         self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Blank id_list")
 
         # Test ordered id_list
-        id_list = [0, 1, 2, 3, 4, 5]
+        id_list = [0, 1, 2, 3, 4, 5, 6, 7]
         WorldModel.set_existing_enemies_id(id_list)
-        for i in range(6):
+        for i, robot_id in enumerate(id_list):
             key = 'Enemy_' + str(i)
-            test_assignments[key] = i
+            test_assignments[key] = robot_id
         WorldModel._update_enemy_assignments()
         self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Ordered id_list")
 
         # Test other ID
-        id_list = [0, 6, 7, 8, 9, 10]
+        id_list = [0, 8, 9, 10, 11]
         WorldModel.set_existing_enemies_id(id_list)
-        for i in range(6):
+        test_assignments = self._clear_assignments(test_assignments)
+        for i, robot_id in enumerate(id_list):
             key = 'Enemy_' + str(i)
-            test_assignments[key] = id_list[i]
+            test_assignments[key] = robot_id
         WorldModel._update_enemy_assignments()
         self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Other ID")
-
-        # Test blank goalie ID
-        id_list = [11, 6, 7, 8, 9, 10]
-        WorldModel.set_existing_enemies_id(id_list)
-        test_assignments['Enemy_0'] = None
-        for i in range(1,6):
-            key = 'Enemy_' + str(i)
-            test_assignments[key] = id_list[i]
-        WorldModel._update_enemy_assignments()
-        self.assertEqual(test_assignments, WorldModel.enemy_assignments, "Blank goalie ID")
 
         # Test exitsts goalie ID only
         id_list = [0]
         WorldModel.set_existing_enemies_id(id_list)
         test_assignments['Enemy_0'] = 0
-        for i in range(1,6):
+        for i in range(1,constants.ROBOT_NUM):
             key = 'Enemy_' + str(i)
             test_assignments[key] = None
         WorldModel._update_enemy_assignments()

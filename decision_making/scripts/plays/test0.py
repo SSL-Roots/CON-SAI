@@ -11,6 +11,9 @@ from tactics.tactic_command import TacticCommand
 
 import math
 
+import sys,os
+sys.path.append(os.pardir)
+import constants
 
 # 壁打ちテスト
 class Test0(Play):
@@ -25,7 +28,7 @@ class Test0(Play):
         self.roles[0].behavior.add_child(
                 TacticInplayShoot('TacticInplayShoot', self.roles[0].my_role))
 
-        for i in range(1,6):
+        for i in range(1,constants.ROBOT_NUM):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
@@ -48,7 +51,7 @@ class Test1(Play):
                 TacticPosition('TacticPosition2', self.roles[0].my_role, 
                     -1.5, -2.0, math.pi * 0.5))
 
-        for i in range(1,6):
+        for i in range(1,constants.ROBOT_NUM):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
@@ -65,7 +68,20 @@ class Test2(Play):
         self.roles[0].behavior.add_child(
                 TacticCommand('TacticCommand', self.roles[0].my_role))
 
-        for i in range(1,6):
+        for i in range(1,constants.ROBOT_NUM):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
+
+# Command 一斉送信テスト
+class Test3(Play):
+    def __init__(self):
+        super(Test3, self).__init__('Test3')
+
+        self.applicable = "TEST3"
+        self.done_aborted = "TEST3"
+
+        for i in range(constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticCommand('TacticCommand', self.roles[i].my_role))

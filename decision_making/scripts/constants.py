@@ -1,5 +1,8 @@
 from geometry_msgs.msg import Point
 
+ROBOT_NUM = 8
+ID_MAX = 8
+
 FieldX = 9.0
 FieldY = 6.0
 

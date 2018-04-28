@@ -9,13 +9,14 @@ pardir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(pardir)
 
 import assignor
+import constants
 
 class TestAssignor(unittest.TestCase):
 
     def setUp(self):
         self._assignments = OrderedDict()
 
-        for i in range(6):
+        for i in range(constants.ROBOT_NUM):
             key = 'Role_' + str(i)
             self._assignments[key] = None
 

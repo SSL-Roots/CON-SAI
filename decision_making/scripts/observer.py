@@ -46,7 +46,7 @@ class Observer(object):
         # closest_role
         self._closest_hysteresis = 0.2 # unit:meter
         
-        for i in range(6):
+        for i in range(constants.ROBOT_NUM):
             role_name = 'Role_' + str(i)
             self._receiving[role_name] = False
             self._prev_pass_role[role_name] = None

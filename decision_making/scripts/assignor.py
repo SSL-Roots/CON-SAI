@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import constants
+
 def update_assignments(assignments, target_id_list, key,
         goalie_id, assignment_type=None, closest_role=None):
     # IDが存在しないRoleをNoneにする
@@ -26,7 +28,7 @@ def update_assignments(assignments, target_id_list, key,
 
     # IDが登録されてないRoleは末尾から詰める
     target_i = 1
-    replace_i = 5
+    replace_i = constants.ROBOT_NUM - 1
     while replace_i - target_i > 0:
         while replace_i > 2:
             if assignments[key + str(replace_i)] is not None:

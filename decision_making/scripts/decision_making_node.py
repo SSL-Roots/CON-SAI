@@ -142,7 +142,7 @@ if __name__ == '__main__':
     sub_geometry = rospy.Subscriber('geometry_field_size', GeometryFieldSize, callback_geometry)
     sub_test_ai_command = rospy.Subscriber('test_ai_command', TestAICommand, callback_test_ai_command)
 
-    for robot_id in xrange(12):
+    for robot_id in xrange(constants.ID_MAX):
         id_str = str(robot_id)
         topic_friend_odom = "robot_" + id_str + "/odom"
         topic_enemy_odom = "enemy_" + id_str + "/odom"

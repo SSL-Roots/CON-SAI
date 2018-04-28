@@ -1,6 +1,10 @@
 
 from role_base import Role
 
+import sys,os
+sys.path.append(os.pardir)
+import constants
+
 class Play(object):
     def __init__(self, name):
         self.name = name
@@ -11,7 +15,7 @@ class Play(object):
         self.recent_done_aborted = None
         self.timeout = None
         self.assignment_type = None
-        self.roles = [
-                Role("Role_0"), Role("Role_1"), Role("Role_2"),
-                Role("Role_3"), Role("Role_4"), Role("Role_5")]
-        
+        self.roles = []
+        for i in range(constants.ROBOT_NUM):
+            role_name = "Role_" + str(i)
+            self.roles.append(Role(role_name))

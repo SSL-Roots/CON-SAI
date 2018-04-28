@@ -87,9 +87,12 @@ class WorldModel(object):
 
     _object_states = dict()
     _object_states['Ball'] = State()
-    for i in range(6):
+
+    commands = dict()
+    for i in range(constants.ROBOT_NUM):
         key = 'Role_' + str(i)
         assignments[key] = None
+        commands[key] = Command()
         _object_states[key] = State()
 
         key = 'Enemy_' + str(i)
@@ -99,21 +102,17 @@ class WorldModel(object):
         key = 'Threat_' + str(i)
         _threat_assignments[key] = None
 
-    commands = {'Role_0' : Command(), 'Role_1' : Command(),
-                'Role_2' : Command(), 'Role_3' : Command(),
-                'Role_4' : Command(), 'Role_5' : Command()}
-
     _ball_odom = Odometry()
 
     _friend_goalie_id = 0
     _friend_color = 'blue'
-    _friend_odoms = [Odometry()] * 12
-    _existing_friends_id = [None] * 6
+    _friend_odoms = [Odometry()] * constants.ID_MAX
+    _existing_friends_id = [None] * constants.ROBOT_NUM
     _friend_team_info = RefereeTeamInfo()
 
     _enemy_goalie_id = 0
-    _enemy_odoms = [Odometry()] * 12
-    _existing_enemies_id = [None] * 6
+    _enemy_odoms = [Odometry()] * constants.ID_MAX
+    _existing_enemies_id = [None] * constants.ROBOT_NUM
     _enemy_team_info = RefereeTeamInfo()
 
     tf_listener = tf.TransformListener()
