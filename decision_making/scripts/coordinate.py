@@ -39,7 +39,7 @@ class Coordinate(object):
         self._my_role = None
         self._role_is_lower_side = False
         self._role_pose_hystersis = 0.1
-        self._tuning_param_x = 0.4
+        self._tuning_param_x = 0.2
         self._tuning_param_y = 0.3
         self._tuning_param_pivot_y = 0.1
         self._tuning_limit_angle = math.radians(30.0) # 0 ~ 90 degree
@@ -458,6 +458,10 @@ class Coordinate(object):
                 self._receiving = False
 
             if self._receiving and tr_pose.x > 0.0:
+                # ボール軌道上に乗ったらボールに近づく
+                if math.fabs(tr_pose.y) < 0.3:
+                    tr_pose.x *= 0.9
+
                 tr_pose.y = 0.0
                 inv_pose = trans.invertedTransform(tr_pose)
                 angle_to_ball = tool.getAngle(inv_pose, ball_pose)
@@ -466,6 +470,4 @@ class Coordinate(object):
 
 
         return result
-
-
 
