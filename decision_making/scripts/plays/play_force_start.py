@@ -1,7 +1,7 @@
 
 from play_stop import PlayStop
 
-from tactics.tactic_inplay_shoot import TacticInplayShoot
+from tactics.tactic_attacker import TacticAttacker
 
 class PlayForceStart(PlayStop):
     def __init__(self):
@@ -12,6 +12,6 @@ class PlayForceStart(PlayStop):
 
         self.roles[1].clear_behavior()
         self.roles[1].behavior.add_child(
-                TacticInplayShoot('TacticInplayShoot', self.roles[1].my_role)
+                TacticAttacker('TacticAttacker', self.roles[1].my_role)
                 )
 
