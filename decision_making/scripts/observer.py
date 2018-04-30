@@ -232,6 +232,18 @@ class Observer(object):
         self._shooting = result
         return result
 
+    def can_role_shoot(self, role, target_pose, object_states):
+        result =  True
+        role_pose = object_states[role].get_pose()
+
+        can_shoot_width = self._can_shoot_width
+
+        result = self.are_no_obstacles(role_pose, target_pose, object_states,
+                check_width=can_shoot_width, exclude_key=role)
+
+        return result
+
+
     def can_pass(self, role, object_states):
         result = False
         target_role = None
@@ -251,6 +263,14 @@ class Observer(object):
                 can_pass_width -= self._can_pass_hysteresis
 
             pose = state.get_pose()
+
+            role_can_shoot = False
+            for target_name in constants.shoot_targets:
+                target_pose = constants.poses[target_name]
+                if self.can_role_shoot(key, target_pose, object_states):
+                    break
+            else:
+                continue
 
             if self.are_no_obstacles(ball_pose, pose, object_states, 
                     check_width=can_pass_width, exclude_key=role):
@@ -324,7 +344,7 @@ class Observer(object):
         trans = tool.Trans(my_pose, angle_to_target)
         trTheta = trans.transformAngle(my_pose.theta)
 
-        if math.fabs(trTheta) < math.radians(3):
+        if math.fabs(trTheta) < math.radians(5):
             return True
         else:
             return False
