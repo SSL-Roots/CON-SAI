@@ -18,6 +18,7 @@ import assignor
 from proto.referee_pb2 import SSL_Referee
 from command import Command
 from observer import Observer
+from formation import Formation
 
 
 class State(object):
@@ -151,6 +152,7 @@ class WorldModel(object):
     _refbox_dict = _refbox_dict_blue
 
     _observer = Observer()
+    _formation = Formation()
     _ball_kicked_speed = 1.0
 
     _ball_closest_frined_role = None
@@ -170,6 +172,7 @@ class WorldModel(object):
         WorldModel._update_enemy_assignments()
         WorldModel._update_threat_assignments()
         WorldModel._update_object_states()
+        WorldModel._formation.update(WorldModel._object_states)
 
     
     @classmethod
@@ -283,7 +286,11 @@ class WorldModel(object):
         WorldModel._test_ai_command = msg
 
     @classmethod
-    def get_pose(cls, name):
+    def initialize_formation_poses(cls):
+        WorldModel._formation.intialize_poses()
+
+    @classmethod
+    def get_pose(cls, name, sub_name=None):
         pose = None
 
         if re.match('Ball', name):
@@ -311,6 +318,9 @@ class WorldModel(object):
         elif re.match('Pass', name):
             robot_id = WorldModel.assignments[WorldModel._current_pass_role]
             pose = WorldModel.get_friend_pose(robot_id)
+
+        elif re.match('Formation', name) and re.match('Role', sub_name):
+            pose = WorldModel._formation.get_pose(sub_name)
 
         return pose
 

@@ -15,6 +15,7 @@ from plays.tactics.tactic_setplay_shoot import TacticSetplayShoot
 from plays.tactics.tactic_shoot import TacticShoot
 from plays.tactics.tactic_pass import TacticPass
 from plays.tactics.tactic_receive import TacticReceive
+from plays.tactics.tactic_formation import TacticFormation
 
 class TestTacticsRun(unittest.TestCase):
 
@@ -59,6 +60,13 @@ class TestTacticsRun(unittest.TestCase):
     def test_tactic_receive(self):
         tactic = TacticReceive("TacticReceive", "Role_0")
         expected = TaskStatus.FAILURE
+        actual = tactic.run()
+
+        self.assertEqual(expected, actual)
+
+    def test_tactic_formation(self):
+        tactic = TacticFormation("TacticFormation", "Role_0")
+        expected = TaskStatus.RUNNING
         actual = tactic.run()
 
         self.assertEqual(expected, actual)

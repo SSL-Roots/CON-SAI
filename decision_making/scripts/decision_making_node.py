@@ -103,6 +103,8 @@ def callback_geometry(msg):
             p_y = math.fabs(line.p1_y)
             constants.set_penalty(p_x, p_y)
 
+    WorldModel.initialize_formation_poses()
+
 
 def callback_test_ai_command(msg):
     WorldModel.set_test_ai_command(msg)

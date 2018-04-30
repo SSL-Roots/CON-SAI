@@ -8,6 +8,7 @@ from tactics.tactic_inplay_shoot import TacticInplayShoot
 from tactics.tactic_position import TacticPosition
 from tactics.tactic_velocity import TacticVelocity
 from tactics.tactic_command import TacticCommand
+from tactics.tactic_formation import TacticFormation
 
 import math
 
@@ -85,3 +86,16 @@ class Test3(Play):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticCommand('TacticCommand', self.roles[i].my_role))
+
+# Formationのテスト
+class Test4(Play):
+    def __init__(self):
+        super(Test4, self).__init__('Test4')
+
+        self.applicable = "TEST4"
+        self.done_aborted = "TEST4"
+
+        for i in range(constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticFormation('TacticFormation', self.roles[i].my_role))

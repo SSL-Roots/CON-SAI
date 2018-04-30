@@ -186,6 +186,12 @@ class Coordinate(object):
 
         self._update_func = self._update_receive_ball
 
+    def set_formation(self, my_role):
+        # Formationクラスで生成された目標位置に移動する
+        self._my_role = my_role
+
+        self._update_func = self._update_formation
+
 
     def is_arrived(self, role):
         # robotが目標位置に到着したかを判断する
@@ -470,4 +476,15 @@ class Coordinate(object):
 
 
         return result
+
+    def _update_formation(self):
+        ball_pose = WorldModel.get_pose('Ball')
+
+        target_pose = WorldModel.get_pose('Formation', self._my_role)
+
+        angle_to_ball = tool.getAngle(target_pose, ball_pose)
+
+        self.pose = Pose(target_pose.x, target_pose.y, angle_to_ball)
+
+        return True
 
