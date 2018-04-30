@@ -232,14 +232,18 @@ class Observer(object):
         self._shooting = result
         return result
 
-    def can_role_shoot(self, role, target_pose, object_states):
-        result =  True
-        role_pose = object_states[role].get_pose()
+    def can_pose_shoot(self, exclude_role, from_pose, object_states):
+        result =  False
 
         can_shoot_width = self._can_shoot_width
 
-        result = self.are_no_obstacles(role_pose, target_pose, object_states,
-                check_width=can_shoot_width, exclude_key=role)
+        for target_name in constants.shoot_targets:
+            target_pose = constants.poses[target_name]
+
+            result = self.are_no_obstacles(from_pose, target_pose, object_states,
+                    check_width=can_shoot_width, exclude_key=exclude_role)
+            if result is True:
+                break
 
         return result
 
@@ -264,12 +268,7 @@ class Observer(object):
 
             pose = state.get_pose()
 
-            role_can_shoot = False
-            for target_name in constants.shoot_targets:
-                target_pose = constants.poses[target_name]
-                if self.can_role_shoot(key, target_pose, object_states):
-                    break
-            else:
+            if self.can_pose_shoot(key, pose, object_states) is False:
                 continue
 
             if self.are_no_obstacles(ball_pose, pose, object_states, 

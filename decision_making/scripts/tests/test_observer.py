@@ -188,6 +188,23 @@ class TestObserver(unittest.TestCase):
         actual = self.observer.can_shoot('Role_0', target, object_states)
         self.assertEqual(expected, actual)
 
+    def test_can_pose_shoot(self):
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+        object_states['Enemy_0'] = State()
+
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        object_states['Role_0'].set_all(Pose(0,1,0), Velocity(0,0,0))
+        object_states['Enemy_0'].set_all(Pose(2,1,0), Velocity(0,0,0))
+
+        exclude_role = 'Role_0'
+        from_pose = object_states[exclude_role].get_pose()
+        expected = True
+        actual = self.observer.can_pose_shoot(exclude_role, from_pose, object_states)
+        self.assertEqual(expected, actual)
+
+
     def test_can_pass(self):
         object_states = dict()
         object_states['Ball'] = State()

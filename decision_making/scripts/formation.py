@@ -7,6 +7,7 @@ import re
 from consai_msgs.msg import Pose
 import tool
 import constants
+from observer import Observer
 
 import rospy
 
@@ -34,6 +35,7 @@ class Formation(object):
             role_name = 'Role_' + str(i)
             self._target_number[role_name] = None
 
+        self._observer = Observer()
         self._DEFAULT_THRESH = 1.0
 
 
@@ -54,7 +56,6 @@ class Formation(object):
 
 
     def update(self, object_states):
-        ball_pose = object_states['Ball'].get_pose()
 
         for role in object_states.keys():
             if not re.match('Role', role):
@@ -67,14 +68,16 @@ class Formation(object):
                 continue
 
             prev_number = self._target_number[role]
-            role_pose = state.get_pose()
             self._target_number[role] = self._select_target_number(
-                    ball_pose, role_pose, prev_number)
+                    role, prev_number, object_states)
 
 
-    def _select_target_number(self, ball_pose, role_pose, prev_number):
+    def _select_target_number(self, role_name, prev_number, object_states):
         threshold = self._DEFAULT_THRESH
         result_number = None
+
+        ball_pose = object_states['Ball'].get_pose()
+        role_pose = object_states[role_name].get_pose()
 
         for i, pose in enumerate(self._target_poses):
             value = 0
@@ -86,6 +89,10 @@ class Formation(object):
                 # 他のメンバのnumberであればスキップ
                 continue
 
+            # Shoot  できれば加算
+            if self._observer.can_pose_shoot(role_name, pose, object_states):
+                value += 2.0
+
             # ボールに近すぎれば減算
             # ボールから離れているほど加算
             dist_to_ball = tool.getSize(pose, ball_pose)
@@ -96,7 +103,7 @@ class Formation(object):
 
             # role_poseに近いほど加算
             dist_to_role = tool.getSize(pose, role_pose)
-            value += 1.0 - dist_to_role / constants.FieldX
+            value += 2.0 - dist_to_role / constants.FieldX
 
             if value > threshold:
                 result_number = i

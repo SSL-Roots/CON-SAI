@@ -77,13 +77,19 @@ class TestFormation(unittest.TestCase):
         # self.assertEqual(self.formation._target_number, False)
 
     def test_select_target_number(self):
-        ball_pose = Pose(0,0,0)
-        role_pose = Pose(1, 0, 0)
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+        object_states['Role_1'] = State()
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        object_states['Role_0'].set_all(Pose(1,0,0), Velocity(0,0,0))
+        object_states['Role_1'].set_all(Pose(1,1,0), Velocity(0,0,0))
+
         prev_number = 5
 
         expected = None
         actual = self.formation._select_target_number(
-                ball_pose, role_pose, prev_number)
+                'Role_0', prev_number, object_states)
         self.assertNotEqual(expected, actual)
 
 
