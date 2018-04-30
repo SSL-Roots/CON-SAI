@@ -210,11 +210,13 @@ class TestObserver(unittest.TestCase):
         object_states['Ball'] = State()
         object_states['Role_0'] = State()
         object_states['Role_1'] = State()
+        object_states['Role_2'] = State()
         object_states['Enemy_0'] = State()
 
         object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
         object_states['Role_0'].set_all(Pose(1,0,0), Velocity(0,0,0))
         object_states['Role_1'].set_all(Pose(-2,0,0), Velocity(0,0,0))
+        object_states['Role_2'].set_all(Pose(-3,0,0), Velocity(0,0,0))
         object_states['Enemy_0'].set_all(Pose(-1,0,0), Velocity(0,0,0))
 
         expected_result = False
@@ -226,6 +228,13 @@ class TestObserver(unittest.TestCase):
         object_states['Role_1'].set_all(Pose(-2,2,0), Velocity(0,0,0))
         expected_result = True
         expected_role  = 'Role_1'
+        result, target_role = self.observer.can_pass('Role_0', object_states)
+        self.assertEqual(expected_result, result)
+        self.assertEqual(expected_role, target_role)
+
+        object_states['Role_2'].set_all(Pose(2,2,0), Velocity(0,0,0))
+        expected_result = True
+        expected_role  = 'Role_2'
         result, target_role = self.observer.can_pass('Role_0', object_states)
         self.assertEqual(expected_result, result)
         self.assertEqual(expected_role, target_role)

@@ -254,6 +254,7 @@ class Observer(object):
 
         ball_pose = object_states['Ball'].get_pose()
 
+        pass_targe_x = -1000
         for key in object_states.keys():
             if not re.match('Role', key) or key == role:
                 continue
@@ -273,9 +274,11 @@ class Observer(object):
 
             if self.are_no_obstacles(ball_pose, pose, object_states, 
                     check_width=can_pass_width, exclude_key=role):
-                result = True
-                target_role = key
-                break
+                # より相手ゴールに近いRoleにパスする
+                if pose.x > pass_targe_x:
+                    result = True
+                    target_role = key
+                    pass_targe_x = pose.x
 
         self._prev_pass_role[role] = target_role
         return result, target_role
