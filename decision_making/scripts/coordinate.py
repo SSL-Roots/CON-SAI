@@ -43,6 +43,7 @@ class Coordinate(object):
         self._tuning_param_y = 0.3
         self._tuning_param_pivot_y = 0.1
         self._tuning_limit_angle = math.radians(30.0) # 0 ~ 90 degree
+        self._tuning_ball_radius = 0.03 # ボールに近づき過ぎないための調整値
 
         # keep x, y
         self._keep_x = 0.0
@@ -349,7 +350,7 @@ class Coordinate(object):
 
         approach_coef = 1.0 - fixed_angle_p_to_r / self._tuning_limit_angle
 
-        pos_x = approach_coef * (2.0 * constants.BallRadius 
+        pos_x = approach_coef * (2.0 * constants.BallRadius + self._tuning_ball_radius
                 - self._pose_max.x) + self._pose_max.x
     
         return Pose(pos_x, 0, 0)
