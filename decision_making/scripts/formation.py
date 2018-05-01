@@ -105,6 +105,12 @@ class Formation(object):
             dist_to_role = tool.getSize(pose, role_pose)
             value += 2.0 - dist_to_role / constants.FieldX
 
+            # 敵側に近いほど加算
+            value_x = pose.x * 0.5
+            if value_x < 0:
+                value_x = 0
+            value += value_x
+
             if value > threshold:
                 result_number = i
                 threshold = value
