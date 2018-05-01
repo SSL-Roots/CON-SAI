@@ -346,7 +346,7 @@ class Observer(object):
         trans = tool.Trans(my_pose, angle_to_target)
         trTheta = trans.transformAngle(my_pose.theta)
 
-        if math.fabs(trTheta) < math.radians(5):
+        if math.fabs(trTheta) < math.radians(5.0):
             return True
         else:
             return False

@@ -22,4 +22,5 @@ class TacticPass(MemorylessSequence):
 
         self.add_child(DynamicDrive('drive_to_pass', my_role, coord))
         self.add_child(IsLooking('IsLooking_pass', my_role, 'PassTarget'))
-        self.add_child(WithKick('WithKick_pass', my_role, kick_power=3.0))
+        self.add_child(WithKick('WithKick_pass', my_role, 
+            target_name = 'PassTarget', is_pass = True))
