@@ -18,7 +18,7 @@ import assignor
 from proto.referee_pb2 import SSL_Referee
 from command import Command
 from observer import Observer
-from formation import Formation
+from formation import Formation, StopFormation
 
 
 class State(object):
@@ -152,7 +152,6 @@ class WorldModel(object):
     _refbox_dict = _refbox_dict_blue
 
     _observer = Observer()
-    _formation = Formation()
     _ball_kicked_speed = 1.0
 
     _ball_closest_frined_role = None
@@ -163,6 +162,9 @@ class WorldModel(object):
     _prev_shoot_target_name = constants.shoot_targets[0]
     _current_pass_role = None
 
+    _formation = Formation()
+    _prev_formation_type = None
+
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
@@ -172,7 +174,6 @@ class WorldModel(object):
         WorldModel._update_enemy_assignments()
         WorldModel._update_threat_assignments()
         WorldModel._update_object_states()
-        WorldModel._formation.update(WorldModel._object_states)
 
     
     @classmethod
@@ -197,6 +198,21 @@ class WorldModel(object):
 
         # Reassign closest_role to Role_1
         WorldModel._ball_closest_frined_role = 'Role_1'
+
+    @classmethod
+    def update_formation(cls, formation_type=None):
+        if formation_type != WorldModel._prev_formation_type:
+            WorldModel._prev_formation_type = formation_type
+
+            if formation_type == "STOP":
+                WorldModel._formation = StopFormation()
+                WorldModel._formation.intialize_poses()
+            else:
+                WorldModel._formation = Formation()
+                WorldModel._formation.intialize_poses()
+
+        WorldModel._formation.update(WorldModel._object_states)
+
 
     @classmethod
     def _update_enemy_assignments(cls):

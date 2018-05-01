@@ -111,3 +111,18 @@ class Formation(object):
 
         return result_number
 
+class StopFormation(Formation):
+    def __init__(self):
+        super(StopFormation, self).__init__()
+        self._default_poses = [
+                Pose(0, 0.7, 0),
+                Pose(0, 0, 0),
+                Pose(0, -0.7, 0),
+                Pose(-0.3, 0.5, 0),
+                Pose(-0.3, -0.5, 0),
+                Pose(-0.5, 0.7, 0),
+                Pose(-0.5, 0, 0),
+                Pose(-0.5, -0.7, 0)
+                ]
+
+

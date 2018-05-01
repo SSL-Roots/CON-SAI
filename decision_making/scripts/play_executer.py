@@ -26,6 +26,7 @@ class PlayExecuter(object):
         self._select_play()
 
         WorldModel.update_assignments(self._play.assignment_type)
+        WorldModel.update_formation(self._play.formation_type)
 
         self._execute_play()
 

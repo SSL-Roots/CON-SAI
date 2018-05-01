@@ -10,6 +10,7 @@ class PlayInPlay(PlayStop):
         self.applicable = "IN_PLAY"
         self.done_aborted = "IN_PLAY"
         self.assignment_type = "CLOSEST_BALL"
+        self.formation_type = None
 
         self.roles[1].clear_behavior()
         self.roles[1].behavior.add_child(

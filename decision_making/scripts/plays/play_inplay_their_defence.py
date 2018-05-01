@@ -11,6 +11,7 @@ class PlayInPlayTheirDefence(PlayStop):
         self.applicable = "BALL_IN_THEIR_DEFENCE"
         self.done_aborted = "BALL_IN_THEIR_DEFENCE"
         self.assignment_type = "CLOSEST_BALL"
+        self.formation_type = None
 
         keep_x = constants.FieldHalfX - constants.DefenceLength - 0.5
         self.roles[1].clear_behavior()

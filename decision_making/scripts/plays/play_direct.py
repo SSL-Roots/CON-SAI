@@ -9,6 +9,7 @@ class PlayDirect(PlayStop):
 
         self.applicable = 'OUR_DIRECT'
         self.done_aborted = 'OUR_DIRECT'
+        self.formation_type = None
 
         self.roles[1].clear_behavior()
         self.roles[1].behavior.add_child(

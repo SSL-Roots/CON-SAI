@@ -15,6 +15,7 @@ class Play(object):
         self.recent_done_aborted = None
         self.timeout = None
         self.assignment_type = None
+        self.formation_type = None
         self.roles = []
         for i in range(constants.ROBOT_NUM):
             role_name = "Role_" + str(i)

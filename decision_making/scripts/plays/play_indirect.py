@@ -9,6 +9,7 @@ class PlayIndirect(PlayStop):
 
         self.applicable = "OUR_INDIRECT"
         self.done_aborted = "OUR_INDIRECT"
+        self.formation_type = None
 
 
         self.roles[1].clear_behavior()

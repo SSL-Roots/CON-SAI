@@ -9,6 +9,7 @@ class PlayForceStart(PlayStop):
 
         self.applicable = "FORCE_START"
         self.done_aborted = "FORCE_START"
+        self.formation_type = None
 
         self.roles[1].clear_behavior()
         self.roles[1].behavior.add_child(

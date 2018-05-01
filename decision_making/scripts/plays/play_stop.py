@@ -5,6 +5,7 @@ from tactics.tactic_keep import TacticKeep
 from tactics.tactic_intersection import TacticIntersection
 from tactics.tactic_interpose import TacticInterpose
 from tactics.tactic_goalie import TacticGoalie
+from tactics.tactic_formation import TacticFormation
 from consai_msgs.msg import Pose
 import constants
 
@@ -14,6 +15,7 @@ class PlayStop(Play):
 
         self.applicable = "STOP"
         self.done_aborted = "STOP"
+        self.formation_type = "STOP"
 
         keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
         self.roles[0].loop_enable = True
@@ -31,16 +33,19 @@ class PlayStop(Play):
 
         self.roles[2].loop_enable = True
         self.roles[2].behavior.add_child(
-                TacticInterpose('TacticInterpose', self.roles[2].my_role,
-                    to_dist = 1.5)
+                TacticFormation('TacticFormation', self.roles[2].my_role)
+                # TacticInterpose('TacticInterpose', self.roles[2].my_role,
+                #     to_dist = 1.5)
                 )
 
         range_y = constants.FieldHalfY - 0.7
         self.roles[3].loop_enable = True
         self.roles[3].behavior.add_child(
-                TacticKeep('TacticKeep', self.roles[3].my_role, keep_x = -2.0,
-                    range_high = range_y,
-                    range_low = 0.5)
+                TacticInterpose('TacticInterpose', self.roles[3].my_role,
+                    to_dist = 1.5)
+                # TacticKeep('TacticKeep', self.roles[3].my_role, keep_x = -2.0,
+                #     range_high = range_y,
+                #     range_low = 0.5)
                 )
 
         self.roles[4].loop_enable = True
