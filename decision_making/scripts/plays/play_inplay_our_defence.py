@@ -1,5 +1,6 @@
 
 from play_base import Play
+import math
 
 from tactics.tactic_keep import TacticKeep
 from tactics.tactic_intersection import TacticIntersection
@@ -26,7 +27,7 @@ class PlayInPlayOurDefence(Play):
         self.roles[1].loop_enable = True
         self.roles[1].behavior.add_child(
                 TacticPosition('TacticPosition', self.roles[1].my_role,
-                    0, 0, 0)
+                    0, 0, math.radians(-180))
                 )
 
         self.roles[2].loop_enable = True
