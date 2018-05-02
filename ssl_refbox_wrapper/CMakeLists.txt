@@ -11,3 +11,5 @@ catkin_package()
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
+
+catkin_add_nosetests(src/tests/test_ssl_refbox_wrapper.py)

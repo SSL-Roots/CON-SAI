@@ -6,6 +6,7 @@ import multicast
 from std_msgs.msg import Int8
 from std_msgs.msg import Duration
 from consai_msgs.msg import RefereeTeamInfo
+from consai_msgs.msg import Pose
 
 
 def convert_team_info(data):
@@ -21,6 +22,15 @@ def convert_team_info(data):
     team_info.goalie = data.goalie
 
     return team_info
+
+def extract_designated_position(protobuf, our_side_is_left):
+    has_position = False
+    designated_position = Pose()
+
+    if protobuf.has_designated_position():
+        has_position = True
+
+    return has_position, designated_position
 
 
 if  __name__ == '__main__':
@@ -61,4 +71,5 @@ if  __name__ == '__main__':
 
         yellow_info = convert_team_info(protobuf.yellow)
         pub_yellow_info.publish(yellow_info)
+
 
