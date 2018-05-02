@@ -2,7 +2,7 @@ from geometry_msgs.msg import Point
 import rospy
 
 ROBOT_NUM = 8
-ID_MAX = 8
+ID_MAX = 12
 
 FieldX = 9.0
 FieldY = 6.0
