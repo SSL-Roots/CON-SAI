@@ -15,7 +15,7 @@ class PlayTheirDirect(PlayStop):
         self.done_aborted = "THEIR_DIRECT"
 
         for i in range(2,6):
-            x = -3.0
+            x = - constants.PenaltyX + 0.3
             y = 0.45 - 0.3*(i-2)
             theta = 0
 

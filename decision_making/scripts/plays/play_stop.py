@@ -42,7 +42,7 @@ class PlayStop(Play):
         self.roles[3].loop_enable = True
         self.roles[3].behavior.add_child(
                 TacticInterpose('TacticInterpose', self.roles[3].my_role,
-                    to_dist = 1.5)
+                    to_dist = 1.7)
                 # TacticKeep('TacticKeep', self.roles[3].my_role, keep_x = -2.0,
                 #     range_high = range_y,
                 #     range_low = 0.5)
