@@ -85,7 +85,7 @@ class WithChip(Task):
 
 
 class WithDribble(Task):
-    def __init__(self, name, my_role, dribble_power=6.0):
+    def __init__(self, name, my_role, dribble_power=13.0):
         super(WithDribble, self).__init__(name)
 
         self._my_role = my_role
