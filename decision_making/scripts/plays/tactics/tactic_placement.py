@@ -27,16 +27,17 @@ class Placement(MemorylessSequence):
 
         PASS = ParallelOne("PASS")
         
-        PASS.add_child(Pass("Pass", my_role))
         PASS.add_child(IsClose("IsClose", "DesignatedPosition", "Ball", 0.5))
+        PASS.add_child(Pass("Pass", my_role))
         self.add_child(PASS)
 
-        PUSH = ParallelOne("PUSH")
-        PUSH.add_child(Push("Push", my_role))
-        PUSH.add_child(IsClose("IsClose_", "DesignatedPosition", "Ball", 0.09))
-        self.add_child(PUSH)
+        DRIBBLE = ParallelOne("DRIBBLE")
+        DRIBBLE.add_child(IsClose("IsClose_", "DesignatedPosition", "Ball", 0.15))
+        DRIBBLE.add_child(Dribble("Dribble", my_role))
+        self.add_child(DRIBBLE)
 
-        self.add_child(TurnOff("TurnOff", my_role))
+        # self.add_child(TurnOff("TurnOff", my_role))
+        self.add_child(Push("Push", my_role))
 
 
 class Pass(MemorylessSequence):
@@ -53,6 +54,19 @@ class Pass(MemorylessSequence):
         self.add_child(WithKick('WithKick_pass', my_role, 
             target_name = 'DesignatedPosition', is_pass = True))
 
+class Dribble(MemorylessSequence):
+    def __init__(self, name, my_role):
+        super(Dribble, self).__init__(name)
+
+        self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
+
+        coord = Coordinate()
+        coord.set_approach_to_shoot(my_role, target='DesignatedPosition')
+
+        self.add_child(WithDribble('WithDribble', my_role))
+        self.add_child(DynamicDrive('drive_to_shoot', my_role, coord,
+            always_running = True))
+
 class Push(MemorylessSequence):
     def __init__(self, name, my_role):
         super(Push, self).__init__(name)
@@ -62,7 +76,5 @@ class Push(MemorylessSequence):
         coord = Coordinate()
         coord.set_approach_to_shoot(my_role, target='DesignatedPosition')
 
-        self.add_child(DynamicDrive('drive_to_shoot', my_role, coord))
-        self.add_child(IsLooking('IsLooking', my_role, 'DesignatedPosition'))
-        self.add_child(WithDribble('WithDribble', my_role))
-
+        self.add_child(DynamicDrive('drive_to_shoot', my_role, coord,
+            always_running = True))
