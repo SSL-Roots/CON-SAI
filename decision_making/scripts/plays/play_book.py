@@ -18,6 +18,7 @@ from play_their_pre_penalty import PlayTheirPrePenalty
 from play_their_penalty_start import PlayTheirPenaltyStart
 from play_inplay_our_defence import PlayInPlayOurDefence
 from play_inplay_their_defence import PlayInPlayTheirDefence
+from play_ball_placement import PlayBallPlacement
 
 
 class PlayBook(object):
@@ -42,3 +43,4 @@ class PlayBook(object):
     book.append(PlayTheirPenaltyStart)
     book.append(PlayInPlayOurDefence)
     book.append(PlayInPlayTheirDefence)
+    book.append(PlayBallPlacement)
