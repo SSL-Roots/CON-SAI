@@ -81,5 +81,5 @@ class Command(object):
         self.dribble_power = 0
         self.navigation_enable = True
         self.avoid_ball = True
-        self.avoid_defence_area = True
+        self.avoid_defence_area = False
 
