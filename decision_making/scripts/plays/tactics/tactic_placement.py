@@ -2,7 +2,7 @@
 from pi_trees_lib.pi_trees_lib import *
 
 from skills.observations import CanPass, IsLooking, IsClose
-from skills.adjustments import WithKick, NoBallAvoidance
+from skills.adjustments import WithKick, WithDribble, NoBallAvoidance
 from skills.dynamic_drive import DynamicDrive
 from skills.turn_off import TurnOff
 
@@ -29,8 +29,13 @@ class Placement(MemorylessSequence):
         
         PASS.add_child(Pass("Pass", my_role))
         PASS.add_child(IsClose("IsClose", "DesignatedPosition", "Ball", 0.5))
-        
         self.add_child(PASS)
+
+        PUSH = ParallelOne("PUSH")
+        PUSH.add_child(Push("Push", my_role))
+        PUSH.add_child(IsClose("IsClose_", "DesignatedPosition", "Ball", 0.09))
+        self.add_child(PUSH)
+
         self.add_child(TurnOff("TurnOff", my_role))
 
 
@@ -47,3 +52,17 @@ class Pass(MemorylessSequence):
         self.add_child(IsLooking('IsLooking_pass', my_role, 'DesignatedPosition'))
         self.add_child(WithKick('WithKick_pass', my_role, 
             target_name = 'DesignatedPosition', is_pass = True))
+
+class Push(MemorylessSequence):
+    def __init__(self, name, my_role):
+        super(Push, self).__init__(name)
+
+        self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
+
+        coord = Coordinate()
+        coord.set_approach_to_shoot(my_role, target='DesignatedPosition')
+
+        self.add_child(DynamicDrive('drive_to_shoot', my_role, coord))
+        self.add_child(IsLooking('IsLooking', my_role, 'DesignatedPosition'))
+        self.add_child(WithDribble('WithDribble', my_role))
+

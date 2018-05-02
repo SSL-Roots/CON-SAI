@@ -525,6 +525,13 @@ class WorldModel(object):
         elif WorldModel._current_refbox_command != 'IN_PLAY':
             WorldModel._set_current_situation(WorldModel._current_refbox_command)
 
+        # BallPlacementの終了判定
+        if WorldModel._current_refbox_command == 'OUR_BALL_PLACEMENT' or \
+                WorldModel._current_refbox_command == 'THEIR_BALL_PLACEMENT':
+
+            if WorldModel._is_placement_finished():
+                WorldModel._set_current_situation('STOP')
+
 
     @classmethod
     def _set_current_situation(cls, situation):
@@ -606,3 +613,13 @@ class WorldModel(object):
         target_pose = WorldModel.get_pose(target)
 
         return WorldModel._observer.is_looking(role_pose, target_pose)
+
+    @classmethod
+    def _is_placement_finished(cls):
+        ball_pose = WorldModel.get_pose('Ball')
+        designated_pose = WorldModel.get_pose('DesignatedPosition')
+
+        if tool.getSize(ball_pose, designated_pose) < 0.1:
+            return True
+        else:
+            return False
