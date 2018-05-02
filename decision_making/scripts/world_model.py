@@ -59,9 +59,11 @@ class WorldModel(object):
             'OUR_PRE_KICKOFF', 'OUR_KICKOFF_START',
             'OUR_PRE_PENALTY', 'OUR_PENALTY_START',
             'OUR_DIRECT', 'OUR_INDIRECT', 'OUR_TIMEOUT',
+            'OUR_BALL_PLACEMENT',
             'THEIR_PRE_KICKOFF', 'THEIR_KICKOFF_START',
             'THEIR_PRE_PENALTY', 'THEIR_PENALTY_START',
             'THEIR_DIRECT', 'THEIR_INDIRECT', 'THEIR_TIMEOUT',
+            'THEIR_BALL_PLACEMENT',
             'BALL_IN_OUTSIDE', 'IN_PLAY',
             'BALL_IN_OUR_DEFENCE', 'BALL_IN_THEIR_DEFENCE']
 
@@ -130,11 +132,14 @@ class WorldModel(object):
             SSL_Referee.DIRECT_FREE_BLUE : 'OUR_DIRECT',
             SSL_Referee.INDIRECT_FREE_BLUE : 'OUR_INDIRECT',
             SSL_Referee.TIMEOUT_BLUE : 'OUR_TIMEOUT',
+            SSL_Referee.BALL_PLACEMENT_BLUE : 'OUR_BALL_PLACEMENT',
             SSL_Referee.PREPARE_KICKOFF_YELLOW : 'THEIR_PRE_KICKOFF',
             SSL_Referee.PREPARE_PENALTY_YELLOW : 'THEIR_PRE_PENALTY',
             SSL_Referee.DIRECT_FREE_YELLOW : 'THEIR_DIRECT',
             SSL_Referee.INDIRECT_FREE_YELLOW : 'THEIR_INDIRECT',
-            SSL_Referee.TIMEOUT_YELLOW : 'THEIR_TIMEOUT'}
+            SSL_Referee.TIMEOUT_YELLOW : 'THEIR_TIMEOUT',
+            SSL_Referee.BALL_PLACEMENT_YELLOW : 'THEIR_BALL_PLACEMENT'
+            }
 
     _refbox_dict_yellow = {SSL_Referee.HALT : 'HALT', SSL_Referee.STOP : 'STOP',
             SSL_Referee.NORMAL_START : 'NORMAL_START', 
@@ -144,11 +149,14 @@ class WorldModel(object):
             SSL_Referee.DIRECT_FREE_BLUE : 'THEIR_DIRECT',
             SSL_Referee.INDIRECT_FREE_BLUE : 'THEIR_INDIRECT',
             SSL_Referee.TIMEOUT_BLUE : 'THEIR_TIMEOUT',
+            SSL_Referee.BALL_PLACEMENT_BLUE : 'THEIR_BALL_PLACEMENT',
             SSL_Referee.PREPARE_KICKOFF_YELLOW : 'OUR_PRE_KICKOFF',
             SSL_Referee.PREPARE_PENALTY_YELLOW : 'OUR_PRE_PENALTY',
             SSL_Referee.DIRECT_FREE_YELLOW : 'OUR_DIRECT',
             SSL_Referee.INDIRECT_FREE_YELLOW : 'OUR_INDIRECT',
-            SSL_Referee.TIMEOUT_YELLOW : 'OUR_TIMEOUT'}
+            SSL_Referee.TIMEOUT_YELLOW : 'OUR_TIMEOUT',
+            SSL_Referee.BALL_PLACEMENT_YELLOW : 'OUR_BALL_PLACEMENT'
+            }
     _refbox_dict = _refbox_dict_blue
 
     _observer = Observer()
@@ -177,7 +185,7 @@ class WorldModel(object):
         WorldModel._update_threat_assignments()
         WorldModel._update_object_states()
 
-        rospy.loginfo(WorldModel._refbox_designated_position)
+        rospy.loginfo(WorldModel._current_refbox_command)
     
     @classmethod
     def update_assignments(cls, assignment_type=None):
@@ -501,16 +509,18 @@ class WorldModel(object):
 
         # ボールがフィールド外に出ることを判定
         # update_situationの最後に実行すること
-        if WorldModel._observer.ball_is_in_field(ball_pose):
-            if WorldModel._current_refbox_command != 'IN_PLAY':
-                WorldModel._set_current_situation(WorldModel._current_refbox_command)
-        else:
-            WorldModel._set_current_situation('BALL_IN_OUTSIDE')
+        # if WorldModel._observer.ball_is_in_field(ball_pose):
+        #     if WorldModel._current_refbox_command != 'IN_PLAY':
+        #         WorldModel._set_current_situation(WorldModel._current_refbox_command)
+        # else:
+        #     WorldModel._set_current_situation('BALL_IN_OUTSIDE')
 
         # Test実行の判定
         if WorldModel._current_refbox_command != 'HALT' and \
                 WorldModel._current_test in WorldModel.situations:
             WorldModel._set_current_situation(WorldModel._current_test)
+        elif WorldModel._current_refbox_command != 'IN_PLAY':
+            WorldModel._set_current_situation(WorldModel._current_refbox_command)
 
 
     @classmethod

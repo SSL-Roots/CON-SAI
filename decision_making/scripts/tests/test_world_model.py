@@ -499,8 +499,8 @@ class TestWorldModel(unittest.TestCase):
         self._test_situation(SSL_Referee.FORCE_START, 'FORCE_START')
         WorldModel.set_ball_odom(self.test_odom) # Moving Ball
         self._test_situation(SSL_Referee.NORMAL_START, 'IN_PLAY')
-        WorldModel.set_ball_odom(self.outside_odom) # Ball out of field
-        self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_OUTSIDE')
+        # WorldModel.set_ball_odom(self.outside_odom) # Ball out of field
+        # self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_OUTSIDE')
         WorldModel.set_ball_odom(self.ourside_odom) # Ball in our defence_area
         self._test_situation(SSL_Referee.NORMAL_START, 'BALL_IN_OUR_DEFENCE')
         WorldModel.set_ball_odom(self.theirside_odom) # Ball in their defence_area
