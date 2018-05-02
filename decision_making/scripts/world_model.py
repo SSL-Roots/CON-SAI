@@ -352,6 +352,9 @@ class WorldModel(object):
         elif re.match('Formation', name) and re.match('Role', sub_name):
             pose = WorldModel._formation.get_pose(sub_name)
 
+        elif re.match('Designated', name):
+            pose = WorldModel._refbox_designated_position
+
         return pose
 
 
