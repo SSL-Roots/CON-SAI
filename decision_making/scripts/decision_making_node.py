@@ -25,6 +25,7 @@ from consai_msgs.msg import AIStatus
 from consai_msgs.msg import RefereeTeamInfo
 from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
 from consai_msgs.msg import TestAICommand
+from consai_msgs.msg import Pose
 
 
 def publish():
@@ -109,6 +110,8 @@ def callback_geometry(msg):
 def callback_test_ai_command(msg):
     WorldModel.set_test_ai_command(msg)
 
+def callback_designated_position(msg):
+    WorldModel.set_designated_position(msg)
 
 def main():
     r   = rospy.Rate(30)
@@ -135,6 +138,7 @@ if __name__ == '__main__':
     sub_refbox_command  = rospy.Subscriber("refbox/command", Int8, refboxCallback)
     sub_refbox_blue_info = rospy.Subscriber("refbox/blue_info", RefereeTeamInfo, callback_blue_info)
     sub_refbox_yellow_info = rospy.Subscriber("refbox/yellow_info", RefereeTeamInfo, callback_yellow_info)
+    sub_designated_position = rospy.Subscriber("refbox/designated_position", Pose, callback_designated_position)
     sub_ball            = rospy.Subscriber("ball_observer/estimation", Odometry, ballCallback)
     sub_friend_id              = rospy.Subscriber("existing_friends_id",UIntArray,friendIDCallback)
     sub_enemy_id        = rospy.Subscriber("existing_enemies_id",UIntArray,enemyIDCallback)

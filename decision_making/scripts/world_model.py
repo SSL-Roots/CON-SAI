@@ -165,6 +165,8 @@ class WorldModel(object):
     _formation = Formation()
     _prev_formation_type = None
 
+    _refbox_designated_position = Pose()
+
     @classmethod
     def update_world(cls):
         WorldModel._update_situation()
@@ -175,6 +177,7 @@ class WorldModel(object):
         WorldModel._update_threat_assignments()
         WorldModel._update_object_states()
 
+        rospy.loginfo(WorldModel._refbox_designated_position)
     
     @classmethod
     def update_assignments(cls, assignment_type=None):
@@ -284,6 +287,9 @@ class WorldModel(object):
     def set_enemy_odom(cls, msg, robot_id):
         WorldModel._enemy_odoms[robot_id] = msg
 
+    @classmethod
+    def set_designated_position(cls, msg):
+        WorldModel._refbox_designated_position = msg
 
     @classmethod
     def set_refbox_command(cls, data):
