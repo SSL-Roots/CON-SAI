@@ -17,7 +17,7 @@ class Observer(object):
         self._hysteresis = 0.05 # unit:meter
         self._moved_threshold = 0.1 # unit:meter
         self._ball_initial_pose = Pose()
-        self._moving_speed_threshold = 0.4
+        self._moving_speed_threshold = 1.0
         self._moving_speed_hysteresis = 0.3
         self._is_on_threshold_x = 0.5
         self._is_on_threshold_y = 2.0
