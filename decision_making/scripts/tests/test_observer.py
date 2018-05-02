@@ -248,7 +248,7 @@ class TestObserver(unittest.TestCase):
         object_states['Role_3'] = State()
         object_states['Enemy_0'] = State()
 
-        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,-1,0))
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,-2,0))
         object_states['Role_0'].set_all(Pose(1,0,0), Velocity(0,0,0))
         object_states['Role_1'].set_all(Pose(0,1.2,0), Velocity(0,0,0))
         object_states['Role_2'].set_all(Pose(-2,0,0), Velocity(0,0,0))
