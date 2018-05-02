@@ -42,13 +42,15 @@ class PlayExecuter(object):
             # Extract possible plays from playbook
             possible_plays = []
             for play in PlayBook.book:
-                if WorldModel.situations[play.applicable]:
-                    possible_plays.append(play)
+                target_play = play()
+                if WorldModel.situations[target_play.applicable]:
+                    possible_plays.append(target_play)
 
             # playとtestは混ざらないようにWorldModelで調整している
             for test in TestBook.book:
-                if WorldModel.situations[test.applicable]:
-                    possible_plays.append(test)
+                target_test = test()
+                if WorldModel.situations[target_test.applicable]:
+                    possible_plays.append(target_test)
 
             # TODO(Asit) select a play randomly
             if possible_plays:
