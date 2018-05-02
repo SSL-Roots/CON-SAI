@@ -6,6 +6,7 @@ import rospy
 import sys,os
 sys.path.append(os.pardir)
 from world_model import WorldModel
+import tool
 
 
 class BallKicked(Task):
@@ -68,3 +69,21 @@ class IsLooking(Task):
             return TaskStatus.SUCCESS
 
         return TaskStatus.RUNNING
+
+class IsClose(Task):
+    def __init__(self, name, target1, target2, thresh_dist):
+        super(IsClose, self).__init__(name)
+
+        self._target1 = target1
+        self._target2 = target2
+        self._thresh_dist = thresh_dist
+
+    def run(self):
+        pose1 = WorldModel.get_pose(self._target1)
+        pose2 = WorldModel.get_pose(self._target2)
+        dist = tool.getSize(pose1, pose2)
+
+        if dist < self._thresh_dist:
+            return TaskStatus.SUCCESS
+        else:
+            return TaskStatus.RUNNING

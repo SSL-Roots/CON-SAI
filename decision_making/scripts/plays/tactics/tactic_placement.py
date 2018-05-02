@@ -1,18 +1,42 @@
 
 from pi_trees_lib.pi_trees_lib import *
 
-from skills.observations import CanPass, IsLooking
+from skills.observations import CanPass, IsLooking, IsClose
 from skills.adjustments import WithKick, NoBallAvoidance
 from skills.dynamic_drive import DynamicDrive
+from skills.turn_off import TurnOff
+
+from tactic_receive import TacticReceive
 
 import sys, os
 sys.path.append(os.pardir)
 from coordinate import Coordinate
 
 
-class TacticPlacement(MemorylessSequence):
+class TacticPlacement(Selector):
     def __init__(self, name, my_role):
         super(TacticPlacement, self).__init__(name)
+
+        self.add_child(TacticReceive("TacticReceive", my_role))
+        self.add_child(Placement("Placement", my_role))
+
+
+class Placement(MemorylessSequence):
+    def __init__(self, name, my_role):
+        super(Placement, self).__init__(name)
+
+        PASS = ParallelOne("PASS")
+        
+        PASS.add_child(Pass("Pass", my_role))
+        PASS.add_child(IsClose("IsClose", "DesignatedPosition", "Ball", 0.5))
+        
+        self.add_child(PASS)
+        self.add_child(TurnOff("TurnOff", my_role))
+
+
+class Pass(MemorylessSequence):
+    def __init__(self, name, my_role):
+        super(Pass, self).__init__(name)
 
         self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
 
