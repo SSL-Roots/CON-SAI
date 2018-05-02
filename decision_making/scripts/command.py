@@ -17,7 +17,7 @@ class Command(object):
         self.chip_enable = False
         self.navigation_enable = True
         self.avoid_ball = True
-        self.avoid_defence_area = True
+        self.avoid_defence_area = False
 
         self._MAX_KICK_POWER = 8.0
         self._MAX_DRIBBLE_POWER = 8.0
