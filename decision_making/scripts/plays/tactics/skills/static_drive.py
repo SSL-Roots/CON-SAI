@@ -65,6 +65,7 @@ class SendTrapezoidalCommand(Task):
         dec = command.vel_y
         keep_count = command.vel_yaw
         limit = command.kick_power
+        invert = command.do_chip
 
         if self._state == "ACC":
             self._current_vel += acc
@@ -87,15 +88,21 @@ class SendTrapezoidalCommand(Task):
         vel_y = 0
         vel_yaw = 0
 
+        invert_coef = 1.0
+        if invert:
+            invert_coef = -1.0
+
         if self._is_vel_x:
             vel_x = self._current_vel
-        elif self._is_vel_y:
+        if self._is_vel_y:
             vel_y = self._current_vel
-        elif self._is_vel_yaw:
+        if self._is_vel_yaw:
             vel_yaw = self._current_vel
 
         WorldModel.commands[self.my_role].set_target_velocity(
-                vel_x, vel_y, vel_yaw)
+                vel_x * invert_coef, 
+                vel_y * invert_coef, 
+                vel_yaw * invert_coef)
 
         return TaskStatus.RUNNING
 
