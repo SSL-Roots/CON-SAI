@@ -8,6 +8,7 @@ from tactics.tactic_interpose import TacticInterpose
 from tactics.tactic_clear import TacticClear
 from tactics.tactic_position import TacticPosition
 from tactics.tactic_attacker import TacticAttacker
+from tactics.tactic_formation import TacticFormation
 from consai_msgs.msg import Pose
 import constants
 
@@ -17,6 +18,7 @@ class PlayInPlayOurDefence(Play):
 
         self.applicable = "BALL_IN_OUR_DEFENCE"
         self.done_aborted = "BALL_IN_OUR_DEFENCE"
+        self.formation_type = None
 
         self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
@@ -26,22 +28,24 @@ class PlayInPlayOurDefence(Play):
 
         self.roles[1].loop_enable = True
         self.roles[1].behavior.add_child(
-                TacticPosition('TacticPosition', self.roles[1].my_role,
-                    0, 0, math.radians(-180))
+                TacticInterpose('TacticInterpose', self.roles[1].my_role,
+                    to_dist = 1.7)
                 )
 
         self.roles[2].loop_enable = True
         self.roles[2].behavior.add_child(
-                TacticInterpose('TacticInterpose', self.roles[2].my_role,
-                    to_dist = 1.5)
+                TacticPosition('TacticPosition', self.roles[2].my_role,
+                    0, 0, math.radians(-180))
                 )
+
 
         range_y = constants.FieldHalfY - 0.7
         self.roles[3].loop_enable = True
         self.roles[3].behavior.add_child(
-                TacticKeep('TacticKeep', self.roles[3].my_role, keep_x = -2.0,
-                    range_high = range_y,
-                    range_low = 0.5)
+                # TacticKeep('TacticKeep', self.roles[3].my_role, keep_x = -2.0,
+                #     range_high = range_y,
+                #     range_low = 0.5)
+                TacticFormation('TacticFormation', self.roles[3].my_role)
                 )
 
         self.roles[4].loop_enable = True
