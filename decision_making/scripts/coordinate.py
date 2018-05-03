@@ -465,8 +465,8 @@ class Coordinate(object):
 
             if self._receiving and tr_pose.x > 0.0:
                 # ボール軌道上に乗ったらボールに近づく
-                if math.fabs(tr_pose.y) < 0.3:
-                    tr_pose.x *= 0.9
+                # if math.fabs(tr_pose.y) < 0.3:
+                #     tr_pose.x *= 0.9
 
                 tr_pose.y = 0.0
                 inv_pose = trans.invertedTransform(tr_pose)
