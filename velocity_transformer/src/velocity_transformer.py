@@ -6,6 +6,7 @@ import nav_msgs.msg
 import geometry_msgs.msg
 
 robot_pose = geometry_msgs.msg.Pose()
+robot_vel = geometry_msgs.msg.Twist()
 last_vel_world = geometry_msgs.msg.Twist()
 last_time = rospy.Time()
 
@@ -14,6 +15,25 @@ def odomCallBack(msg):
     global robot_pose
 
     robot_pose = msg.pose.pose
+    robot_vel_world = msg.twist.twist
+
+    quaternion = (
+        robot_pose.orientation.x,
+        robot_pose.orientation.y,
+        robot_pose.orientation.z,
+        robot_pose.orientation.w)
+    euler = tf.transformations.euler_from_quaternion(quaternion)
+    yaw = euler[2]
+
+    robot_vel_local = geometry_msgs.msg.Twist()
+    robot_vel_local.linear.x = robot_vel_world.linear.x * math.cos(yaw) + \
+            robot_vel_world.linear.y * math.sin(yaw)
+    robot_vel_local.linear.y = robot_vel_world.linear.x * (-math.sin(yaw)) + \
+            robot_vel_world.linear.y * math.cos(yaw)
+    robot_vel_local.angular.z = robot_vel_world.angular.z
+
+    pub_vel_local.publish(robot_vel_local)
+    
 
 
 def twistCallBack(vel_robot):
@@ -54,6 +74,7 @@ if __name__ == '__main__':
 
     pub_vel_world = rospy.Publisher("cmd_vel_world", geometry_msgs.msg.Twist, queue_size=10)
     pub_acc_world = rospy.Publisher("accel_world", geometry_msgs.msg.Accel, queue_size=10)
+    pub_vel_local = rospy.Publisher("vel_local", geometry_msgs.msg.Twist, queue_size=10)
 
     sub_odom = rospy.Subscriber("odom", nav_msgs.msg.Odometry, odomCallBack)
     sub_cmdvel = rospy.Subscriber("cmd_vel", geometry_msgs.msg.Twist, twistCallBack)
