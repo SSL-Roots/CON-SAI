@@ -426,12 +426,11 @@ class Coordinate(object):
         intersection = tool.get_intersection(look_pose, target_pose, 
                 self._pose1, self._pose2)
 
-        angle = tool.getAngle(intersection, target_pose)
-
         intersection.x = tool.limit(intersection.x, 
                 self._range_x[0], self._range_x[1])
         intersection.y = tool.limit(intersection.y,
                 self._range_y[0], self._range_y[1])
+        angle = tool.getAngle(intersection, target_pose)
 
         self.pose = Pose(intersection.x, intersection.y, angle)
 
