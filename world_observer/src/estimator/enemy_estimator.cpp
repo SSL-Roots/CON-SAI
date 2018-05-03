@@ -1,4 +1,5 @@
 #include  <world_observer/enemy_estimator.hpp>
+#include <ros/console.h>
 
 #include  <tf/transform_datatypes.h>
 
@@ -223,10 +224,42 @@ nav_msgs::Odometry  EnemyEstimator::convetStateVectorToOdometry(ColumnVector sta
 
 
 bool EnemyEstimator::isOutlier(ColumnVector measurement){
+    double mahala_dist = mahalanobisDistance(measurement);
+
+    // double thresh = 5.99146; //自由度2、棄却率5%のしきい値
+    //
+    // if(mahala_dist > thresh){
+    //     return true;
+    // }
+
     return false;
 }
 
 double EnemyEstimator::mahalanobisDistance(ColumnVector measurement){
+    double measurementX= measurement(1);
+    double measurementY= measurement(2);
+    double measurementYaw = measurement(3);
+    double estimationX = this->last_estimation.val(1);
+    double estimationY = this->last_estimation.val(2);
+    double estimationYaw = this->last_estimation.val(3);
+    double covarianceX = this->last_estimation.cov(1,1);
+    double covarianceY = this->last_estimation.cov(2,2);
+    double covarianceYaw = this->last_estimation.cov(3,3);
+
+    double diffX = measurementX - estimationX;
+    double diffY = measurementY - estimationY;
+    double diffYaw = measurementYaw - estimationYaw;
+
+    // avoid 0 division
+    // if(covarianceX == 0 || covarianceY == 0 || covarianceYaw == 0){
+    //     return 0;
+    // }
+    //
+    // return sqrt(
+    //         pow(diffX, 2)/covarianceX +
+    //         pow(diffY, 2)/covarianceY +
+    //         pow(diffYaw, 2)/covarianceYaw
+    //         );
     return 0;
 }
 
