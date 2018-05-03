@@ -7,7 +7,7 @@ from tactics.tactic_halt import TacticHalt
 from tactics.tactic_inplay_shoot import TacticInplayShoot
 from tactics.tactic_position import TacticPosition
 from tactics.tactic_velocity import TacticVelocity
-from tactics.tactic_command import TacticCommand
+from tactics.tactic_command import TacticCommand, TacticTrapezoidalCommand
 from tactics.tactic_formation import TacticFormation
 
 import math
@@ -44,15 +44,18 @@ class Test1(Play):
         self.done_aborted = "TEST1"
         self.assignment_type = "CLOSEST_BALL"
 
-        self.roles[0].loop_enable = True
         self.roles[0].behavior.add_child(
-                TacticPosition('TacticPosition1', self.roles[0].my_role,
+                TacticHalt("TacticHalt", self.roles[0].my_role))
+
+        self.roles[1].loop_enable = True
+        self.roles[1].behavior.add_child(
+                TacticPosition('TacticPosition1', self.roles[1].my_role,
                     -1.5, 2.0, math.pi * 0.5))
-        self.roles[0].behavior.add_child(
-                TacticPosition('TacticPosition2', self.roles[0].my_role, 
+        self.roles[1].behavior.add_child(
+                TacticPosition('TacticPosition2', self.roles[1].my_role, 
                     -1.5, -2.0, math.pi * 0.5))
 
-        for i in range(1,constants.ROBOT_NUM):
+        for i in range(2,constants.ROBOT_NUM):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
@@ -99,3 +102,66 @@ class Test4(Play):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticFormation('TacticFormation', self.roles[i].my_role))
+
+# x方向の台形指令テスト
+class Test5(Play):
+    def __init__(self):
+        super(Test5, self).__init__('Test5')
+
+        self.applicable = "TEST5"
+        self.done_aborted = "TEST5"
+
+        self.roles[0].behavior.add_child(
+                TacticHalt("TacticHalt", self.roles[0].my_role))
+
+        self.roles[1].loop_enable = True
+        self.roles[1].behavior.add_child(
+                TacticTrapezoidalCommand('TacticTrapezoidalCommand', 
+                    self.roles[1].my_role, True, False, False))
+
+        for i in range(2,constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticHalt("TacticHalt", self.roles[i].my_role))
+
+# y方向の台形指令テスト
+class Test6(Play):
+    def __init__(self):
+        super(Test6, self).__init__('Test6')
+
+        self.applicable = "TEST6"
+        self.done_aborted = "TEST6"
+
+        self.roles[0].behavior.add_child(
+                TacticHalt("TacticHalt", self.roles[0].my_role))
+
+        self.roles[1].loop_enable = True
+        self.roles[1].behavior.add_child(
+                TacticTrapezoidalCommand('TacticTrapezoidalCommand', 
+                    self.roles[1].my_role, False, True, False))
+
+        for i in range(2,constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticHalt("TacticHalt", self.roles[i].my_role))
+
+# yaw方向の台形指令テスト
+class Test7(Play):
+    def __init__(self):
+        super(Test7, self).__init__('Test7')
+
+        self.applicable = "TEST7"
+        self.done_aborted = "TEST7"
+
+        self.roles[0].behavior.add_child(
+                TacticHalt("TacticHalt", self.roles[0].my_role))
+
+        self.roles[1].loop_enable = True
+        self.roles[1].behavior.add_child(
+                TacticTrapezoidalCommand('TacticTrapezoidalCommand', 
+                    self.roles[1].my_role, False, False, True))
+
+        for i in range(2,constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticHalt("TacticHalt", self.roles[i].my_role))

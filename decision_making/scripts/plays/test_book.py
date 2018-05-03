@@ -9,3 +9,6 @@ class TestBook(object):
     book.append(test0.Test2)
     book.append(test0.Test3)
     book.append(test0.Test4)
+    book.append(test0.Test5)
+    book.append(test0.Test6)
+    book.append(test0.Test7)
