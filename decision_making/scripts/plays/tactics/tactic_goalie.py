@@ -5,6 +5,11 @@ from pi_trees_lib.task_setup import *
 from skills.dynamic_drive import DynamicDrive
 from skills.adjustments import NoDefenceAreaAvoidance
 
+from tactic_receive import TacticReceive
+from tactic_look_intersection import TacticLookIntersection
+
+from consai_msgs.msg import Pose
+
 sys.path.append(os.pardir)
 from coordinate import Coordinate
 
@@ -28,5 +33,15 @@ class TacticGoalie(ParallelAll):
 
         self.add_child(NoDefenceAreaAvoidance('NoDefenceAreaAvoidance', my_role))
         self.add_child(DRIVE)
+
+class TacticNewGoalie(Selector):
+    def __init__(self, name, my_role, target='Threat_0',
+            pose1=Pose(-2, 3, 0), pose2=Pose(-2, -3, 0)):
+        super(TacticNewGoalie, self).__init__(name)
+
+        self.add_child(TacticReceive('TacticReceive', my_role))
+        self.add_child(TacticLookIntersection('TacticLookIntersection',
+            my_role, target, pose1, pose2))
+
 
 
