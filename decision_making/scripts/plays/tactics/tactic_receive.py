@@ -2,7 +2,7 @@
 from pi_trees_lib.pi_trees_lib import *
 
 from skills.observations import CanReceive
-from skills.adjustments import WithKick, NoBallAvoidance
+from skills.adjustments import WithKick, NoBallAvoidance, WithDribble
 from skills.dynamic_drive import DynamicDrive
 
 import sys, os
@@ -17,6 +17,7 @@ class TacticReceive(MemorylessSequence):
 
         self.add_child(CanReceive('CanReceive', my_role))
         self.add_child(NoBallAvoidance('NoBallAvoidance', my_role))
+        self.add_child(WithDribble('WithDribble', my_role))
 
         coord = Coordinate()
         coord.set_receive_ball(my_role)
