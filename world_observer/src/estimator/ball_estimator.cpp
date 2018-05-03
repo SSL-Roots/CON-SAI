@@ -1,4 +1,5 @@
 #include  <world_observer/ball_estimator.hpp>
+#include <ros/console.h>
 
 
 BallEstimator::BallEstimator(double loop_time) :
@@ -158,6 +159,38 @@ nav_msgs::Odometry  BallEstimator::convetEstimationToOdometry()
 }
 
 
+bool BallEstimator::isOutlier(ColumnVector measurement){
+    double mahala_dist = mahalanobisDistance(measurement);
+
+    double thresh = 3.84146; //自由度1、棄却率5%のしきい値
+
+    if(mahala_dist > thresh){
+        return true;
+    }
+    return false;
+}
+
+double BallEstimator::mahalanobisDistance(ColumnVector measurement){
+    double measurementX= measurement(1);
+    double measurementY= measurement(2);
+    double estimationX = this->last_estimation.val(1);
+    double estimationY = this->last_estimation.val(2);
+    double covarianceX = this->last_estimation.cov(1,1);
+    double covarianceY = this->last_estimation.cov(2,2);
+
+    double diffX = measurementX - estimationX;
+    double diffY = measurementY - estimationY;
+
+    // avoid 0 division
+    if(covarianceX == 0 || covarianceY == 0){
+        return 0;
+    }
+
+    return sqrt(
+            pow(diffX, 2)/covarianceX +
+            pow(diffY, 2)/covarianceY
+            );
+}
 
 BallEstimator::~BallEstimator()
 {

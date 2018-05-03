@@ -35,8 +35,7 @@ nav_msgs::Odometry  Estimator::estimate(geometry_msgs::Accel acc, const std::vec
         ColumnVector  measurement = convertPoseMsgToMeasureVector(poses.at(i));
 
         // TODO:check outlier
-        // if (isOutLier()) {
-        if (1 == 0) {
+        if (isOutlier(measurement)) {
             continue;
         }
 

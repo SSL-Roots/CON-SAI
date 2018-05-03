@@ -42,6 +42,10 @@ class Estimator
         virtual ColumnVector  convertPoseMsgToMeasureVector(geometry_msgs::Pose pose) = 0;
         virtual ColumnVector  convertAccelMsgToInputVector(geometry_msgs::Accel acc) = 0;
         virtual nav_msgs::Odometry  convetEstimationToOdometry() = 0;
+
+        virtual bool isOutlier(ColumnVector measurement) = 0;
+
+        virtual double mahalanobisDistance(ColumnVector measurement) = 0;
 };
 
 
