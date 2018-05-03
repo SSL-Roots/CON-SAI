@@ -19,6 +19,8 @@ class WithKick(Task):
 
         self._PASS_GAIN = 1.0 # 6 m/s * 9 m
 
+        self._POWER_LIMIT = 6.0
+
     def run(self):
         kick_power = self._kick_power
 
@@ -28,6 +30,9 @@ class WithKick(Task):
 
             dist_to_target = tool.getSize(role_pose, target_pose)
             kick_power = dist_to_target * self._PASS_GAIN
+
+            if kick_power > self._POWER_LIMIT:
+                kick_power = self._POWER_LIMIT
 
         WorldModel.commands[self._my_role].set_kick(kick_power)
 
