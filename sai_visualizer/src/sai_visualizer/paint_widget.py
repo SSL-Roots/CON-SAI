@@ -643,12 +643,17 @@ class PaintWidget(QWidget):
         for robot_id in self.friendsIDArray.data:
 
             robot_color = self.friendDrawColor
-            if self.robot_commands[robot_id].kick_speed_x:
+            if self.robot_commands[robot_id].kick_speed_x and \
+                self.robot_commands[robot_id].dribble_power:
+                # shooting & dribbling
+                robot_color = Qt.magenta
+            elif self.robot_commands[robot_id].kick_speed_x:
                 # shooting
                 robot_color = Qt.red
+
             elif self.robot_commands[robot_id].dribble_power:
                 # dribbling
-                robot_color = Qt.cyan
+                robot_color = Qt.white
 
             self.drawRobot(painter, robot_id, 
                     self.friendOdoms[robot_id], robot_color)
