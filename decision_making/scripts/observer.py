@@ -43,6 +43,13 @@ class Observer(object):
         self._can_pass_hysteresis = 0.03
         self._prev_pass_role = dict()
 
+        # can_reflect
+        self._reflecting = False
+        self._can_reflect_width = 1.5
+        self._can_reflect_width_hysteresis = 0.1
+        self._can_reflect_angle = math.radians(30.0)
+        self._can_reflect_angle_hysteresis = math.radians(5.0)
+
         # closest_role
         self._closest_hysteresis = 0.2 # unit:meter
         
@@ -282,6 +289,42 @@ class Observer(object):
 
         self._prev_pass_role[role] = target_role
         return result, target_role
+
+    def can_reflect(self, role, target_pose, object_states):
+        result = False
+
+        ball_pose = object_states['Ball'].get_pose()
+        ball_vel = object_states['Ball'].get_velocity()
+
+        if object_states[role].is_enabled() is False:
+            self._reflecting = False
+            return False
+
+        role_pose = object_states[role].get_pose()
+        angle_target_to_role = tool.getAngle(target_pose, role_pose)
+
+        if self.ball_is_moving(ball_vel):
+            velocity_angle = tool.getAngleFromCenter(ball_vel)
+            trans = tool.Trans(ball_pose, velocity_angle)
+
+            tr_role = trans.transform(role_pose)
+            tr_angle_t_to_r = trans.transformAngle(angle_target_to_role)
+
+            # 判定にヒステリシスをもたせる
+            can_width = self._can_reflect_width
+            can_angle = self._can_reflect_angle
+
+            if self._reflecting:
+                can_width += self._can_reflect_width_hysteresis
+                can_angle += self._can_reflect_angle_hysteresis
+
+            if math.fabs(tr_role.y) < can_width and \
+                    math.fabs(tr_angle_t_to_r) < can_angle:
+
+                result = True
+                self._reflecting = True
+
+        return result
 
     def closest_role(self, target_pose, object_states, is_friend=True, 
             prev_closest=None, target_is_ball=False, exclude_key=None):
