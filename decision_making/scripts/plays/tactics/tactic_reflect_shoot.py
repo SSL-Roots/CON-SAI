@@ -24,6 +24,5 @@ class TacticReflectShoot(MemorylessSequence):
         coord.set_reflect(my_role, target)
 
         self.add_child(DynamicDrive('drive_to_shoot', my_role, coord))
-        self.add_child(IsLooking('IsLooking', my_role, target))
         self.add_child(WithKick('WithKick', my_role))
 
