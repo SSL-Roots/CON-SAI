@@ -239,6 +239,39 @@ class TestObserver(unittest.TestCase):
         self.assertEqual(expected_result, result)
         self.assertEqual(expected_role, target_role)
 
+    def test_can_reflect(self):
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        object_states['Role_0'].set_all(Pose(0,0,0), Velocity(0,0,0))
+
+        target_pose = constants.poses['CONST_THEIR_GOAL']
+
+        expected = False
+        actual = self.observer.can_reflect('Role_0', target_pose, object_states)
+        self.assertEqual(expected, actual)
+
+        object_states['Ball'].set_all(Pose(1,0,0), Velocity(2,0,0))
+        actual = self.observer.can_reflect('Role_0', target_pose, object_states)
+        self.assertEqual(expected, actual)
+
+        expected = True
+        object_states['Ball'].set_all(Pose(1,0,0), Velocity(-2,0,0))
+        actual = self.observer.can_reflect('Role_0', target_pose, object_states)
+        self.assertEqual(expected, actual)
+
+        expected = True
+        object_states['Ball'].set_all(Pose(2,0.5,0), Velocity(-2,-0.5,0))
+        actual = self.observer.can_reflect('Role_0', target_pose, object_states)
+        self.assertEqual(expected, actual)
+
+        expected = True
+        object_states['Ball'].set_all(Pose(2,-0.5,0), Velocity(-2,0.5,0))
+        actual = self.observer.can_reflect('Role_0', target_pose, object_states)
+        self.assertEqual(expected, actual)
+
     def test_closest_role(self):
         object_states = dict()
         object_states['Ball'] = State()
