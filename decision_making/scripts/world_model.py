@@ -608,6 +608,11 @@ class WorldModel(object):
         return result
 
     @classmethod
+    def can_reflect_shoot(cls, role, target_name):
+        target_pose = WorldModel.get_pose(target_name)
+        return WorldModel._observer.can_reflect(role, target_pose, WorldModel._object_states)
+
+    @classmethod
     def is_looking(cls, role, target):
         role_pose = WorldModel.get_pose(role)
         target_pose = WorldModel.get_pose(target)

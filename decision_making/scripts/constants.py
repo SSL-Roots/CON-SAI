@@ -22,6 +22,8 @@ GoalHalfSize = GoalSize * 0.5
 RobotRadius = 0.09
 BallRadius = 0.0215
 
+DribblerDist = 0.080
+
 poses = {
         'CONST_OUR_GOAL' : Point(-FieldHalfX, 0.0, 0),
         'CONST_OUR_GOAL_UPPER' : Point(-FieldHalfX, DefenceHalfStreach, 0),

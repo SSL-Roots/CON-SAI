@@ -17,6 +17,7 @@ from plays.tactics.tactic_pass import TacticPass
 from plays.tactics.tactic_receive import TacticReceive
 from plays.tactics.tactic_formation import TacticFormation
 from plays.tactics.tactic_placement import TacticPlacement
+from plays.tactics.tactic_reflect_shoot import TacticReflectShoot
 
 class TestTacticsRun(unittest.TestCase):
 
@@ -79,6 +80,12 @@ class TestTacticsRun(unittest.TestCase):
 
         self.assertEqual(expected, actual)
 
+    def test_tactic_reflect_shoot(self):
+        tactic = TacticReflectShoot("TacticReflectShoot", "Role_0")
+        expected = TaskStatus.FAILURE
+        actual = tactic.run()
+
+        self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
     import rosunit

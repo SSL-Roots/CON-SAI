@@ -57,6 +57,19 @@ class CanPass(Task):
 
         return TaskStatus.FAILURE
 
+class CanReflectShoot(Task):
+    def __init__(self, name, my_role, target_name):
+        super(CanReflectShoot, self).__init__(name)
+
+        self._my_role = my_role
+        self._target = target_name
+
+    def run(self):
+        if WorldModel.can_reflect_shoot(self._my_role, self._target):
+            return TaskStatus.SUCCESS
+
+        return TaskStatus.FAILURE
+
 class IsLooking(Task):
     def __init__(self, name, my_role, target):
         super(IsLooking, self).__init__(name)
