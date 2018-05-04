@@ -10,6 +10,7 @@ sys.path.append(pardir)
 
 from coordinate import Coordinate
 from consai_msgs.msg import Pose
+from world_model import WorldModel
 
 
 class TestCoordinate(unittest.TestCase):
@@ -95,6 +96,16 @@ class TestCoordinate(unittest.TestCase):
         actual = self.coord._generate_stage3_pose(math.radians(30), True)
         self._assertAlmostEqualPose(expected, actual)
 
+    def test_reflect(self):
+        self.coord.set_reflect('Role_0')
+
+        id_list = [0]
+        WorldModel.set_existing_friends_id(id_list)
+        WorldModel.update_assignments()
+
+        expected = True
+        actual = self.coord.update()
+        self.assertEqual(expected, actual)
 
 if __name__ == "__main__":
     import rosunit

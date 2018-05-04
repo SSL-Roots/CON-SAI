@@ -193,6 +193,12 @@ class Coordinate(object):
 
         self._update_func = self._update_formation
 
+    def set_reflect(self, my_role, target='CONST_THEIR_GOAL'):
+        # ボールをリフレクトシュートできる位置に移動する
+        self._my_role = my_role
+        self._target = target
+
+        self._update_func = self._update_reflect
 
     def is_arrived(self, role):
         # robotが目標位置に到着したかを判断する
@@ -488,3 +494,31 @@ class Coordinate(object):
 
         return True
 
+    def _update_reflect(self):
+        ball_pose = WorldModel.get_pose('Ball')
+        ball_vel = WorldModel.get_velocity('Ball')
+        target_pose = WorldModel.get_pose(self._target)
+        role_pose = WorldModel.get_pose(self._my_role)
+
+        if target_pose is None or role_pose is None:
+            return False
+
+        angle_role_to_target = tool.getAngle(role_pose, target_pose)
+        # dribbler_pose is dribble bar position of robot on field
+        dribbler_pose = Pose()
+        dribbler_pose.x = role_pose.x + constants.DribblerDist * math.cos(angle_role_to_target)
+        dribbler_pose.y = role_pose.y + constants.DribblerDist * math.sin(angle_role_to_target)
+
+        
+        velocity_angle = tool.getAngleFromCenter(ball_vel)
+        trans = tool.Trans(ball_pose, velocity_angle)
+        tr_dribbler = trans.transform(dribbler_pose)
+
+        tr_dribbler.y = 0.0
+        inv_pose = trans.invertedTransform(tr_dribbler)
+
+        self.pose.x = inv_pose.x - constants.DribblerDist * math.cos(angle_role_to_target)
+        self.pose.y = inv_pose.y - constants.DribblerDist * math.sin(angle_role_to_target)
+        self.pose.theta = angle_role_to_target
+
+        return True
