@@ -47,7 +47,7 @@ class Observer(object):
         self._reflecting = False
         self._can_reflect_width = 1.5
         self._can_reflect_width_hysteresis = 0.1
-        self._can_reflect_angle = math.radians(30.0)
+        self._can_reflect_angle = math.radians(45.0)
         self._can_reflect_angle_hysteresis = math.radians(5.0)
 
         # closest_role
