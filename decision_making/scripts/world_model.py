@@ -193,7 +193,7 @@ class WorldModel(object):
 
         closest_role = WorldModel._observer.closest_role(
                 ball_pose, WorldModel._object_states, 
-                True, WorldModel._ball_closest_frined_role, True)
+                True, WorldModel._ball_closest_frined_role, True, 'Role_0')
 
         # Exclude goalie role
         if closest_role == 'Role_0':

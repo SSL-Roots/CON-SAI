@@ -18,6 +18,7 @@ class PlayInPlayOurDefence(Play):
 
         self.applicable = "BALL_IN_OUR_DEFENCE"
         self.done_aborted = "BALL_IN_OUR_DEFENCE"
+        self.assignment_type = "CLOSEST_BALL"
         self.formation_type = None
 
         self.roles[0].loop_enable = True
@@ -29,7 +30,7 @@ class PlayInPlayOurDefence(Play):
         self.roles[1].loop_enable = True
         self.roles[1].behavior.add_child(
                 TacticInterpose('TacticInterpose', self.roles[1].my_role,
-                    to_dist = 1.7)
+                    to_dist = 1.8)
                 )
 
         self.roles[2].loop_enable = True

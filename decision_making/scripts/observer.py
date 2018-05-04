@@ -100,8 +100,8 @@ class Observer(object):
             target_x -= self._hysteresis
             target_y -= self._hysteresis
         
-        if target_y < constants.PenaltyY and \
-            target_x < -constants.PenaltyX:
+        if target_y < constants.PenaltyY + constants.RobotRadius * 2.0 and \
+            target_x < -constants.PenaltyX + constants.RobotRadius * 2.0:
         
             return True
 
@@ -284,7 +284,7 @@ class Observer(object):
         return result, target_role
 
     def closest_role(self, target_pose, object_states, is_friend=True, 
-            prev_closest=None, target_is_ball=False):
+            prev_closest=None, target_is_ball=False, exclude_key=None):
         thresh_dist = 1000
         result_role = None
 
@@ -299,7 +299,7 @@ class Observer(object):
 
         if ball_is_moving:
             for role in object_states.keys():
-                if not re.match(role_name, role):
+                if not re.match(role_name, role) or role == exclude_key:
                     continue
 
                 state = object_states[role]
@@ -320,7 +320,7 @@ class Observer(object):
 
         else:
             for role in object_states.keys():
-                if not re.match(role_name, role):
+                if not re.match(role_name, role) or role == exclude_key:
                     continue
 
                 state = object_states[role]
