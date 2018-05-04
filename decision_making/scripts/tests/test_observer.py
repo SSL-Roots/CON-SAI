@@ -323,6 +323,28 @@ class TestObserver(unittest.TestCase):
         actual = self.observer.is_looking(my_pose, target_pose)
         self.assertEqual(expected, actual)
 
+    def test_has_ball(self):
+        object_states = dict()
+        object_states['Ball'] = State()
+        object_states['Role_0'] = State()
+
+        object_states['Ball'].set_all(Pose(0,0,0), Velocity(0,0,0))
+        object_states['Role_0'].set_all(Pose(-0.01,0,0), Velocity(0,0,0))
+
+        expected = True
+        actual = self.observer.has_ball('Role_0', object_states)
+        self.assertEqual(expected, actual)
+
+        object_states['Role_0'].set_all(Pose(0.01,0,math.radians(180)), Velocity(0,0,0))
+        expected = True
+        actual = self.observer.has_ball('Role_0', object_states)
+        self.assertEqual(expected, actual)
+
+        object_states['Role_0'].set_all(Pose(-0.01,1,0), Velocity(0,0,0))
+        expected = False
+        actual = self.observer.has_ball('Role_0', object_states)
+        self.assertEqual(expected, actual)
+
 if __name__ == "__main__":
     import rosunit
     rosunit.unitrun('decision_making', 'test_observer', TestObserver)

@@ -52,11 +52,19 @@ class Observer(object):
 
         # closest_role
         self._closest_hysteresis = 0.2 # unit:meter
+
+        # has_ball
+        self._has_ball_dist = constants.RobotRadius
+        self._has_ball_angle = math.radians(5)
+        self._has_ball_dist_hysteresis = 0.03
+        self._has_ball_angle_hysteresis = math.radians(3)
+        self._having_ball = dict()
         
         for i in range(constants.ROBOT_NUM):
             role_name = 'Role_' + str(i)
             self._receiving[role_name] = False
             self._prev_pass_role[role_name] = None
+            self._having_ball[role_name] = False
 
     def ball_is_in_field(self, pose):
         fabs_x = math.fabs(pose.x)
@@ -393,4 +401,40 @@ class Observer(object):
             return True
         else:
             return False
+
+    def has_ball(self, role_name, object_states):
+        result = False
+
+        ball_pose = object_states['Ball'].get_pose()
+        role_state = object_states[role_name]
+
+        if not role_state.is_enabled():
+            self._having_ball[role_name] = False
+            return False
+
+        role_pose = role_state.get_pose()
+        dist_to_ball = tool.getSize(role_pose, ball_pose)
+        angle_to_ball = tool.getAngle(role_pose, ball_pose)
+
+        trans = tool.Trans(role_pose, angle_to_ball)
+
+        tr_ball = trans.transform(ball_pose)
+        tr_theta = trans.transformAngle(role_pose.theta)
+
+
+        # 判定にヒステリシスをもたせる
+        thresh_dist = self._has_ball_dist
+        thresh_angle = self._has_ball_angle
+        if self._having_ball[role_name]:
+            thresh_dist += self._has_ball_dist_hysteresis
+            thresh_angle += self._has_ball_angle_hysteresis
+
+        # ボールを見る角度、roleとballの距離で判定
+        if tr_ball.x > 0 and dist_to_ball < thresh_dist and \
+                math.fabs(tr_theta) < thresh_angle:
+            result = True
+            self._having_ball[role_name] = True
+        
+        return result
+
 
