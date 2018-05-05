@@ -184,8 +184,6 @@ class WorldModel(object):
         WorldModel._update_enemy_assignments()
         WorldModel._update_threat_assignments()
         WorldModel._update_object_states()
-
-        rospy.loginfo(WorldModel._current_refbox_command)
     
     @classmethod
     def update_assignments(cls, assignment_type=None):
