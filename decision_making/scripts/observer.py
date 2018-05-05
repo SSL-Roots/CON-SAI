@@ -54,9 +54,9 @@ class Observer(object):
         self._closest_hysteresis = 0.2 # unit:meter
 
         # has_ball
-        self._has_ball_dist = constants.RobotRadius
+        self._has_ball_dist = constants.RobotRadius + constants.BallRadius
         self._has_ball_angle = math.radians(5)
-        self._has_ball_dist_hysteresis = 0.03
+        self._has_ball_dist_hysteresis = 0.05
         self._has_ball_angle_hysteresis = math.radians(3)
         self._having_ball = dict()
         

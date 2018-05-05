@@ -31,7 +31,8 @@ poses = {
         'CONST_THEIR_GOAL' : Point(FieldHalfX, 0.0, 0),
         'CONST_THEIR_GOAL_UPPER' : Point(FieldHalfX, DefenceHalfStreach, 0),
         'CONST_THEIR_GOAL_LOWER' : Point(FieldHalfX, -DefenceHalfStreach, 0),
-        'CONST_THEIR_PENALTY_MARK' : Point(FieldHalfX - DefenceLength, 0.0, 0)
+        'CONST_THEIR_PENALTY_MARK' : Point(FieldHalfX - DefenceLength, 0.0, 0),
+        'CONST_CENTER' : Point(0,0,0)
         }
 
 shoot_targets = ['CONST_THEIR_GOAL', 'CONST_THEIR_GOAL_UPPER', 'CONST_THEIR_GOAL_LOWER']
@@ -64,6 +65,7 @@ def _set_poses():
         'CONST_THEIR_GOAL' : Point(FieldHalfX, 0.0, 0),
         'CONST_THEIR_GOAL_UPPER' : Point(FieldHalfX, DefenceHalfStreach, 0),
         'CONST_THEIR_GOAL_LOWER' : Point(FieldHalfX, -DefenceHalfStreach, 0),
-        'CONST_THEIR_PENALTY_MARK' : Point(FieldHalfX - DefenceLength, 0.0, 0)
+        'CONST_THEIR_PENALTY_MARK' : Point(FieldHalfX - DefenceLength, 0.0, 0),
+        'CONST_CENTER' : Point(0,0,0)
         }
 

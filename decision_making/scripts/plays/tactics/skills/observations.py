@@ -100,3 +100,27 @@ class IsClose(Task):
             return TaskStatus.SUCCESS
         else:
             return TaskStatus.RUNNING
+
+class BallIsInField(Task):
+    def __init__(self, name):
+        super(BallIsInField, self).__init__(name)
+
+        pass
+
+    def run(self):
+        if WorldModel.ball_is_in_field():
+            return TaskStatus.SUCCESS
+        else:
+            return TaskStatus.RUNNING
+
+class HasBall(Task):
+    def __init__(self, name, my_role):
+        super(HasBall, self).__init__(name)
+
+        self._my_role = my_role
+
+    def run(self):
+        if WorldModel.has_ball(self._my_role):
+            return TaskStatus.SUCCESS
+        else:
+            return TaskStatus.FAILURE

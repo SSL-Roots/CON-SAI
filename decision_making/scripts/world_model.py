@@ -628,3 +628,17 @@ class WorldModel(object):
             return True
         else:
             return False
+
+    @classmethod
+    def ball_is_in_field(cls):
+        result = False
+
+        ball_pose = WorldModel.get_pose('Ball')
+        if WorldModel._observer.ball_is_in_field(ball_pose):
+            result = True
+
+        return result
+
+    @classmethod
+    def has_ball(cls, role):
+        return WorldModel._observer.has_ball(role, WorldModel._object_states)
