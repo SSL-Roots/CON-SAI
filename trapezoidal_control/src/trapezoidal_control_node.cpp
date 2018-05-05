@@ -45,6 +45,7 @@ class Controller{
         double mDecSpeedGain;
         double mDirecLimit;
         double mSpeedLimit;
+        geometry_msgs::Vector3 mPrevRobotCommand;
 
         double mPrevRotation;
         double mAccRotation;
@@ -55,9 +56,11 @@ class Controller{
 
         void poseControl();
         geometry_msgs::Vector3 trapezoidalLinearControl(const geometry_msgs::Point &targetPos);
+        geometry_msgs::Vector3 trapezoidalNewLinearControl(const geometry_msgs::Point &targetPos);
         geometry_msgs::Vector3 trapezoidalAngularControl();
         geometry_msgs::Twist velocityControl(const geometry_msgs::Twist &targetVel);
 
+        double brakingDistance(double prevCommand, double realSpeed, double acc, double decGain, double timePeriod);
         double normalize(double angle);
         double yawFromQuaternion(geometry_msgs::Quaternion geoQ);
 };
@@ -134,7 +137,8 @@ void Controller::callbackAvoidingPoint(const geometry_msgs::Point& msg){
 }
 
 void Controller::poseControl(){
-    geometry_msgs::Vector3 linearVel = trapezoidalLinearControl(mAvoidingPoint);
+    // geometry_msgs::Vector3 linearVel = trapezoidalLinearControl(mAvoidingPoint);
+    geometry_msgs::Vector3 linearVel = trapezoidalNewLinearControl(mAvoidingPoint);
 
     // 移動方向をロボット座標系に変換
     double realYaw = yawFromQuaternion(mRealPose.orientation);
@@ -207,6 +211,136 @@ geometry_msgs::Vector3 Controller::trapezoidalLinearControl(const geometry_msgs:
     output.z = 0;
 
     return output;
+}
+
+geometry_msgs::Vector3 Controller::trapezoidalNewLinearControl(const geometry_msgs::Point &targetPos){
+    // ロボット位置と目標位置から、移動方向を求める
+    double targX,targY,realX,realY,diffX,diffY;
+    targX = targetPos.x;
+    targY = targetPos.y;
+    realX = mRealPose.position.x;
+    realY = mRealPose.position.y;
+    diffX = targX-realX;
+    diffY = targY-realY;
+
+    // double targetDirection = atan2(diffY, diffX);
+
+    // ロボット速度方向と移動方向の方向差を求める
+    double realVX, realVY;
+    realVX = mRealVel.linear.x;
+    realVY = mRealVel.linear.y;
+
+    // double velDirection =std::atan2(realVY, realVX);
+    // double diffDirection = normalize(targetDirection - velDirection);
+    
+    // ロボット位置と目標位置から移動距離を求める
+    // double targetDistance;
+    // targetDistance = sqrt(diffX*diffX + diffY*diffY);
+
+    // 一つ前の制御速度とロボット速度の大きさをもとに制動距離を求める
+    // double realSpeed = sqrt(realVX*realVX + realVY*realVY);
+    // double brakingDistance;
+    // brakingDistance = 0.5 * (mPrevSpeed/mAccSpeed) * mPeriod_ * mPrevSpeed 
+    //     + mDecSpeedGain*realSpeed;
+    //
+    // 制動距離には、一つ前の制御速度と同じ符号を与える
+    double brakingDistanceX, brakingDistanceY;
+    brakingDistanceX = 0.5 * (fabs(mPrevRobotCommand.x)/mAccSpeed) 
+        * mPeriod_ * fabs(mPrevRobotCommand.x);
+        // + mDecSpeedGain * fabs(realVX);
+    brakingDistanceY = 0.5 * (fabs(mPrevRobotCommand.y)/mAccSpeed) 
+        * mPeriod_ * fabs(mPrevRobotCommand.y);
+        // + mDecSpeedGain * fabs(realVY);
+    
+    brakingDistanceX = copysign(brakingDistanceX, mPrevRobotCommand.x) + mDecSpeedGain * realVX;
+    brakingDistanceY = copysign(brakingDistanceY, mPrevRobotCommand.y) + mDecSpeedGain * realVY;
+
+    // ロボットの速度の大きさから、移動方向を変えられるかを判断する
+    // ロボットの速度が大きく、かつ速度と移動方向の角度差が大きければ
+    // 制動距離を1000000にして、強制的に減速する
+    // if(fabs(diffDirection) > mDirecLimit && realSpeed > mSpeedLimit){
+    //     brakingDistance = 100000;
+    //     targetDirection = velDirection;
+    // }
+    
+    // 1:移動距離が制動距離以上であれば加速する
+    // double targetSpeed = mPrevSpeed;
+    geometry_msgs::Vector3 targetCommand = mPrevRobotCommand;
+    // if(targetDistance > brakingDistance){
+    //     targetSpeed += mAccSpeed;
+    //     // 2:ロボット速度が限界値であれば速度を維持する
+    //     if(targetSpeed > mMaxSpeed){
+    //         targetSpeed -= mAccSpeed;
+    //         // targetSpeed = mMaxSpeed;
+    //     }
+    // }else{
+    // // 3:移動距離が制動距離以下であれば減速する
+    //     targetSpeed -= mAccSpeed;
+    //     if(targetSpeed < 0){
+    //         targetSpeed = 0.0;
+    //     }
+    // }
+    //
+    // ROS_INFO("brakingDistanceX: %f, brakingDistanceY: %f", brakingDistanceX, brakingDistanceY);
+    if(diffX > brakingDistanceX){
+        targetCommand.x += mAccSpeed;
+        // if(targetCommand.x > mMaxSpeed){
+        //     targetCommand.x = mMaxSpeed;
+        // }
+    }else if(diffX > 0){
+        targetCommand.x -= mAccSpeed;
+
+    }else if(fabs(diffX) < 0.05){
+        targetCommand.x = copysign(0.05, diffX);
+    }else if(diffX > -brakingDistanceX){
+        targetCommand.x += mAccSpeed;
+    }else{
+        targetCommand.x -= mAccSpeed;
+        // if(targetCommand.x < -mMaxSpeed){
+        //     targetCommand.x = -mMaxSpeed;
+        // }
+    }
+
+    if(diffY > brakingDistanceY){
+        targetCommand.y += mAccSpeed;
+        // if(targetCommand.y > mMaxSpeed){
+        //     targetCommand.y = mMaxSpeed;
+        // }
+    }else if(diffY > 0){
+        targetCommand.y -= mAccSpeed;
+    }else if(fabs(diffY) < 0.05){
+        targetCommand.y = copysign(0.05, diffY);
+    }else if(diffY > -brakingDistanceY){
+        targetCommand.y += mAccSpeed;
+    }else{
+        targetCommand.y -= mAccSpeed;
+        // if(targetCommand.y < -mMaxSpeed){
+        //     targetCommand.y = -mMaxSpeed;
+        // }
+    }
+
+    if(targetCommand.x > mMaxSpeed){
+        targetCommand.x = mMaxSpeed;
+    }else if(targetCommand.x < -mMaxSpeed){
+        targetCommand.x = -mMaxSpeed;
+    }
+    if(targetCommand.y > mMaxSpeed){
+        targetCommand.y = mMaxSpeed;
+    }else if(targetCommand.y < -mMaxSpeed){
+        targetCommand.y = -mMaxSpeed;
+    }
+
+    // ROS_INFO("targetX: %f, targetY: %f", targetCommand.x, targetCommand.y);
+    // mPrevSpeed = targetSpeed;
+    mPrevRobotCommand = targetCommand;
+    
+    return targetCommand;
+    // geometry_msgs::Vector3 output;
+    // output.x = mPrevSpeed*cos(targetDirection);
+    // output.y = mPrevSpeed*sin(targetDirection);
+    // output.z = 0;
+    //
+    // return output;
 }
 
 geometry_msgs::Vector3 Controller::trapezoidalAngularControl(){
@@ -328,6 +462,14 @@ geometry_msgs::Twist Controller::velocityControl(const geometry_msgs::Twist &tar
     output.linear.y = commandSpeed*sin(velDirection);
     output.angular.z = commandRotation;
     
+    return output;
+}
+
+double Controller::brakingDistance(double prevCommand, double realSpeed, double acc, double decGain, double timePeriod){
+    double output;
+    output = 0.5 * (prevCommand/acc) * timePeriod * prevCommand
+        + decGain * realSpeed;
+
     return output;
 }
 
