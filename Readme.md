@@ -11,6 +11,11 @@ CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 ## CON-SAIの開発コンセプト
 CON-SAIを使う前に[コンセプト](doc/Concept.md)を読んでください。
 
+## Announcements
+- RoboCup Japan Open 2018 に新チーム[Scramble](http://nararobocon.sakura.ne.jp/scramble-ssl/)がCON-SAIを使って出場しました。
+- RoboCup Japan Open 2018 に向けて大幅なアップデートを実施しました。[*(branch)*](https://github.com/SSL-Roots/CON-SAI/tree/rensyu)
+リファクタリング後、正式にリリースします。
+
 ## Requirements
 CON-SAIはUbuntu 16.04で作成・テストしてます。
 
