@@ -51,6 +51,9 @@ $ mkdir -p ~/catkin_ws/src
 $ cd ~/catkin_ws/src
 $ catkin_init_workspace
 
+# ワークスペースの最上位ディレクトリに移動
+$ cd ~/catkin_ws
+
 # ワークスペースのビルド
 $ catkin_make
 
@@ -82,6 +85,8 @@ $ sudo apt-get install libprotobuf-dev libprotoc-dev protobuf-compiler
 # 念の為versionチェック(2.6.1がインストールされていればOK)
 $ apt-cache policy libprotobuf-dev libprotoc-dev protobuf-compiler
 
+# Python Package Installerのインストール
+$ sudo apt-get install python-pip
 
 # Install protobuf for python2
 $ pip2 install protobuf==2.6.1
@@ -92,7 +97,7 @@ $ pip2 show protobuf
 ### その他インストール
 ```zsh
 # ROS Navigationパッケージをインストール
-$ sudo apt-get install ros-indigo-navigation
+$ sudo apt-get install ros-kinetic-navigation
     
 # グラフ描画ライブラリ(pygraphviz) をインストール
 $ sudo apt-get install graphviz libgraphviz-dev pkg-config
