@@ -16,15 +16,27 @@ generate_dynamic_reconfigure_options(
 
 catkin_package()
 
-include_directories(
+include_directories(include
   ${catkin_INCLUDE_DIRS}
 )
 
-add_executable(${PROJECT_NAME}_node src/trapezoidal_control_node.cpp)
+add_executable(${PROJECT_NAME}_node 
+    src/trapezoidal_control_node.cpp
+)
+
+add_library(controller
+    src/trapezoidal_controller.cpp)
 
 target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
+    controller
+    ${catkin_LIBRARIES}
 )
+
 add_dependencies(trapezoidal_control_node consai_msgs_generate_messages_cpp)
 
 add_dependencies(${PROJECT_NAME}_node ${PROJECT_NAME}_gencfg)
+
+if (CATKIN_ENABLE_TESTING)
+    catkin_add_gtest(utest src/tests/test_trapezoidal_controller.cpp)
+    target_link_libraries(utest controller ${catkin_LIBRARIES})
+endif()
