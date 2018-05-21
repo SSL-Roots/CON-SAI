@@ -5,7 +5,7 @@
 TEST(InitializeTest, Velocity){
     TrapezoidalController controller;
     double velocity = controller.getVelocity();
-    EXPECT_EQ(velocity, 0);
+    EXPECT_DOUBLE_EQ(velocity, 0.0);
 }
 
 
