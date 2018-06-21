@@ -58,7 +58,7 @@ class Sender:
                     self.send_robot_replacement))
 
 
-    def sendCommands(self,data,id):
+    def sendCommands(self,data,robot_id):
         packet = grSim_Packet_pb2.grSim_Packet()
         now_time = (time.mktime(datetime.now().timetuple()))
         packet.commands.timestamp = now_time
@@ -69,7 +69,7 @@ class Sender:
             packet.commands.isteamyellow = False
 
         commands = packet.commands.robot_commands.add()
-        commands.id = id
+        commands.id = robot_id
         commands.kickspeedx = data.kick_speed_x
         commands.kickspeedz = data.kick_speed_z
         if math.isnan(data.vel_surge)  \
