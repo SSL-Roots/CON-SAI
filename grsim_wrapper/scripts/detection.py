@@ -271,8 +271,8 @@ class VisionReceiver:
         # for n in self._enemy_list:
         #     self._enemy_publisher[n] = AbstractGeometry(self._our_side, 'pose_enemy_' + str(n))
 
-        self._friend_list_publisher = rospy.Publisher('friend_poses', RobotPoses, queue_size=10)
-        self._enemy_list_publisher = rospy.Publisher('enemy_poses', RobotPoses, queue_size=10)
+        # self._friend_list_publisher = rospy.Publisher('friend_poses', RobotPoses, queue_size=10)
+        # self._enemy_list_publisher = rospy.Publisher('enemy_poses', RobotPoses, queue_size=10)
 
         self._vision_observations_publisher = rospy.Publisher(
             'vision_observations', VisionObservations, queue_size=10)
@@ -333,10 +333,10 @@ class VisionReceiver:
         # for i in self._enemy_list:
         #     self._enemy_publisher[i].publish(enemy_pose_arrays[i])
 
-        friend_poses_msg = self._getRobotPosesFromProtobufMsg(detection_friend)
-        enemy_poses_msg = self._getRobotPosesFromProtobufMsg(detection_enemy)
-        self._friend_list_publisher.publish(friend_poses_msg)
-        self._enemy_list_publisher.publish(enemy_poses_msg)
+        # friend_poses_msg = self._getRobotPosesFromProtobufMsg(detection_friend)
+        # enemy_poses_msg = self._getRobotPosesFromProtobufMsg(detection_enemy)
+        # self._friend_list_publisher.publish(friend_poses_msg)
+        # self._enemy_list_publisher.publish(enemy_poses_msg)
 
 
     def _receive_geometry(self, buf):
