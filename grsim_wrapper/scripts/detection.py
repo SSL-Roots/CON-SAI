@@ -262,7 +262,7 @@ class VisionReceiver:
 
 
         # make publishers
-        self._ball_publisher = AbstractGeometry(self._our_side, 'pose_ball')
+        # self._ball_publisher = AbstractGeometry(self._our_side, 'pose_ball')
         # self._robot_publisher = {}
         # for n in self._robot_list:
         #     self._robot_publisher[n] = AbstractGeometry(self._our_side, 'pose_friend_' + str(n))
@@ -310,10 +310,10 @@ class VisionReceiver:
         ssl_wrapper.ParseFromString(buf)  # Parse sent data
 
         # Publish the ball information
-        ball_poses = PoseMaker(current_time, 'map')
-        for pose in ssl_wrapper.detection.balls:
-            ball_poses.add(pose)
-        self._ball_publisher.publish(ball_poses.get())
+        # ball_poses = PoseMaker(current_time, 'map')
+        # for pose in ssl_wrapper.detection.balls:
+        #     ball_poses.add(pose)
+        # self._ball_publisher.publish(ball_poses.get())
 
         # Publish robot information
         if self._our_color == 'BLUE':
