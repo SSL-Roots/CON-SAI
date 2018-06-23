@@ -20,6 +20,8 @@ include_directories(include
   ${catkin_INCLUDE_DIRS}
 )
 
+add_compile_options(-std=c++11)
+
 add_executable(${PROJECT_NAME}_node 
     src/trapezoidal_control_node.cpp
 )
