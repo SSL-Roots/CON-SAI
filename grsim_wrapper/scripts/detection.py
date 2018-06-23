@@ -263,13 +263,13 @@ class VisionReceiver:
 
         # make publishers
         self._ball_publisher = AbstractGeometry(self._our_side, 'pose_ball')
-        self._robot_publisher = {}
-        for n in self._robot_list:
-            self._robot_publisher[n] = AbstractGeometry(self._our_side, 'pose_friend_' + str(n))
-
-        self._enemy_publisher = {}
-        for n in self._enemy_list:
-            self._enemy_publisher[n] = AbstractGeometry(self._our_side, 'pose_enemy_' + str(n))
+        # self._robot_publisher = {}
+        # for n in self._robot_list:
+        #     self._robot_publisher[n] = AbstractGeometry(self._our_side, 'pose_friend_' + str(n))
+        #
+        # self._enemy_publisher = {}
+        # for n in self._enemy_list:
+        #     self._enemy_publisher[n] = AbstractGeometry(self._our_side, 'pose_enemy_' + str(n))
 
         self._friend_list_publisher = rospy.Publisher('friend_poses', RobotPoses, queue_size=10)
         self._enemy_list_publisher = rospy.Publisher('enemy_poses', RobotPoses, queue_size=10)
@@ -323,14 +323,15 @@ class VisionReceiver:
             detection_friend = ssl_wrapper.detection.robots_yellow
             detection_enemy = ssl_wrapper.detection.robots_blue
 
-        friend_pose_arrays = self._convertMsgToPoseArray(current_time, self._robot_list, detection_friend)
-        enemy_pose_arrays = self._convertMsgToPoseArray(current_time, self._enemy_list, detection_enemy)
+        # friend_pose_arrays = self._convertMsgToPoseArray(current_time, self._robot_list, detection_friend)
+        # enemy_pose_arrays = self._convertMsgToPoseArray(current_time, self._enemy_list, detection_enemy)
 
-        for i in self._robot_list:
-            self._robot_publisher[i].publish(friend_pose_arrays[i])
-
-        for i in self._enemy_list:
-            self._enemy_publisher[i].publish(enemy_pose_arrays[i])
+        # Nobody used this topic
+        # for i in self._robot_list:
+        #     self._robot_publisher[i].publish(friend_pose_arrays[i])
+        #
+        # for i in self._enemy_list:
+        #     self._enemy_publisher[i].publish(enemy_pose_arrays[i])
 
         friend_poses_msg = self._getRobotPosesFromProtobufMsg(detection_friend)
         enemy_poses_msg = self._getRobotPosesFromProtobufMsg(detection_enemy)
