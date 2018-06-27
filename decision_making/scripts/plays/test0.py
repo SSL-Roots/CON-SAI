@@ -42,23 +42,26 @@ class Test1(Play):
 
         self.applicable = "TEST1"
         self.done_aborted = "TEST1"
-        self.assignment_type = "CLOSEST_BALL"
+        # self.assignment_type = "CLOSEST_BALL"
 
-        self.roles[0].behavior.add_child(
-                TacticHalt("TacticHalt", self.roles[0].my_role))
+        # self.roles[0].behavior.add_child(
+        #         TacticHalt("TacticHalt", self.roles[0].my_role))
 
-        self.roles[1].loop_enable = True
-        self.roles[1].behavior.add_child(
-                TacticPosition('TacticPosition1', self.roles[1].my_role,
-                    -1.5, 2.0, math.pi * 0.5))
-        self.roles[1].behavior.add_child(
-                TacticPosition('TacticPosition2', self.roles[1].my_role, 
-                    -1.5, -2.0, math.pi * 0.5))
-
-        for i in range(2,constants.ROBOT_NUM):
+        for i in range(0, constants.ROBOT_NUM):
             self.roles[i].loop_enable = True
+
+            pos_x = -3.0 + 0.7 * i
             self.roles[i].behavior.add_child(
-                    TacticHalt("TacticHalt", self.roles[i].my_role))
+                    TacticPosition('TacticPosition1', self.roles[i].my_role,
+                        pos_x, 2.0, math.pi * 0.5))
+            self.roles[i].behavior.add_child(
+                    TacticPosition('TacticPosition2', self.roles[i].my_role, 
+                        pos_x, -2.0, math.pi * 0.5))
+
+        # for i in range(2,constants.ROBOT_NUM):
+        #     self.roles[i].loop_enable = True
+        #     self.roles[i].behavior.add_child(
+        #             TacticHalt("TacticHalt", self.roles[i].my_role))
 
 # Command 送信テスト
 class Test2(Play):
