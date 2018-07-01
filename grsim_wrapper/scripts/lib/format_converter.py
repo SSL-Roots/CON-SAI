@@ -1,6 +1,5 @@
 
 
-import rospy
 import math
 
 import geometry_msgs
@@ -8,6 +7,7 @@ from proto import messages_robocup_ssl_wrapper_pb2
 from tf.transformations import quaternion_from_euler
 
 from consai_msgs.msg import VisionObservations, VisionPacket, VisionRobotPackets
+from consai_msgs.msg import FixedVisionPackets
 
 
 class FormatConverter:
@@ -17,29 +17,45 @@ class FormatConverter:
         self.friend_color = friend_color
         self.do_side_invert = do_side_invert
 
+        self._ball_packets = FixedVisionPackets()
+        self._friend_packets = []
+        self._enemy_packets = []
+
+
     def protobufToTable(self, protobuf_binary):
         ssl_wrapper = messages_robocup_ssl_wrapper_pb2.SSL_WrapperPacket()
         ssl_wrapper.ParseFromString(protobuf_binary)
 
         header = {
-            'frame_number': ssl_wrapper.detection.frame_number, 't_capture': ssl_wrapper.detection.t_capture, 't_sent': ssl_wrapper.detection.t_sent, 'camera_id': ssl_wrapper.detection.camera_id
+            'frame_number': ssl_wrapper.detection.frame_number, 
+            't_capture': ssl_wrapper.detection.t_capture, 
+            't_sent': ssl_wrapper.detection.t_sent, 
+            'camera_id': ssl_wrapper.detection.camera_id
         }
 
         for ball in ssl_wrapper.detection.balls:
             observation = {
-                'color': 'ball', 'confidence': ball.confidence, 'robot_id': None, 'x': ball.x, 'y': ball.y, 'z': ball.z, 'orientation': None, 'area': ball.area
+                'color': 'ball', 'confidence': ball.confidence, 
+                'robot_id': None, 'x': ball.x, 'y': ball.y, 'z': ball.z, 
+                'orientation': None, 'area': ball.area
             }
             self.table.append(dict(header, **observation))
 
         for robot in ssl_wrapper.detection.robots_yellow:
             observation = {
-                'color': 'yellow', 'confidence': robot.confidence, 'robot_id': robot.robot_id, 'x': robot.x, 'y': robot.y, 'z': robot.height, 'orientation': robot.orientation, 'area': None
+                'color': 'yellow', 'confidence': robot.confidence, 
+                'robot_id': robot.robot_id, 
+                'x': robot.x, 'y': robot.y, 'z': robot.height, 
+                'orientation': robot.orientation, 'area': None
             }
             self.table.append(dict(header, **observation))
 
         for robot in ssl_wrapper.detection.robots_blue:
             observation = {
-                'color': 'blue', 'confidence': robot.confidence, 'robot_id': robot.robot_id, 'x': robot.x, 'y': robot.y, 'z': robot.height, 'orientation': robot.orientation, 'area': None
+                'color': 'blue', 'confidence': robot.confidence, 
+                'robot_id': robot.robot_id, 
+                'x': robot.x, 'y': robot.y, 'z': robot.height, 
+                'orientation': robot.orientation, 'area': None
             }
             self.table.append(dict(header, **observation))
 
@@ -50,10 +66,10 @@ class FormatConverter:
     def refreshTable(self):
         self.table = []
 
-    def tableToRosmsg(self):
+    def tableToRosmsg(self, ros_current_time):
         rosmsg = VisionObservations()
 
-        rosmsg.header.stamp = rospy.Time.now()
+        rosmsg.header.stamp = ros_current_time
 
         for obs in self.table:
             if obs['color'] == 'ball':
@@ -96,7 +112,30 @@ class FormatConverter:
                 vision_packet   = self.observationToVisionPacket(obs)
                 rosmsg.enemies[id_index].packets.append(vision_packet)
 
+            self._fixed_packets_update(rosmsg)
+
         return rosmsg
+
+
+    def _fixed_packets_update(self, rosmsg):
+        self._ball_packets.header = rosmsg.header
+        self._ball_packets.packets = rosmsg.ball
+
+        self._friend_packets = []
+        self._enemy_packets = []
+        for friend in rosmsg.friends:
+            fixed_packets = FixedVisionPackets()
+            fixed_packets.header = rosmsg.header
+            fixed_packets.robot_id = friend.robot_id
+            fixed_packets.packets = friend.packets
+            self._friend_packets.append(fixed_packets)
+
+        for enemy in rosmsg.enemies:
+            fixed_packets = FixedVisionPackets()
+            fixed_packets.header = rosmsg.header
+            fixed_packets.robot_id = enemy.robot_id
+            fixed_packets.packets = enemy.packets
+            self._enemy_packets.append(fixed_packets)
 
 
     def observationToVisionPacket(self, observation):
@@ -133,4 +172,13 @@ class FormatConverter:
         pose.orientation.w = quat[3]
 
         return  pose
+
+    def get_friend_packets(self):
+        return self._friend_packets
+
+    def get_enemy_packets(self):
+        return self._enemy_packets
+
+    def get_ball_packets(self):
+        return self._ball_packets
 

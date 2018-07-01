@@ -27,6 +27,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+add_compile_options(-std=c++11)
+
 add_executable(world_observer
   src/world_observer.cpp
   src/estimator/estimator.cpp

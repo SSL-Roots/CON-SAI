@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
    VisionObservations.msg
    VisionPacket.msg
    VisionRobotPackets.msg
+   FixedVisionPackets.msg
    AIStatus.msg
    Pose.msg
    RefereeTeamInfo.msg
