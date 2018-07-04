@@ -62,9 +62,9 @@ void EnemyEstimator::initSystemModel( )
     sysNoise_Cov(1,1) = pow(0.01, 2);
     sysNoise_Cov(2,2) = pow(0.01, 2);
     sysNoise_Cov(3,3) = pow(0.01, 2);
-    sysNoise_Cov(4,4) = pow(0.01, 2);
-    sysNoise_Cov(5,5) = pow(0.01, 2);
-    sysNoise_Cov(6,6) = pow(0.01, 2);
+    sysNoise_Cov(4,4) = pow(0.15, 2);
+    sysNoise_Cov(5,5) = pow(0.15, 2);
+    sysNoise_Cov(6,6) = pow(0.15, 2);
 
     Gaussian system_Uncertainty(sysNoise_Mu, sysNoise_Cov);
 
