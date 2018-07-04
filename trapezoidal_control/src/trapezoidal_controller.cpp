@@ -133,6 +133,7 @@ bool TrapezoidalController::update(const double &currentPose,
         velocity = brake(velocity);
     }
 
+    mCurrentAccel = velocity - mVelocity;
     mVelocity = velocity;
 
     return true;
@@ -151,6 +152,7 @@ bool TrapezoidalController::update(const double &targetVelocity){
         velocity = brake(velocity);
     }
 
+    mCurrentAccel = velocity - mVelocity;
     mVelocity = velocity;
 
     return true;
@@ -168,3 +170,6 @@ double TrapezoidalController::getResidual(void){
     return mResidual;
 }
 
+double TrapezoidalController::getCurrentAccel(void){
+    return mCurrentAccel;
+}

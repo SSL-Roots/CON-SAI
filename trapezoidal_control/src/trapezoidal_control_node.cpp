@@ -9,6 +9,7 @@
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Quaternion.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/Accel.h>
 #include <nav_msgs/Odometry.h>
 
 #include "trapezoidal_controller.h"
@@ -21,6 +22,8 @@ class Controller{
         geometry_msgs::Twist getCommandVelocity();
         geometry_msgs::Point getAvoidingPoint();
         geometry_msgs::Twist getResiduals();
+        geometry_msgs::Accel getAccelWorld();
+        geometry_msgs::Twist getCmdVelWorld();
 
         void callbackTargetPose(const geometry_msgs::PoseStampedConstPtr& msg);
         void callbackTargetVel(const geometry_msgs::TwistStampedConstPtr& msg);
@@ -36,6 +39,8 @@ class Controller{
         geometry_msgs::Pose mRealPose;
         geometry_msgs::Twist mRealVel;
         geometry_msgs::Point mAvoidingPoint;
+        geometry_msgs::Accel mAccelWorld;
+        geometry_msgs::Twist mCommandVelWorld;
 
         bool mIsVelocityControl;
         TrapezoidalController *mControllerX, *mControllerY, *mControllerYaw;
@@ -72,6 +77,14 @@ geometry_msgs::Point Controller::getAvoidingPoint(){
 
 geometry_msgs::Twist Controller::getResiduals(){
     return mResiduals;
+}
+
+geometry_msgs::Accel Controller::getAccelWorld(){
+    return mAccelWorld;
+}
+
+geometry_msgs::Twist Controller::getCmdVelWorld(){
+    return mCommandVelWorld;
 }
 
 void Controller::callbackTargetPose(const geometry_msgs::PoseStampedConstPtr& msg){
@@ -111,29 +124,63 @@ void Controller::poseControl(){
     mControllerY->update(mRealPose.position.y, mRealVel.linear.y, mAvoidingPoint.y);
     mControllerYaw->update(realYaw, mRealVel.angular.z, targetYaw);
 
+    // Pose residuals on world coordinate
     mResiduals.linear.x = mControllerX->getResidual();
     mResiduals.linear.y = mControllerY->getResidual();
     mResiduals.angular.z = mControllerYaw->getResidual();
 
-    geometry_msgs::Vector3 linearVel;
-    linearVel.x = mControllerX->getVelocity();
-    linearVel.y = mControllerY->getVelocity();
+    // Acceleration on world coordinate
+    mAccelWorld.linear.x = mControllerX->getCurrentAccel();
+    mAccelWorld.linear.y = mControllerY->getCurrentAccel();
+    mAccelWorld.angular.z = mControllerYaw->getCurrentAccel();
 
-    // 移動方向をロボット座標系に変換
-    mCommandVel.linear.x = cos(-realYaw)*linearVel.x - sin(-realYaw)*linearVel.y;
-    mCommandVel.linear.y = sin(-realYaw)*linearVel.x + cos(-realYaw)*linearVel.y;
+    geometry_msgs::Vector3 velocity;;
+    velocity.x = mControllerX->getVelocity();
+    velocity.y = mControllerY->getVelocity();
+    velocity.z = mControllerYaw->getVelocity();
 
-    mCommandVel.angular.z = mControllerYaw->getVelocity();
+    // Command velocity on world coordinate
+    mCommandVelWorld.linear.x = velocity.x;
+    mCommandVelWorld.linear.y = velocity.y;
+    mCommandVelWorld.angular.z = velocity.z;
+
+    // Command velocity on robot coordinate
+    mCommandVel.linear.x = cos(-realYaw)*velocity.x - sin(-realYaw)*velocity.y;
+    mCommandVel.linear.y = sin(-realYaw)*velocity.x + cos(-realYaw)*velocity.y;
+    mCommandVel.angular.z = velocity.z;
 }
 
 void Controller::velocityControl(){
+    double realYaw = yawFromQuaternion(mRealPose.orientation);
+
     mControllerX->update(mTargetVel.linear.x);
     mControllerY->update(mTargetVel.linear.y);
     mControllerYaw->update(mTargetVel.angular.z);
 
-    mCommandVel.linear.x= mControllerX->getVelocity();
-    mCommandVel.linear.y = mControllerY->getVelocity();
-    mCommandVel.angular.z = mControllerYaw->getVelocity();
+    geometry_msgs::Accel accel;
+    accel.linear.x = mControllerX->getCurrentAccel();
+    accel.linear.y = mControllerY->getCurrentAccel();
+    accel.angular.z = mControllerYaw->getCurrentAccel();
+
+    // Acceleration on world coordinate
+    mAccelWorld.linear.x = cos(realYaw)*accel.linear.x - sin(realYaw)*accel.linear.y;
+    mAccelWorld.linear.y = sin(realYaw)*accel.linear.x + cos(realYaw)*accel.linear.y;
+    mAccelWorld.angular.z = accel.angular.z;
+
+    geometry_msgs::Vector3 velocity;;
+    velocity.x= mControllerX->getVelocity();
+    velocity.y = mControllerY->getVelocity();
+    velocity.z = mControllerYaw->getVelocity();
+
+    // Command velocity on robot coordinate
+    mCommandVel.linear.x= velocity.x;
+    mCommandVel.linear.y = velocity.y;
+    mCommandVel.angular.z = velocity.z;
+
+    // Command velocity on world coordinate
+    mCommandVelWorld.linear.x = cos(realYaw)*velocity.x - sin(realYaw)*velocity.y;
+    mCommandVelWorld.linear.y = sin(realYaw)*velocity.x + cos(realYaw)*velocity.y;
+    mCommandVelWorld.angular.z = velocity.z;
 }
 
 double Controller::yawFromQuaternion(geometry_msgs::Quaternion geoQ){
@@ -169,16 +216,22 @@ int main(int argc, char **argv){
     f = boost::bind(&Controller::callbackReconfigure, &controller, _1, _2);
     reconfigure_server.setCallback(f);
 
-    ros::Publisher publisher = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
-    ros::Publisher res_publisher = nh.advertise<geometry_msgs::Twist>("residuals", 10);
+    ros::Publisher pub_cmd_vel = nh.advertise<geometry_msgs::Twist>("cmd_vel", 10);
+    ros::Publisher pub_residual = nh.advertise<geometry_msgs::Twist>("residuals", 10);
+    ros::Publisher pub_acc_world = nh.advertise<geometry_msgs::Accel>("accel_world", 10);
+    ros::Publisher pub_cmd_vel_world = nh.advertise<geometry_msgs::Twist>("cmd_vel_world", 10);
 
     while (ros::ok()){
         controller.update();
         geometry_msgs::Twist cmdVel = controller.getCommandVelocity();
         geometry_msgs::Twist residuals = controller.getResiduals();
+        geometry_msgs::Accel accelWorld = controller.getAccelWorld();
+        geometry_msgs::Twist cmdVelWorld = controller.getCmdVelWorld();
 
-        publisher.publish(cmdVel);
-        res_publisher.publish(residuals);
+        pub_cmd_vel.publish(cmdVel);
+        pub_residual.publish(residuals);
+        pub_acc_world.publish(accelWorld);
+        pub_cmd_vel_world.publish(cmdVelWorld);
 
         ros::spinOnce();
         r.sleep();

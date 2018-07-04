@@ -23,6 +23,7 @@ class TrapezoidalController {
         double mResidual;   // unit:meter
         Control::STATE mState;
         bool mIsRotation;
+        double mCurrentAccel;
 
         Control::STATE nextState(const double &currentPose, 
                 const double &currentVelocity, const double &targetPose);
@@ -49,6 +50,7 @@ class TrapezoidalController {
         double getVelocity(void);
         void setVelocity(const double &velocity);
         double getResidual(void);
+        double getCurrentAccel(void);
 };
 
 #endif
