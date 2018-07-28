@@ -10,6 +10,7 @@ from tactics.tactic_velocity import TacticVelocity
 from tactics.tactic_command import TacticCommand, TacticTrapezoidalCommand
 from tactics.tactic_formation import TacticFormation
 from tactics.tactic_dribble import TacticDribble
+from tactics.tactic_keep import TacticKeepXWithJoy
 
 import math
 
@@ -186,3 +187,27 @@ class Test8(Play):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
+
+# ジョイコントローラでkeep_xを操作する
+class Test9(Play):
+    def __init__(self):
+        super(Test9, self).__init__('Test9')
+
+        self.applicable = "TEST9"
+        self.done_aborted = "TEST9"
+
+        keep_x = -constants.FieldHalfX + constants.RobotRadius * 2.0
+        range_high = constants.GoalHalfSize
+        range_low = -constants.GoalHalfSize
+
+        self.roles[0].loop_enable = True
+        self.roles[0].behavior.add_child(
+                TacticKeepXWithJoy('TacticKeepXWithJoy', self.roles[0].my_role,
+                    keep_x = keep_x,
+                    range_high = range_high, range_low = range_low))
+
+        for i in range(1,constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticHalt("TacticHalt", self.roles[i].my_role))
+

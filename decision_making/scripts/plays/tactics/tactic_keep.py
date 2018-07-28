@@ -23,3 +23,17 @@ class TacticKeep(ParallelAll):
 
         self.add_child(DynamicDrive('DynamicDrive', my_role, self._coordinate,
             always_running = True))
+
+class TacticKeepXWithJoy(ParallelAll):
+    def __init__(self, name, my_role, target='Ball',  keep_x=None,
+            range_high=10.0, range_low=-10.0):
+        super(TacticKeepXWithJoy, self).__init__(name)
+
+        self._coordinate = Coordinate()
+
+        self._coordinate.set_keep_x_with_joy(keep_x=keep_x, target=target,
+                range_y_high=range_high, range_y_low=range_low)
+
+        self.add_child(DynamicDrive('DynamicDrive', my_role, self._coordinate,
+            always_running = True))
+

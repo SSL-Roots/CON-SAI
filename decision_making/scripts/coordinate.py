@@ -7,6 +7,7 @@ import constants
 from world_model import WorldModel
 
 from consai_msgs.msg import Pose
+from consai_msgs.msg import TestAICommand
 
 import rospy
 
@@ -59,6 +60,9 @@ class Coordinate(object):
         self._can_receive_dist = 1.0 # unit:meter
         self._can_receive_hysteresis = 0.3
         self._receiving = False
+
+        # keep_x_with_joy
+        self._keep_y_acc = 0.02 # unit:meter
 
 
     def update(self):
@@ -199,6 +203,24 @@ class Coordinate(object):
         self._target = target
 
         self._update_func = self._update_reflect
+
+
+    def set_keep_x_with_joy(self, keep_x=0.0, target="Ball", range_y_high=False, range_y_low=False):
+        # x座標がkeep_xとなるように、y軸上を移動する
+        # y座標はTestAICommand(ジョイスティックの入力を想定）で可変する
+        # range_y_high, range_y_lowでy座標の移動範囲を制限できる
+        
+        self._keep_x = keep_x
+        self._keep_y = 0
+        self._target = target
+
+        if range_y_high:
+            self._range_y[0] = range_y_high
+        if range_y_low:
+            self._range_y[1] = range_y_low
+
+        self._update_func = self._update_keep_x_with_joy
+
 
     def is_arrived(self, role):
         # robotが目標位置に到着したかを判断する
@@ -521,4 +543,30 @@ class Coordinate(object):
         self.pose.y = inv_pose.y - constants.DribblerDist * math.sin(angle_role_to_target)
         self.pose.theta = angle_role_to_target
 
+        return True
+
+
+    def _update_keep_x_with_joy(self):
+        target_pose = WorldModel.get_pose(self._target)
+
+        if target_pose is None:
+            return False
+
+        # test_ai_command(ジョイスティックの入力)によってy座標を変える
+        command = WorldModel.get_test_ai_command()
+        
+        if command.vel_y > 0:
+            self._keep_y += self._keep_y_acc
+        elif command.vel_y < 0:
+            self._keep_y -= self._keep_y_acc
+
+        self._keep_y = tool.limit(self._keep_y,
+                self._range_y[0], self._range_y[1])
+
+        keep_pose = Pose(self._keep_x, self._keep_y, 0.0)
+
+
+        angle = tool.getAngle(keep_pose, target_pose)
+        self.pose = Pose(keep_pose.x, keep_pose.y, angle)
+        
         return True

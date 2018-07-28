@@ -13,3 +13,4 @@ class TestBook(object):
     book.append(test0.Test6)
     book.append(test0.Test7)
     book.append(test0.Test8)
+    book.append(test0.Test9)

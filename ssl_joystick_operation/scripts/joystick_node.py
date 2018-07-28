@@ -26,7 +26,7 @@ class Core(object):
         self._AXES_X = rospy.get_param('~axes_X')
         self._AXES_Y = rospy.get_param('~axes_Y')
 
-        self._mode_list = ["Manual", "Attacker"]
+        self._mode_list = ["Manual", "Attacker", "Goalie"]
         self._current_mode_index = 0
         self._prev_mode = "NONE"
 
@@ -89,6 +89,15 @@ class Core(object):
 
             # 常にドリブルする
             test_command.dribble_power = self._DRIBBLE_POWER
+
+        elif mode == "Goalie":
+            # キーパーモード
+            test_name = "TEST9"
+            test_command = self._convert_msg_to_command(msg, self._prev_test_command)
+
+        else:
+            test_name = "TEST_NONE"
+
 
 
         self._prev_test_name = test_name
