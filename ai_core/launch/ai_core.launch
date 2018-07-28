@@ -49,6 +49,15 @@
       </node>
       <node name="ssl_joystick_operation" pkg="ssl_joystick_operation" type="joystick_node.py" >
         <param name="button_A" value="0" type="int" />
+        <param name="button_B" value="1" type="int" />
+        <param name="button_X" value="2" type="int" />
+        <param name="button_Y" value="3" type="int" />
+        <param name="button_L" value="4" type="int" />
+        <param name="button_R" value="5" type="int" />
+        <param name="button_SEL" value="6" type="int" />
+        <param name="button_START" value="7" type="int" />
+        <param name="axes_X" value="0" type="int" />
+        <param name="axes_Y" value="1" type="int" />
       </node>
     </group>
     <!-- <include file="$(find ssl_joystick_operation)/launch/ssl_joystick_operation.launch" /> -->
