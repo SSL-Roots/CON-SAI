@@ -3,6 +3,7 @@
   <arg name="color" default="blue" />
   <arg name="side" default="left" />
   <arg name="goalie" default="0" />
+  <arg name="joy" default="false" />
 
   <group ns="$(arg ai_name)">
     <param name="ai_name" type="string" value="$(arg ai_name)" />
@@ -22,12 +23,12 @@
     </node>
 
     <!-- Run the map server -->
-    <node pkg="tf" type="static_transform_publisher" name="enemy_goal_left" args="4.5 0.5 0 0 0 0 1 map enemy_goal_left 100" />
-    <node pkg="tf" type="static_transform_publisher" name="enemy_goal_center" args="4.5 0 0 0 0 0 1 map enemy_goal_center 100" />
-    <node pkg="tf" type="static_transform_publisher" name="enemy_goal_right" args="4.5 -0.5 0 0 0 0 1 map enemy_goal_right 100" />
-    <node pkg="tf" type="static_transform_publisher" name="friend_goal_left" args="-4.5 0.5 0 0 0 0 1 map friend_goal_left 100" />
-    <node pkg="tf" type="static_transform_publisher" name="friend_goal_center" args="-4.5 0 0 0 0 0 1 map friend_goal_center 100" />
-    <node pkg="tf" type="static_transform_publisher" name="friend_goal_right" args="-4.5 -0.5 0 0 0 0 1 map friend_goal_right 100" />
+    <!-- <node pkg="tf" type="static_transform_publisher" name="enemy_goal_left" args="4.5 0.5 0 0 0 0 1 map enemy_goal_left 100" />       -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="enemy_goal_center" args="4.5 0 0 0 0 0 1 map enemy_goal_center 100" />     -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="enemy_goal_right" args="4.5 -0.5 0 0 0 0 1 map enemy_goal_right 100" />    -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="friend_goal_left" args="-4.5 0.5 0 0 0 0 1 map friend_goal_left 100" />    -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="friend_goal_center" args="-4.5 0 0 0 0 0 1 map friend_goal_center 100" />  -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="friend_goal_right" args="-4.5 -0.5 0 0 0 0 1 map friend_goal_right 100" /> -->
 
     <node name="ball_observer" pkg="world_observer" type="world_observer" required="true">
       <param name="observe_target" type="string" value="Ball" />
@@ -41,6 +42,15 @@
     <!-- launch "launch manager" -->
     <node name="launch_manager" pkg="launch_manager" type="launch_manager.py" required="true"/>
 
+    <!-- Joy nodes -->
+    <group if="$(arg joy)">
+      <node name="joy_core" pkg="joy" type="joy_node" >
+        <param name="dev" type="string" value="/dev/input/js0" />
+      </node>
+      <node name="ssl_joystick_operation" pkg="ssl_joystick_operation" type="joystick_node.py" >
+        <param name="button_A" value="0" type="int" />
+      </node>
+    </group>
     <!-- <include file="$(find ssl_joystick_operation)/launch/ssl_joystick_operation.launch" /> -->
 
     <!-- Visualizer -->
