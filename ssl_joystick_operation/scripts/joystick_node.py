@@ -26,7 +26,10 @@ class Core(object):
         self._AXES_X = rospy.get_param('~axes_X')
         self._AXES_Y = rospy.get_param('~axes_Y')
 
-        self._prev_test_name = "TEST_NONE"
+        self._mode_list = ["Manual", "Attacker"]
+        self._current_mode_index = 0
+        self._prev_mode = "NONE"
+
         self._prev_test_command = TestAICommand()
         self._buttons = []
 
@@ -36,15 +39,8 @@ class Core(object):
 
     
     def _callback_joy(self, msg):
-        test_name = self._prev_test_name
-        test_command = self._prev_test_command
 
-        if msg.buttons[self._SEL]:
-            test_name = "TEST_NONE"
-
-        if msg.buttons[self._START]:
-            test_name = "TEST2"
-
+        # 使ってないボタンたち
         if msg.buttons[self._A]:
             rospy.logdebug("button A")
         if msg.buttons[self._X]:
@@ -52,27 +48,47 @@ class Core(object):
         if msg.buttons[self._Y]:
             rospy.logdebug("button Y")
 
-        if test_name == "TEST2":
+        # テストモードの更新
+        mode = self._prev_mode
+
+        if msg.buttons[self._SEL]:
+            mode = "NONE"
+
+            # Rボタンでモードを切り替える
+            if msg.buttons[self._R]:
+                self._current_mode_index += 1
+                if self._current_mode_index >= len(self._mode_list):
+                    self._current_mode_index = 0 
+
+        if msg.buttons[self._START]:
+            mode = self._mode_list[self._current_mode_index]
+
+        self._prev_mode = mode
+
+
+        test_name = "TEST_NONE"
+        test_command = self._prev_test_command
+        if mode == "NONE":
+            test_name = "TEST_NONE"
+
+        elif mode == "Manual":
             # 全手動操作モード
-            test_command.vel_x = self._MAX_VELOCITY * msg.axes[self._AXES_Y]
-            test_command.vel_y = self._MAX_VELOCITY * msg.axes[self._AXES_X]
+            test_name = "TEST2"
+            test_command = self._convert_msg_to_command(msg, self._prev_test_command)
 
-            if msg.buttons[self._L]:
-                test_command.vel_yaw = self._MAX_VELOCITY
-            elif msg.buttons[self._R]:
-                test_command.vel_yaw = -1.0 * self._MAX_VELOCITY
-            else:
-                test_command.vel_yaw = 0
+        elif mode == "Attacker":
+            # アタッカーモード
 
+            # Bボタンを押してるとボールに自動で近づきドリブルする
             if msg.buttons[self._B]:
-                test_command.dribble_power = self._DRIBBLE_POWER
+                test_name = "TEST8"
             else:
-                test_command.dribble_power = 0
+                test_name = "TEST2"
 
-            if msg.buttons[self._Y]:
-                test_command.kick_power = self._KICK_POWER
-            else:
-                test_command.kick_power = 0
+            test_command = self._convert_msg_to_command(msg, self._prev_test_command)
+
+            # 常にドリブルする
+            test_command.dribble_power = self._DRIBBLE_POWER
 
 
         self._prev_test_name = test_name
@@ -80,6 +96,32 @@ class Core(object):
 
         self._pub_name.publish(self._prev_test_name)
         self._pub_command.publish(self._prev_test_command)
+
+
+    def _convert_msg_to_command(self, msg, prev_command):
+        command = prev_command
+
+        command.vel_x = self._MAX_VELOCITY * msg.axes[self._AXES_Y]
+        command.vel_y = self._MAX_VELOCITY * msg.axes[self._AXES_X]
+
+        if msg.buttons[self._L]:
+            command.vel_yaw = self._MAX_VELOCITY
+        elif msg.buttons[self._R]:
+            command.vel_yaw = -1.0 * self._MAX_VELOCITY
+        else:
+            command.vel_yaw = 0
+
+        if msg.buttons[self._B]:
+            command.dribble_power = self._DRIBBLE_POWER
+        else:
+            command.dribble_power = 0
+
+        if msg.buttons[self._Y]:
+            command.kick_power = self._KICK_POWER
+        else:
+            command.kick_power = 0
+
+        return command
 
 
 def main():

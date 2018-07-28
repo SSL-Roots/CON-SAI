@@ -9,6 +9,7 @@ from tactics.tactic_position import TacticPosition
 from tactics.tactic_velocity import TacticVelocity
 from tactics.tactic_command import TacticCommand, TacticTrapezoidalCommand
 from tactics.tactic_formation import TacticFormation
+from tactics.tactic_dribble import TacticDribble
 
 import math
 
@@ -165,6 +166,23 @@ class Test7(Play):
                     self.roles[1].my_role, False, False, True))
 
         for i in range(2,constants.ROBOT_NUM):
+            self.roles[i].loop_enable = True
+            self.roles[i].behavior.add_child(
+                    TacticHalt("TacticHalt", self.roles[i].my_role))
+
+# Dribbleする
+class Test8(Play):
+    def __init__(self):
+        super(Test8, self).__init__('Test8')
+
+        self.applicable = "TEST8"
+        self.done_aborted = "TEST8"
+
+        self.roles[0].loop_enable = True
+        self.roles[0].behavior.add_child(
+                TacticDribble('TacticDribble', self.roles[0].my_role))
+
+        for i in range(1,constants.ROBOT_NUM):
             self.roles[i].loop_enable = True
             self.roles[i].behavior.add_child(
                     TacticHalt("TacticHalt", self.roles[i].my_role))
