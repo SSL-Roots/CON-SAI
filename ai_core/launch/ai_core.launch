@@ -4,6 +4,7 @@
   <arg name="side" default="left" />
   <arg name="goalie" default="0" />
   <arg name="joy" default="false" />
+  <arg name="joydev" default="/dev/input/js0" />
 
   <group ns="$(arg ai_name)">
     <param name="ai_name" type="string" value="$(arg ai_name)" />
@@ -45,7 +46,7 @@
     <!-- Joy nodes -->
     <group if="$(arg joy)">
       <node name="joy_core" pkg="joy" type="joy_node" >
-        <param name="dev" type="string" value="/dev/input/js0" />
+        <param name="dev" type="string" value="$(arg joydev)" />
       </node>
       <node name="ssl_joystick_operation" pkg="ssl_joystick_operation" type="joystick_node.py" >
         <param name="button_A" value="0" type="int" />
