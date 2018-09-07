@@ -517,8 +517,9 @@ class WorldModel(object):
         #     WorldModel._set_current_situation('BALL_IN_OUTSIDE')
 
         # Test実行の判定
-        if WorldModel._current_refbox_command != 'HALT' and \
-                WorldModel._current_test in WorldModel.situations:
+        # if WorldModel._current_refbox_command != 'HALT' and \
+        #         WorldModel._current_test in WorldModel.situations:
+        if WorldModel._current_test in WorldModel.situations:
             WorldModel._set_current_situation(WorldModel._current_test)
         elif WorldModel._current_refbox_command != 'IN_PLAY':
             WorldModel._set_current_situation(WorldModel._current_refbox_command)
