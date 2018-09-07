@@ -12,6 +12,7 @@ from geometry_msgs.msg import Twist
 from consai_msgs.msg import robot_commands
 from consai_msgs.msg import ReplaceBall
 from consai_msgs.msg import ReplaceRobot
+from frootspi_msg.msg import FrootsCommand
 
 
 class Sender:
@@ -57,8 +58,13 @@ class Sender:
                     ReplaceRobot,
                     self.send_robot_replacement))
 
+        self.pub_froots_command = rospy.Publisher('froots_command', 
+                FrootsCommand, queue_size=1)
+
 
     def sendCommands(self,data,robot_id):
+        self.publish_froots_command(data)
+
         packet = grSim_Packet_pb2.grSim_Packet()
         now_time = (time.mktime(datetime.now().timetuple()))
         packet.commands.timestamp = now_time
@@ -120,6 +126,30 @@ class Sender:
 
         message = packet.SerializeToString()
         self.sock.sendto(message,(self.host, self.port))
+
+
+    def publish_froots_command(self, robot_commands):
+        froots_command = FrootsCommand()
+
+        froots_command.charge_flag = True
+
+        if robot_commands.kick_speed_x:
+            froots_command.kick_flag = True
+            froots_command.kick_power = robot_commands.kick_speed_x
+
+        if robot_commands.dribble_power:
+            froots_command.dribble_power = robot_commands.dribble_power
+
+        norm = math.sqrt(
+                math.pow(robot_commands.vel_surge, 2) + 
+                math.pow(robot_commands.vel_sway, 2))
+        theta = math.atan2(robot_commands.vel_sway, robot_commands.vel_surge)
+        
+        froots_command.vel_norm = norm
+        froots_command.vel_theta = theta
+        froots_command.vel_omega = -robot_commands.omega
+
+        self.pub_froots_command.publish(froots_command)
 
 
 if  __name__ == '__main__':
