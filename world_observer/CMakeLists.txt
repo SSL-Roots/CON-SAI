@@ -3,9 +3,9 @@ project(world_observer)
 
 find_package(PkgConfig)
 
-if("$ENV{ROS_DISTRO}" STRGREATER "melodic")
+if("$ENV{ROS_DISTRO}" STRGREATER "lunar")
     pkg_check_modules(BFL REQUIRED orocos-bfl)
-elif("$ENV{ROS_DISTRO}" STRGREATER "indigo")
+else()
     pkg_check_modules(BFL REQUIRED bfl)
 endif()
 
