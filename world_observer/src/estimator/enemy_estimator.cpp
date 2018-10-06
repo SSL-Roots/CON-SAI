@@ -222,6 +222,15 @@ nav_msgs::Odometry  EnemyEstimator::convetStateVectorToOdometry(ColumnVector sta
 }
 
 
+bool EnemyEstimator::isOutlier(ColumnVector measurement){
+    return false;
+}
+
+
+double EnemyEstimator::mahalanobisDistance(ColumnVector measurement){
+    return 0;
+}
+
 
 EnemyEstimator::~EnemyEstimator()
 {
