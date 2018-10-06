@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 2.8.3)
 project(world_observer)
 
 find_package(PkgConfig)
-pkg_check_modules(BFL REQUIRED bfl)
+
+if("$ENV{ROS_DISTRO}" STRGREATER "melodic")
+    pkg_check_modules(BFL REQUIRED orocos-bfl)
+elif("$ENV{ROS_DISTRO}" STRGREATER "indigo")
+    pkg_check_modules(BFL REQUIRED bfl)
+endif()
+
 
 message("BFL include dirs:" ${BFL_INCLUDE_DIRS})
 message("BFL library dirs:" ${BFL_LIBRARY_DIRS})
