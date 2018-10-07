@@ -1,11 +1,13 @@
 #include <ros/ros.h>
 #include <ros/console.h>
-#include <serial.h>
-#include "serializer/serializer.hpp"
 #include <iostream>
 #include <string>
 #include <unistd.h>
+
 #include <consai_msgs/robot_commands.h>
+
+#include "serial.h"
+#include "serializer.hpp"
 
 class Sender
 {

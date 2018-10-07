@@ -21,13 +21,64 @@ RobotCommand::RobotCommand(unsigned int id, float vel_norm, float vel_theta, flo
  * 0: 1111 1111 |HEADER_1 0xFF
  * 1: 1100 0011 |HEADER_2 0xC3
  * 2: 0000 xxxx |x:ID
- * 3: aaaa aaaa |a:vel_norm(0~254)
- * 4: bbbb bbbb |b:vel_theta(0~180)
- * 5: cccc cccc |c:omega(0~254)
+ * 3: aaaa aaaa |a:vel_norm
+ * 4: bbbb bbbb |b:vel_theta
+ * 5: cccc cccc |c:omega(0~254), 127->0, 254->2PI [rad/sec]
  * 6: d01e f110 |d:dribble_flag, e:kick_flag, f:chip_enable
  * 7: gggg hhhh |g:dribble_power, h:kick_power
  * 8: **** **** |XOR([2] ~ [7])
  * 9: **** **** |XOR([8],0xFF)
+ *
+ * ============================================================================
+ *
+ * x:ID
+ *   description    : ロボットID
+ *   protocol value : 0 ~ 15
+ *   transform value: 0 ~ 15
+ *   examples       : 0 -> No.0
+ *
+ * a:vel_norm
+ *   description    : ロボット走行速度の大きさ
+ *   protocol value : 0 ~ 254
+ *   transform value: 0 ~ 4 m/sec
+ *   examples       :
+ *     0   -> 0 m/sec
+ *     127 -> 2 m/sec
+ *     254 -> 4 m/sec
+ *
+ * b:vel_theta
+ *   description    : ロボット走行速度の方向
+ *   protocol value : 0 ~ 180
+ *   transform value: 0 ~ 2PI rad
+ *   examples       :
+ *     0   -> 0     rad
+ *     45  -> PI/2  rad
+ *     135 -> 3PI/2 rad
+ *
+ * c:omega
+ *   description    : ロボット回転速度
+ *   protocol value : 0 ~ 254
+ *   transform value: -2PI ~ 2PI rad/sec
+ *   examples       :
+ *     0   -> -2PI rad/sec
+ *     127 -> 0    rad/sec
+ *     254 -> 2PI  rad/sec
+ *
+ * d:dribble_flag, e:kick_flag, f:chip_enable
+ *   description    : ロボットコマンドフラグ
+ *   protocol value : 0, 1
+ *   transform value: true, false
+ *   examples       :
+ *     dribble_flag :0 -> dribble_flag :false
+ *     kick_flag    :1 -> kick_flag    :true
+ *
+ * g:dribble_power, h:kick_power
+ *   description    : ロボットコマンドパワー
+ *   protocol value : 0 ~ 15
+ *   transform value: 0 ~ MAX_POWER
+ *   examples       :
+ *     dribble_power:0  -> dribble_power:0
+ *     kick_power   :15 -> kick_power   :MAX_POWER
  *
  */
 
