@@ -11,9 +11,9 @@ RobotCommand::RobotCommand()
 RobotCommand::RobotCommand(unsigned int id, float vel_norm, float vel_theta, float omega,
         float dribble_power,
         float kick_power, RobotCommand::KickType kick_type) :
-        _id(id), _vel_norm(vel_norm), _vel_theta(vel_theta), _omega(omega),
-        _dribble_power(dribble_power),
-        _kick_power(kick_power), _kick_type(kick_type)
+    _id(id), _vel_norm(vel_norm), _vel_theta(vel_theta), _omega(omega),
+    _dribble_power(dribble_power),
+    _kick_power(kick_power), _kick_type(kick_type)
 {}
 
 
@@ -138,79 +138,79 @@ bool  RootsSerializer::serialize(RobotCommand cmd, std::string* data)
 // convert MKS unit to binary data in order to send as packet
 RootsSerializer::RobotCommand_Binary RootsSerializer::scalingToBinary(RobotCommand robot_command)
 {
-  RobotCommand_Binary command_binary;
+    RobotCommand_Binary command_binary;
 
-  // TODO:copy instances
-  command_binary._id = robot_command._id;
+    // TODO:copy instances
+    command_binary._id = robot_command._id;
 
-  // Velocity Norm
-  if (robot_command._vel_norm < 0.0) {
-    command_binary._vel_norm = 0;
-  } else {
-    command_binary._vel_norm = robot_command._vel_norm * 255 / 4;
-    if (command_binary._vel_norm > 255) {
-        command_binary._vel_norm = 255;
+    // Velocity Norm
+    if (robot_command._vel_norm < 0.0) {
+        command_binary._vel_norm = 0;
+    } else {
+        command_binary._vel_norm = robot_command._vel_norm * 255 / 4;
+        if (command_binary._vel_norm > 255) {
+            command_binary._vel_norm = 255;
+        }
     }
-  }
 
-  // Velcity angle
-  robot_command._vel_theta = zeroTo2pi(robot_command._vel_theta);
-  command_binary._vel_theta = int(round(robot_command._vel_theta * 180.0 / M_PI)) / 2;
-  if (robot_command._vel_theta > 180) {
-    command_binary._vel_theta = 180;
-  } else if (robot_command._vel_theta < 0) {
-    command_binary._vel_theta = 0;
-  }
+    // Velcity angle
+    robot_command._vel_theta = zeroTo2pi(robot_command._vel_theta);
+    command_binary._vel_theta = int(round(robot_command._vel_theta * 180.0 / M_PI)) / 2;
+    if (robot_command._vel_theta > 180) {
+        command_binary._vel_theta = 180;
+    } else if (robot_command._vel_theta < 0) {
+        command_binary._vel_theta = 0;
+    }
 
-  // Angular velocity
-  robot_command._omega = round(robot_command._omega * 128 / (2*M_PI)) + 127;
-  if (robot_command._omega > 254) {
-    command_binary._omega = 254;
-  } else if (robot_command._omega < 0) {
-    command_binary._omega = 0;
-  } else {
-    command_binary._omega = robot_command._omega;
-  }
+    // Angular velocity
+    robot_command._omega = round(robot_command._omega * 128 / (2*M_PI)) + 127;
+    if (robot_command._omega > 254) {
+        command_binary._omega = 254;
+    } else if (robot_command._omega < 0) {
+        command_binary._omega = 0;
+    } else {
+        command_binary._omega = robot_command._omega;
+    }
 
-  // Dribble power
-  if (robot_command._dribble_power > 15) {
-    command_binary._dribble_power = 15;
-  } else if (robot_command._dribble_power < 0) {
-    command_binary._dribble_power = 0;
-  } else {
-    command_binary._dribble_power = robot_command._dribble_power;
-  }
+    // Dribble power
+    if (robot_command._dribble_power > 15) {
+        command_binary._dribble_power = 15;
+    } else if (robot_command._dribble_power < 0) {
+        command_binary._dribble_power = 0;
+    } else {
+        command_binary._dribble_power = robot_command._dribble_power;
+    }
 
-  // Kick power
-  if (robot_command._kick_power > 15) {
-    command_binary._kick_power = 15;
-  }else if (robot_command._kick_power < 0) {
-    command_binary._kick_power = 0;
-  } else {
-    command_binary._kick_power = robot_command._kick_power;
-  }
+    // Kick power
+    if (robot_command._kick_power > 15) {
+        command_binary._kick_power = 15;
+    }else if (robot_command._kick_power < 0) {
+        command_binary._kick_power = 0;
+    } else {
+        command_binary._kick_power = robot_command._kick_power;
+    }
 
-  // Kick Type
-  if (robot_command._kick_type == RobotCommand::CHIP) {
-    command_binary._kick_type = RobotCommand_Binary::CHIP;
-  } else {
-    command_binary._kick_type = RobotCommand_Binary::STRAIGHT;
-  }
+    // Kick Type
+    if (robot_command._kick_type == RobotCommand::CHIP) {
+        command_binary._kick_type = RobotCommand_Binary::CHIP;
+    } else {
+        command_binary._kick_type = RobotCommand_Binary::STRAIGHT;
+    }
 
-  return  command_binary;
+    return  command_binary;
 };
 
 
 float RootsSerializer::piTopi(float angle)
 {
-  while (angle >=  M_PI) angle -= 2*M_PI;
-  while (angle < -M_PI) angle += 2*M_PI;
-  return  angle;
+    while (angle >=  M_PI) angle -= 2*M_PI;
+    while (angle < -M_PI) angle += 2*M_PI;
+    return  angle;
 }
 
 float RootsSerializer::zeroTo2pi(float angle)
 {
-  while (angle >= 2*M_PI) angle -= 2*M_PI;
-  while (angle < 0)      angle += 2*M_PI;
-  return angle;
+    while (angle >= 2*M_PI) angle -= 2*M_PI;
+    while (angle < 0)      angle += 2*M_PI;
+    return angle;
 }
