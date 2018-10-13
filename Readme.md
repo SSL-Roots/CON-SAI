@@ -13,11 +13,9 @@ CON-SAIを使う前に[コンセプト](doc/Concept.md)を読んでください�
 
 ## Announcements
 - RoboCup Japan Open 2018 に新チーム[Scramble](http://nararobocon.sakura.ne.jp/scramble-ssl/)がCON-SAIを使って出場しました。
-- RoboCup Japan Open 2018 に向けて大幅なアップデートを実施しました。[*(branch)*](https://github.com/SSL-Roots/CON-SAI/tree/rensyu)
-リファクタリング後、正式にリリースします。
 
 ## Requirements
-CON-SAIはUbuntu 16.04で作成・テストしてます。
+CON-SAIはUbuntu 16.04、18.04で作成・テストしてます。
 
 下記のPCスペックで問題なく動作します。
 - Intel(R) Core(TM) i5-6600K CPU @ 3.50GHz
@@ -33,7 +31,7 @@ CON-SAIはUbuntu 16.04で作成・テストしてます。
 
 ROSにはいくつかのDistributionがありますが、**Kinetic**をインストールしてください。
 
-(Indigoでも動作確認済みですが、今後はサポートしません。)
+*Melodicでも動作確認済みです。*
 
 フルインストール推奨です。
 
@@ -70,34 +68,19 @@ $ echo "source ~/catkin_ws/devel/setup.bash" >> ~/.bashrc
 
 ### Google Protobufをインストール
 
-Google Protocol Bufferは[GitHub](
-https://github.com/google/protobuf
-)
-から最新版(> v3.5.1)をダウンロード可能です。
-
-しかし、RoboCup SSLで使われているツールは、v2.6.1でビルドされているものがほとんどのため、
-ここでは、v2.6.1をインストールします。
-
-(Proto3 でもビルド可能ですが、余計なWarningが発生するためProto2を使います)
-
 ```zsh
 $ sudo apt-get install libprotobuf-dev libprotoc-dev protobuf-compiler
-# 念の為versionチェック(2.6.1がインストールされていればOK)
-$ apt-cache policy libprotobuf-dev libprotoc-dev protobuf-compiler
-
 # Python Package Installerのインストール
 $ sudo apt-get install python-pip
 
 # Install protobuf for python2
-$ pip2 install protobuf==2.6.1
-# versionチェック(2.6.1がインストールされていればOK)
-$ pip2 show protobuf
+$ sudo pip2 install protobuf
 ```
 
 ### その他インストール
 ```zsh
-# ROS Navigationパッケージをインストール
-$ sudo apt-get install ros-kinetic-navigation
+# ROS パッケージをインストール
+$ sudo apt-get install ros-$ROS_DISTRO-navigation ros-$ROS_DISTRO-bfl
     
 # グラフ描画ライブラリ(pygraphviz) をインストール
 $ sudo apt-get install graphviz libgraphviz-dev pkg-config
