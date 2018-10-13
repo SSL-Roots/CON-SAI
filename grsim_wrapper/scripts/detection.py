@@ -2,8 +2,9 @@
 import rospy
 import multicast
 
-from consai_msgs.msg import VisionObservations
 from consai_msgs.msg import GeometryFieldSize, FieldLineSegment, FieldCircularArc
+
+from consai_msgs.msg import VisionPacket, VisionIDList
 
 from proto import messages_robocup_ssl_wrapper_pb2
 from format_converter import FormatConverter
@@ -20,9 +21,6 @@ class VisionReceiver:
 
         self._sock = multicast.Multicast(self._host, self._port)
 
-        self._vision_observations_publisher = rospy.Publisher(
-            'vision_observations', VisionObservations, queue_size=10)
-
         self._geometry_field_size_publisher = rospy.Publisher(
             'geometry_field_size', GeometryFieldSize, queue_size=10)
 
@@ -31,6 +29,24 @@ class VisionReceiver:
             self._do_side_invert = False
 
         self._format_converter = FormatConverter(self._our_color.lower(), self._do_side_invert)
+
+        self._pub_vision_id_list = rospy.Publisher(
+                'vision_id_list', VisionIDList, queue_size=1)
+        self._pub_ball_packet = rospy.Publisher(
+                'ball_vision_packet', VisionPacket, queue_size=1)
+        self._pubs_friend_packet = []
+        self._pubs_enemy_packet = []
+
+        self._ID_MAX = 12
+        for robot_id in range(self._ID_MAX):
+            id_str = str(robot_id)
+            topic_friend = "robot_" + id_str + "/vision_packet"
+            topic_enemy = "enemy_" + id_str + "/vision_packet"
+
+            self._pubs_friend_packet.append(
+                rospy.Publisher(topic_friend, VisionPacket, queue_size=1))
+            self._pubs_enemy_packet.append(
+                rospy.Publisher(topic_enemy, VisionPacket, queue_size=1))
 
         self._TO_METER = 0.001
 
@@ -41,20 +57,47 @@ class VisionReceiver:
         if buf == None:
             return  False
 
+        self._format_converter.buffer_clear()
         while not buf == None:
-            self._format_converter.protobufToTable(buf)
+            self._format_converter.convert_protobuf(buf)
             self._receive_geometry(buf)
             buf = self._sock.recv(2*1024)
 
-        ros_msg = self._format_converter.tableToRosmsg(rospy.Time.now())
-        self._format_converter.refreshTable()
-        self._vision_observations_publisher.publish(ros_msg)
+        self._publish_packets()
+
+    def _publish_packets(self):
+        ball_packet = self._format_converter.get_ball_packet()
+        friend_packets = self._format_converter.get_friend_packets()
+        enemy_packets = self._format_converter.get_enemy_packets()
+        vision_id_list = VisionIDList()
+
+        ros_time_stamp = rospy.Time.now()
+
+        if(ball_packet.data):
+            ball_packet.header.stamp = ros_time_stamp
+            self._pub_ball_packet.publish(ball_packet)
+
+        for packet in friend_packets:
+            if(packet.data):
+                robot_id = packet.robot_id
+                packet.header.stamp = ros_time_stamp
+                vision_id_list.friend_id_list.append(robot_id)
+                self._pubs_friend_packet[robot_id].publish(packet)
+
+        for packet in enemy_packets:
+            if(packet.data):
+                robot_id = packet.robot_id
+                packet.header.stamp = ros_time_stamp
+                vision_id_list.enemy_id_list.append(robot_id)
+                self._pubs_enemy_packet[robot_id].publish(packet)
+
+        vision_id_list.header.stamp = ros_time_stamp
+        self._pub_vision_id_list.publish(vision_id_list)
 
 
     def _receive_geometry(self, buf):
         ssl_wrapper = messages_robocup_ssl_wrapper_pb2.SSL_WrapperPacket()
         ssl_wrapper.ParseFromString(buf)
-
 
         if ssl_wrapper.HasField('geometry'):
             field_size = GeometryFieldSize()
@@ -70,7 +113,6 @@ class VisionReceiver:
             field_size.goal_depth = field.goal_depth * self._TO_METER
             field_size.boundary_width = field.boundary_width * self._TO_METER
 
-        
             for line in field.field_lines:
                 line_segment = FieldLineSegment()
 

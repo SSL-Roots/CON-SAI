@@ -5,9 +5,8 @@
 #include <geometry_msgs/Accel.h>
 #include <geometry_msgs/Pose.h>
 #include <nav_msgs/Odometry.h>
-#include <consai_msgs/VisionObservations.h>
-#include <consai_msgs/VisionRobotPackets.h>
 #include <consai_msgs/VisionPacket.h>
+#include <consai_msgs/VisionData.h>
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
 #include <sensor_msgs/PointCloud.h>
@@ -25,14 +24,14 @@ class Observer
     public:
         Observer(ros::NodeHandle& nh, std::string poses_source) :
             mPosesSource(poses_source),
-            sub_vision(nh.subscribe(poses_source, 1000, &Observer::visionCallBack, this)),
+            sub_vision(nh.subscribe(poses_source, 10, &Observer::visionCallBack, this)),
             observation_refreshed(false){}
 
         void update() {
             nav_msgs::Odometry odom;
 
             if (observation_refreshed) {
-                odom = estimator->estimate(accel_, last_observation.poses);
+                odom = estimator->estimate(accel_, last_pose_array.poses);
                 observation_refreshed = false;
             } else {
                 odom = estimator->estimate();
@@ -46,21 +45,33 @@ class Observer
     protected:
         Estimator* estimator;
         ros::Subscriber sub_vision;
-        geometry_msgs::PoseArray last_observation;
+        geometry_msgs::PoseArray last_pose_array;
         geometry_msgs::Accel accel_;
         bool observation_refreshed;
         std::string mPosesSource;
 
         virtual void publish(nav_msgs::Odometry odom) = 0;
-        virtual void visionCallBackProcess(consai_msgs::VisionObservations msg) = 0;
 
-        void visionCallBack(const consai_msgs::VisionObservations::ConstPtr& msg)
+        void visionCallBack(const consai_msgs::VisionPacket::ConstPtr& msg)
         {
             visionCallBackProcess(*msg);
-            //    last_observation  = *msg;
             observation_refreshed = true;
         }
 
+        void visionCallBackProcess(const consai_msgs::VisionPacket msg)
+        {
+            geometry_msgs::PoseArray pose_array;
+
+            pose_array.header = msg.header;
+
+            for(consai_msgs::VisionData data : msg.data){
+                if(doSkip(data.pose)){
+                    continue;
+                }
+                pose_array.poses.push_back(data.pose);
+            }
+            last_pose_array = pose_array;
+        }
 
         // フィールドの右半分/左半分だけを使って練習するときに使用する。
         bool doSkip(const geometry_msgs::Pose& pose){
@@ -85,19 +96,17 @@ class Observer
 };
 
 
-
-
 class FriendObserver :public Observer
 {
     public:
         FriendObserver(ros::NodeHandle& nh, std::string poses_source, int robot_id) :
             Observer(nh, poses_source),
-            pub_odom(nh_odom.advertise<nav_msgs::Odometry>("odom", 1000)),
-            pub_vel_norm(nh_odom.advertise<std_msgs::Float64>("vel_norm", 1000)),
-            sub_accel(nh_odom.subscribe<geometry_msgs::Accel>("accel_world", 1000, &FriendObserver::accelCallBack, this)),
+            pub_odom(nh_odom.advertise<nav_msgs::Odometry>("odom", 10)),
+            pub_vel_norm(nh_odom.advertise<std_msgs::Float64>("vel_norm", 10)),
+            sub_accel(nh_odom.subscribe<geometry_msgs::Accel>("accel_world", 10, &FriendObserver::accelCallBack, this)),
             _robot_id(robot_id)
     {
-        estimator = new EnemyEstimator(0.016);
+        estimator = new EnemyEstimator(0.0166);
     }
 
 
@@ -142,30 +151,6 @@ class FriendObserver :public Observer
             pub_vel_norm.publish(vel_norm);
         }
 
-        void visionCallBackProcess(consai_msgs::VisionObservations msg)
-        {
-            geometry_msgs::PoseArray pose_array;
-
-            vector<consai_msgs::VisionRobotPackets>::iterator it;
-
-            it = msg.friends.begin();
-
-            for (it = msg.friends.begin() ; it != msg.friends.end(); ++it) {
-                // search desired robot id
-                if (it->robot_id == _robot_id) {
-                    for (vector<consai_msgs::VisionPacket>::iterator it_pack = it->packets.begin(); it_pack != it->packets.end(); ++it_pack) {
-                        if (doSkip(it_pack->pose) ){
-                            continue;
-                        }
-                        pose_array.header=msg.header;
-                        pose_array.poses.push_back(it_pack->pose);
-                    }
-                }
-            }
-
-            last_observation  = pose_array;
-        }
-
         void accelCallBack(const geometry_msgs::AccelConstPtr& msg)
         {
             accel_ = *msg;
@@ -179,11 +164,11 @@ class EnemyObserver :public Observer
     public:
         EnemyObserver(ros::NodeHandle& nh, std::string poses_source, int robot_id) :
             Observer(nh, poses_source),
-            pub_odom(nh_odom.advertise<nav_msgs::Odometry>("odom", 1000)),
-            pub_vel_norm(nh_odom.advertise<std_msgs::Float64>("vel_norm", 1000)),
+            pub_odom(nh_odom.advertise<nav_msgs::Odometry>("odom", 10)),
+            pub_vel_norm(nh_odom.advertise<std_msgs::Float64>("vel_norm", 10)),
             _robot_id(robot_id)
     {
-        estimator = new EnemyEstimator(0.016);
+        estimator = new EnemyEstimator(0.0166);
     }
 
     protected:
@@ -225,30 +210,6 @@ class EnemyObserver :public Observer
             vel_norm.data = std::sqrt(velX*velX + velY*velY);
             pub_vel_norm.publish(vel_norm);
         }
-
-        void visionCallBackProcess(consai_msgs::VisionObservations msg)
-        {
-            geometry_msgs::PoseArray pose_array;
-
-            vector<consai_msgs::VisionRobotPackets>::iterator it;
-
-            it = msg.enemies.begin();
-
-            for (it = msg.enemies.begin() ; it != msg.enemies.end(); ++it) {
-                // search desired robot id
-                if (it->robot_id == _robot_id) {
-                    for (vector<consai_msgs::VisionPacket>::iterator it_pack = it->packets.begin(); it_pack != it->packets.end(); ++it_pack) {
-                        if (doSkip(it_pack->pose) ){
-                            continue;
-                        }
-                        pose_array.header=msg.header;
-                        pose_array.poses.push_back(it_pack->pose);
-                    }
-                }
-            }
-
-            last_observation  = pose_array;
-        }
 };
 
 
@@ -258,10 +219,10 @@ class BallObserver :public Observer
     public:
         BallObserver(ros::NodeHandle& nh, std::string poses_source) :
             Observer(nh, poses_source),
-            pub_odom(nh.advertise<nav_msgs::Odometry>("estimation", 1000)),
-            pub_vel_norm(nh.advertise<std_msgs::Float64>("vel_norm", 1000))
+            pub_odom(nh.advertise<nav_msgs::Odometry>("estimation", 10)),
+            pub_vel_norm(nh.advertise<std_msgs::Float64>("vel_norm", 10))
     {
-        estimator = new BallEstimator(0.016);
+        estimator = new BallEstimator(0.0166);
     }
 
 
@@ -302,21 +263,6 @@ class BallObserver :public Observer
             vel_norm.data = std::sqrt(velX*velX + velY*velY);
             pub_vel_norm.publish(vel_norm);
         }
-
-        void visionCallBackProcess(consai_msgs::VisionObservations msg)
-        {
-            geometry_msgs::PoseArray  pose_array;
-
-            for (vector<consai_msgs::VisionPacket>::iterator it_pack = msg.ball.begin(); it_pack != msg.ball.end(); ++it_pack) {
-                if (doSkip(it_pack->pose) ){
-                    continue;
-                }
-                pose_array.header=msg.header;
-                pose_array.poses.push_back(it_pack->pose);
-            }
-
-            last_observation = pose_array;
-        }
 };
 
 
@@ -325,14 +271,11 @@ int main(int argc, char **argv)
     const std::string node_name = "observer";
 
     ros::init(argc, argv, node_name);
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh;
 
     // 起動時のnamespaceを取得
     std::string ai_name = "/";
     ros::param::get("ai_name", ai_name);
-
-    std::string poses_source;
-    nh.param<std::string>("poses_source", poses_source, ai_name + "vision_observations");
 
     std::string observe_target;
     if (!ros::param::get("~observe_target", observe_target)) {
@@ -350,11 +293,12 @@ int main(int argc, char **argv)
 
     Observer*  obs;
     if (observe_target == "Ball") {
-        obs = new BallObserver(nh, poses_source);
+        ros::NodeHandle nh_("~");
+        obs = new BallObserver(nh_, ai_name + "ball_vision_packet");
     } else if (observe_target == "Friend") {
-        obs = new FriendObserver(nh, poses_source, observe_target_id);
+        obs = new FriendObserver(nh, "vision_packet", observe_target_id);
     } else {
-        obs = new EnemyObserver(nh, poses_source, observe_target_id);
+        obs = new EnemyObserver(nh, "vision_packet", observe_target_id);
     }
 
     ros::Rate loop_rate(60);

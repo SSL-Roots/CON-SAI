@@ -15,9 +15,9 @@ find_package(catkin REQUIRED COMPONENTS
    RobotPoses.msg
    nodeData.msg
    nodeDataArray.msg
-   VisionObservations.msg
    VisionPacket.msg
-   VisionRobotPackets.msg
+   VisionData.msg
+   VisionIDList.msg
    AIStatus.msg
    Pose.msg
    RefereeTeamInfo.msg

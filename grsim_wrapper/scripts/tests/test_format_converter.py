@@ -10,7 +10,7 @@ sys.path.append(pardir)
 
 from proto import messages_robocup_ssl_wrapper_pb2 as wrapper
 from format_converter import FormatConverter
-from consai_msgs.msg import VisionObservations
+from consai_msgs.msg import VisionPacket, VisionData
 
 
 class TestFormatConverter(unittest.TestCase):
@@ -18,7 +18,7 @@ class TestFormatConverter(unittest.TestCase):
     def setUp(self):
         pass
 
-    def test_protobuf_to_rosmsg(self):
+    def test_convert_protobuf(self):
 
         # Test Packet data
         packet = wrapper.SSL_WrapperPacket()
@@ -49,10 +49,10 @@ class TestFormatConverter(unittest.TestCase):
         message = packet.SerializeToString()
 
         converter = FormatConverter(friend_color='blue', do_side_invert=False)
-        converter.protobufToTable(message)
+        converter.convert_protobuf(message)
 
-        ros_msg = VisionObservations()
-        ros_msg = converter.tableToRosmsg(0.0)
+        ball_packet = converter.get_ball_packet()
+        friend_packets = converter.get_friend_packets()
 
         # convert unit
         TO_METER = 0.001
@@ -61,18 +61,20 @@ class TestFormatConverter(unittest.TestCase):
         robot_x *= TO_METER
         robot_y *= TO_METER
 
-        self.assertAlmostEqual(ros_msg.ball[0].t_capture, t_capture)
-        self.assertAlmostEqual(ros_msg.ball[0].t_sent, t_sent)
-        self.assertAlmostEqual(ros_msg.ball[0].camera_id, camera_id)
-        self.assertAlmostEqual(ros_msg.ball[0].pose.position.x, ball_x)
-        self.assertAlmostEqual(ros_msg.ball[0].pose.position.y, ball_y)
+        self.assertAlmostEqual(ball_packet.data[0].t_capture, t_capture)
+        self.assertAlmostEqual(ball_packet.data[0].t_sent, t_sent)
+        self.assertAlmostEqual(ball_packet.data[0].camera_id, camera_id)
+        self.assertAlmostEqual(ball_packet.data[0].pose.position.x, ball_x)
+        self.assertAlmostEqual(ball_packet.data[0].pose.position.y, ball_y)
 
-        self.assertAlmostEqual(ros_msg.friends[0].robot_id, robot_id)
-        self.assertAlmostEqual(ros_msg.friends[0].packets[0].t_capture, t_capture)
-        self.assertAlmostEqual(ros_msg.friends[0].packets[0].t_sent, t_sent)
-        self.assertAlmostEqual(ros_msg.friends[0].packets[0].camera_id, camera_id)
-        self.assertAlmostEqual(ros_msg.friends[0].packets[0].pose.position.x, robot_x)
-        self.assertAlmostEqual(ros_msg.friends[0].packets[0].pose.position.y, robot_y)
+        for packet in friend_packets:
+            if(packet.data):
+                self.assertAlmostEqual(packet.robot_id, robot_id)
+                self.assertAlmostEqual(packet.data[0].t_capture, t_capture)
+                self.assertAlmostEqual(packet.data[0].t_sent, t_sent)
+                self.assertAlmostEqual(packet.data[0].camera_id, camera_id)
+                self.assertAlmostEqual(packet.data[0].pose.position.x, robot_x)
+                self.assertAlmostEqual(packet.data[0].pose.position.y, robot_y)
 
 
 if __name__ == '__main__':

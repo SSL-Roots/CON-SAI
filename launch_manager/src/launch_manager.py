@@ -4,37 +4,37 @@ import rospy
 import shlex
 import subprocess
 import  std_msgs.msg
-from consai_msgs.msg import VisionObservations
+from consai_msgs.msg import VisionIDList
 
 # Global Constant
 EXPIRATION_TIME_SEC = 1.0
 MAIN_CYCLE = 10
 
 # Global varianble
-last_observation = VisionObservations()
+last_id_list = VisionIDList()
 friend_processes = {}
 enemy_processes = {}
 
 ai_name = ""
 
-def callback(msg):
-    global last_observation
-    last_observation = msg
 
+def callback_id_list(msg):
+    global last_id_list
+    last_id_list = msg
 
 def manageRobots():
     # TODO : refactor copy and paste
 
-    for friend in last_observation.friends:
-        if (friend.robot_id in friend_processes) == False:
-            cmd = "roslaunch ai_core robot.launch number:=" + str(friend.robot_id) \
+    for robot_id in last_id_list.friend_id_list:
+        if (robot_id in friend_processes) == False:
+            cmd = "roslaunch ai_core robot.launch number:=" + str(robot_id) \
                     + " ai_name:=" + str(ai_name)
             p = subprocess.Popen(shlex.split(cmd))
-            friend_processes[friend.robot_id] = [p, EXPIRATION_TIME_SEC]
-            rospy.loginfo("Spawn friend : ID " + str(friend.robot_id))
+            friend_processes[robot_id] = [p, EXPIRATION_TIME_SEC]
+            rospy.loginfo("Spawn friend : ID " + str(robot_id))
 
         else:
-            friend_processes[friend.robot_id][1] = EXPIRATION_TIME_SEC
+            friend_processes[robot_id][1] = EXPIRATION_TIME_SEC
 
     for k, v in friend_processes.items():
         friend_processes[k][1] -= 1.0 / MAIN_CYCLE
@@ -45,16 +45,16 @@ def manageRobots():
             rospy.loginfo("Terminate friend : ID " + str(k))
 
 
-    for enemy in last_observation.enemies:
-        if (enemy.robot_id in enemy_processes) == False:
-            cmd = "roslaunch ai_core enemy.launch number:=" + str(enemy.robot_id) \
+    for robot_id in last_id_list.enemy_id_list:
+        if (robot_id in enemy_processes) == False:
+            cmd = "roslaunch ai_core enemy.launch number:=" + str(robot_id) \
                     + " ai_name:=" + str(ai_name)
             p = subprocess.Popen(shlex.split(cmd))
-            enemy_processes[enemy.robot_id] = [p, EXPIRATION_TIME_SEC]
-            rospy.loginfo("Spawn enemy : ID " + str(enemy.robot_id))
+            enemy_processes[robot_id] = [p, EXPIRATION_TIME_SEC]
+            rospy.loginfo("Spawn enemy : ID " + str(robot_id))
 
         else:
-            enemy_processes[enemy.robot_id][1] = EXPIRATION_TIME_SEC
+            enemy_processes[robot_id][1] = EXPIRATION_TIME_SEC
 
     for k, v in enemy_processes.items():
         enemy_processes[k][1] -= 1.0 / MAIN_CYCLE
@@ -78,7 +78,7 @@ def publishExistingIds():
 if __name__ == '__main__':
     rospy.init_node("launch_manager")
 
-    sub = rospy.Subscriber('vision_observations', VisionObservations, callback)
+    sub_id_list = rospy.Subscriber('vision_id_list', VisionIDList, callback_id_list)
     pub_existing_friends_id  = rospy.Publisher('existing_friends_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
     pub_existing_enemies_id  = rospy.Publisher('existing_enemies_id', std_msgs.msg.UInt16MultiArray, queue_size=10)
 
