@@ -5,9 +5,9 @@
   <group ns="enemy_$(arg number)">
     <param name="ai_name" type="string" value="$(arg ai_name)" />
 
-    <node pkg="tf" type="static_transform_publisher" name="enemy_$(arg number)_odom" args="0 0 0 0 0 0 1 map enemy_$(arg number)/odom 100" />
+    <node pkg="tf" type="static_transform_publisher" name="enemy_$(arg number)_odom" args="0 0 0 0 0 0 1 map enemy_$(arg number)/odom 100" required="true"/>
 
-    <node name="observer" pkg="world_observer" type="world_observer">
+    <node name="observer" pkg="world_observer" type="world_observer" required="true">
       <param name="observe_target" type="string" value="Enemy" />
       <param name="observe_target_id" type="int" value="$(arg number)" />
     </node>

@@ -30,6 +30,9 @@ class BallEstimator : public Estimator
         ColumnVector  convertAccelMsgToInputVector(geometry_msgs::Accel acc);
         nav_msgs::Odometry  convetEstimationToOdometry();
 
+        bool isOutlier(ColumnVector measurement);
+        double mahalanobisDistance(ColumnVector measurement);
+
         Estimation getResult();
 
 };

@@ -1,4 +1,0 @@
-/friend_color : 'yellow' or 'blue'
-
-~multicast_addr : Refbox Multicast Address
-~multicast_port : Refbox Multicast port

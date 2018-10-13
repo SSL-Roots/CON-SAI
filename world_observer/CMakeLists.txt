@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 2.8.3)
 project(world_observer)
 
 find_package(PkgConfig)
-pkg_check_modules(BFL REQUIRED bfl)
+
+if("$ENV{ROS_DISTRO}" STRGREATER "lunar")
+    pkg_check_modules(BFL REQUIRED orocos-bfl)
+else()
+    pkg_check_modules(BFL REQUIRED bfl)
+endif()
+
 
 message("BFL include dirs:" ${BFL_INCLUDE_DIRS})
 message("BFL library dirs:" ${BFL_LIBRARY_DIRS})
@@ -26,6 +32,8 @@ include_directories(
   "include"
   ${catkin_INCLUDE_DIRS}
 )
+
+add_compile_options(-std=c++11)
 
 add_executable(world_observer
   src/world_observer.cpp
