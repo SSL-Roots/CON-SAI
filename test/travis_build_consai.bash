@@ -2,12 +2,12 @@
 
 # Install packages
 
-# Google Protobuf ver > 2.6
+# Google Protobuf
 sudo apt-get -y install libprotobuf-dev libprotoc-dev protobuf-compiler
-sudo pip2 install protobuf==2.6.1
+sudo pip2 install protobuf
 
-# ROS Navigation
-sudo apt-get -y install ros-indigo-navigation
+# ROS Packages
+sudo apt-get -y install ros-$ROS_DISTRO-navigation ros-$ROS_DISTRO-bfl
 
 # pygraphviz
 sudo apt-get -y install graphviz libgraphviz-dev pkg-config
