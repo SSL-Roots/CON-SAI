@@ -1,4 +1,6 @@
 <launch>
+  <arg name="no_serial" default="false" />
+
   <!-- Run Vision -->
   <node name="receiver" pkg="grsim_wrapper" type="detection.py" required="true">
     <param name="multicast_addr" type="string" value="224.5.23.2" />
@@ -7,6 +9,7 @@
 
   <!-- Run Sender -->
   <node name="sender" pkg="real_sender" type="real_sender_node" required="true">
+    <param name="no_serial" type="bool" value="$(arg no_serial)" />
       <!-- <remap from="/robot_0/robot_commands" to="/ssl_joy/ssl_joystick/robot_commands" /> -->
   </node>
 </launch>

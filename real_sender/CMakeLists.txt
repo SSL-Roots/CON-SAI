@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   serial
   consai_msgs
+  frootspi_msg
 )
 
 catkin_package()

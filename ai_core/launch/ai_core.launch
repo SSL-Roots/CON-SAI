@@ -2,6 +2,8 @@
   <arg name="ai_name" default="/" />
   <arg name="color" default="blue" />
   <arg name="side" default="left" />
+  <arg name="real" default="false" />
+  <arg name="no_serial" default="false" />
 
   <group ns="$(arg ai_name)">
     <param name="ai_name" type="string" value="$(arg ai_name)" />
@@ -10,8 +12,14 @@
 
     <rosparam command="load" file="$(find ai_core)/param/our_team.yaml" />
 
-    <include file="$(find ai_core)/launch/simulator.launch" />
-    <!-- <include file="$(find ai_core)/launch/real.launch" /> -->
+    <group if="$(arg real)">
+      <include file="$(find ai_core)/launch/real.launch">
+        <arg name="no_serial" value="$(arg no_serial)" />
+      </include>
+    </group>
+    <group unless="$(arg real)">
+      <include file="$(find ai_core)/launch/simulator.launch"/>
+    </group>
 
     <!-- Run Refbox -->
     <node name="refbox" pkg="ssl_refbox_wrapper" type="ssl_refbox_wrapper_node.py" required="true">
