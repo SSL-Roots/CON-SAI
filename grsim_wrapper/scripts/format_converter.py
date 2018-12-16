@@ -67,6 +67,10 @@ class FormatConverter:
             data.pose = self._vision_robot_to_pose(
                     robot.x, robot.y, robot.height, robot.orientation)
             robot_id = robot.robot_id
+
+            if robot_id >= self._ID_MAX:
+                continue
+
             self._friend_packets[robot_id].data.append(data)
 
         for robot in enemy_robots:
@@ -77,6 +81,10 @@ class FormatConverter:
             data.pose = self._vision_robot_to_pose(
                     robot.x, robot.y, robot.height, robot.orientation)
             robot_id = robot.robot_id
+
+            if robot_id >= self._ID_MAX:
+                continue
+
             self._enemy_packets[robot_id].data.append(data)
 
 
