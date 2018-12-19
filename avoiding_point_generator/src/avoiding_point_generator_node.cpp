@@ -18,9 +18,9 @@
 
 // ロボット位置情報と衝突回避コンフィグを保管するグローバル空間
 namespace GlobalInfo {
-    std::vector<geometry_msgs::Point> targetPoints(12);
-    std::vector<geometry_msgs::Point> friendPoints(12);
-    std::vector<geometry_msgs::Point> enemyPoints(12);
+    std::vector<geometry_msgs::Point> targetPoints;
+    std::vector<geometry_msgs::Point> friendPoints;
+    std::vector<geometry_msgs::Point> enemyPoints;
     std::vector<int> friendIDs;
     std::vector<int> enemyIDs;
     geometry_msgs::Point ballPoint;
@@ -40,6 +40,12 @@ namespace GlobalInfo {
     };
 
     ObstacleAvoidanceConfig OAConfig;
+
+    void initPoints(const int id_max){
+        targetPoints.resize(id_max);
+        friendPoints.resize(id_max);
+        enemyPoints.resize(id_max);
+    }
 
     void callbackTargetPoint(const geometry_msgs::PoseStampedConstPtr &msg, const int id){
         targetPoints[id] = msg->pose.position;
@@ -343,7 +349,12 @@ int main(int argc, char **argv){
     f = boost::bind(&GlobalInfo::callbackReconfigure, _1, _2);
     reconfigure_server.setCallback(f);
 
-    std::vector<ObstacleAvoidingPointGenerator> generator(12);
+    // ID_MAXの初期化
+    int ID_MAX = 12;
+    ros::param::get("id_max", ID_MAX);
+    GlobalInfo::initPoints(ID_MAX);
+
+    std::vector<ObstacleAvoidingPointGenerator> generator(ID_MAX);
 
     // DefenceAreaを初期化
     GlobalInfo::initDefencePoint();
@@ -364,7 +375,7 @@ int main(int argc, char **argv){
     // Publisherを作成
     std::vector<ros::Publisher> pubs_avoidingPoint;
 
-    for(int i=0; i< 12; i++){
+    for(int i=0; i< ID_MAX; i++){
         std::string topicName;
 
         // callbackに引数を与えるため、boost::bindを使用

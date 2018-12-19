@@ -116,6 +116,10 @@ def main():
 
 if __name__ == '__main__':
 
+    ROBOTS_NUM = rospy.get_param('robots_num', 6)
+    ID_MAX = rospy.get_param('id_max', 12)
+    WorldModel.initialize_world(ID_MAX, ROBOTS_NUM)
+
     play_executer = PlayExecuter()
 
     # Publishers for the robots controll
@@ -136,7 +140,7 @@ if __name__ == '__main__':
     sub_test_name = rospy.Subscriber('test_name', String, callback_test_name)
     sub_geometry = rospy.Subscriber('geometry_field_size', GeometryFieldSize, callback_geometry)
 
-    for robot_id in xrange(12):
+    for robot_id in xrange(ID_MAX):
         id_str = str(robot_id)
         topic_friend_odom = "robot_" + id_str + "/odom"
         topic_enemy_odom = "enemy_" + id_str + "/odom"

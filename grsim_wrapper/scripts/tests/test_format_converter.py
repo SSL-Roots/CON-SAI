@@ -39,7 +39,7 @@ class TestFormatConverter(unittest.TestCase):
         # Robot data
         robot = detection.robots_blue.add()
         robot.confidence = 0.0
-        robot.robot_id = robot_id = 3
+        robot.robot_id = robot_id = 13
         robot.x = robot_x = 3.0
         robot.y = robot_y = 4.0
         robot.orientation = orientation = math.pi

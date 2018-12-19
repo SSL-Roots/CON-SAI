@@ -48,32 +48,19 @@ class WorldModel(object):
     assignments = OrderedDict()
     enemy_assignments = OrderedDict()
     _threat_assignments = OrderedDict()
-
-    for i in range(6):
-        key = 'Role_' + str(i)
-        assignments[key] = None
-
-        key = 'Enemy_' + str(i)
-        enemy_assignments[key] = None
-
-        key = 'Threat_' + str(i)
-        _threat_assignments[key] = None
-
-    commands = {'Role_0' : Command(), 'Role_1' : Command(),
-                'Role_2' : Command(), 'Role_3' : Command(),
-                'Role_4' : Command(), 'Role_5' : Command()}
+    commands = OrderedDict()
 
     _ball_odom = Odometry()
 
     _friend_goalie_id = 0
     _friend_color = 'blue'
-    _friend_odoms = [Odometry()] * 12
-    _existing_friends_id = [None] * 6
+    _friend_odoms = []
+    _existing_friends_id = []
     _friend_team_info = RefereeTeamInfo()
 
     _enemy_goalie_id = 0
-    _enemy_odoms = [Odometry()] * 12
-    _existing_enemies_id = [None] * 6
+    _enemy_odoms = []
+    _existing_enemies_id = []
     _enemy_team_info = RefereeTeamInfo()
 
     tf_listener = tf.TransformListener()
@@ -116,6 +103,29 @@ class WorldModel(object):
 
     _ball_closest_frined_role = None
     _ball_closest_enemy_role = None
+
+
+    @classmethod
+    def initialize_world(cls, id_max, robots_num):
+        # id_maxは選手として参加できるロボットID数
+        # robots_numはフィールドに出る自チームのロボット台数
+
+        for i in range(id_max):
+            key = 'Role_' + str(i)
+            WorldModel.assignments[key] = None
+            WorldModel.commands[key] = Command()
+
+            key = 'Enemy_' + str(i)
+            WorldModel.enemy_assignments[key] = None
+
+            key = 'Threat_' + str(i)
+            WorldModel._threat_assignments[key] = None
+
+        WorldModel._friend_odoms = [Odometry()] * id_max
+        WorldModel._existing_friends_id = [None] * robots_num
+
+        WorldModel._enemy_odoms = [Odometry()] * id_max
+        WorldModel._existing_enemies_id = [None] * robots_num
 
 
     @classmethod

@@ -64,15 +64,17 @@ private:
 
 
 int main(int argc, char **argv) {
-    int robot_num = 12;
     ros::init(argc, argv, "real_sender");
     ros::NodeHandle nh;
     ros::Rate r(60);
 
-    Sender senders[robot_num];
-    ros::Subscriber subscribers[robot_num];
+    int ID_MAX = 12;
+    ros::param::get("id_max", ID_MAX);
 
-    for(int i=0;i<12;i++){
+    Sender senders[ID_MAX];
+    ros::Subscriber subscribers[ID_MAX];
+
+    for(int i=0;i<ID_MAX;i++){
         if (!senders[i].portOpend()){
             ros::shutdown();
         }

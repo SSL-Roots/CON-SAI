@@ -16,6 +16,7 @@ class VisionReceiver:
         # This class receives vision data and publish it
         self._our_color = rospy.get_param('friend_color', 'yellow').upper()
         self._our_side = rospy.get_param('team_side', 'right').upper()
+        self._ID_MAX = rospy.get_param('id_max', 12)
         self._host = rospy.get_param('~multicast_addr', '224.5.23.2')
         self._port = rospy.get_param('~multicast_port', 10006)
 
@@ -28,7 +29,9 @@ class VisionReceiver:
         if self._our_side == 'LEFT':
             self._do_side_invert = False
 
-        self._format_converter = FormatConverter(self._our_color.lower(), self._do_side_invert)
+        self._format_converter = FormatConverter(self._our_color.lower(), 
+                self._do_side_invert,
+                self._ID_MAX)
 
         self._pub_vision_id_list = rospy.Publisher(
                 'vision_id_list', VisionIDList, queue_size=1)
@@ -37,7 +40,6 @@ class VisionReceiver:
         self._pubs_friend_packet = []
         self._pubs_enemy_packet = []
 
-        self._ID_MAX = 12
         for robot_id in range(self._ID_MAX):
             id_str = str(robot_id)
             topic_friend = "robot_" + id_str + "/vision_packet"

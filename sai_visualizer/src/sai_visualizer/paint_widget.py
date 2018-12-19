@@ -121,26 +121,27 @@ class PaintWidget(QWidget):
         self.sub_friendsID = rospy.Subscriber("existing_friends_id", 
                 UIntArray, self.callbackFriendsID)
 
-        self.friendOdoms = [Odometry()] * 12
+        self._ID_MAX = rospy.get_param('id_max', 12)
+        self.friendOdoms = [Odometry()] * self._ID_MAX
         self.sub_friendOdoms = []
 
         self.enemyIDArray = UIntArray()
         self.sub_enemiesID = rospy.Subscriber("existing_enemies_id",
                 UIntArray, self.callbackEnemiesID)
 
-        self.enemyOdoms = [Odometry()] * 12
+        self.enemyOdoms = [Odometry()] * self._ID_MAX
         self.sub_enemyOdoms = []
 
-        self.targetPositions = [PoseStamped()] * 12
+        self.targetPositions = [PoseStamped()] * self._ID_MAX
         self.sub_targetPositions =[]
-        self.targetVelocities = [TwistStamped()] * 12
+        self.targetVelocities = [TwistStamped()] * self._ID_MAX
         self.sub_targetVelocities = []
-        self.targetIsPosition = [False] * 12
+        self.targetIsPosition = [False] * self._ID_MAX
 
-        self.avoidingPoints = [Point()] * 12
+        self.avoidingPoints = [Point()] * self._ID_MAX
         self.sub_avoidingPoints = []
 
-        for i in xrange(12):
+        for i in xrange(self._ID_MAX):
             strID = str(i)
             topicFriend = "robot_" + strID + "/odom"
             topicEnemy = "enemy_" + strID + "/odom"

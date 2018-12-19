@@ -12,7 +12,7 @@ from consai_msgs.msg import VisionPacket, VisionData
 
 class FormatConverter:
 
-    def __init__(self, friend_color, do_side_invert):
+    def __init__(self, friend_color, do_side_invert, id_max):
         self.table = []
         self.friend_color = friend_color
         self.do_side_invert = do_side_invert
@@ -21,7 +21,7 @@ class FormatConverter:
         self._friend_packets = []
         self._enemy_packets = []
 
-        self._ID_MAX = 12
+        self._ID_MAX = id_max
 
         for robot_id in range(self._ID_MAX):
             self._friend_packets.append(VisionPacket())

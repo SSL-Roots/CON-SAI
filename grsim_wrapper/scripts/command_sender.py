@@ -20,6 +20,7 @@ class Sender:
         self.host = rospy.get_param('~server_address', '127.0.0.1')
         self.port = rospy.get_param('~server_port', 20011)
         self.friend_color = rospy.get_param('friend_color', 'yellow')
+        self._ID_MAX = rospy.get_param('id_max', 12)
 
         rospy.loginfo('server address is set to [' + self.host         + ']')
         rospy.loginfo('server port is set to ['    + str(self.port)    + ']')
@@ -37,7 +38,7 @@ class Sender:
 
         # make subscribers
         self.subscribers = []
-        for i in xrange(12):
+        for i in xrange(self._ID_MAX):
             topic = "robot_" + str(i) + "/robot_commands"
             self.subscribers.append(
                     rospy.Subscriber(
