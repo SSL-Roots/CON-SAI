@@ -11,7 +11,7 @@ from consai_msgs.msg import RefereeTeamInfo
 def convert_team_info(data):
     team_info = RefereeTeamInfo()
 
-    team_info.name = str(data.name)
+    team_info.name = str(data.name.encode('utf-8'))
     team_info.score = data.score
     team_info.red_cards = data.red_cards
     team_info.yellow_card_times = data.yellow_card_times
