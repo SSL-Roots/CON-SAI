@@ -6,6 +6,9 @@ CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 
 **CON**tribution to **S**occer **AI**
 
+**今は開発をCON-SAI2に移行しています。**
+https://github.com/SSL-Roots/consai2
+
 ![running CON-SAI](https://github.com/SSL-Roots/CON-SAI/blob/Images/Images/CON-SAI-about.png "running CON-SAI")
 
 ## CON-SAIの開発コンセプト
