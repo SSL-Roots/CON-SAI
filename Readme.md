@@ -1,3 +1,8 @@
+**本パッケージの使用は非推奨です**
+
+https://github.com/SSL-Roots/consai_ros2
+へ開発を移行しています
+
 [![Build Status](https://travis-ci.org/SSL-Roots/CON-SAI.svg?branch=master)](https://travis-ci.org/SSL-Roots/CON-SAI)
 
 # CON-SAI
@@ -5,9 +10,6 @@ CON-SAIは[RoboCup SSL](http://wiki.robocup.org/Small_Size_League)に
 初めて参加する人でも開発できるサッカーAIです。
 
 **CON**tribution to **S**occer **AI**
-
-**今は開発をCON-SAI2に移行しています。**
-https://github.com/SSL-Roots/consai2
 
 ![running CON-SAI](https://github.com/SSL-Roots/CON-SAI/blob/Images/Images/CON-SAI-about.png "running CON-SAI")
 
